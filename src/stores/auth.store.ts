@@ -25,6 +25,7 @@ interface AuthState {
   error: string | null
 
   login: (email: string, password: string) => Promise<void>
+  loginAsGuest: () => void
   register: (data: RegisterData) => Promise<void>
   registerInvitado: (email: string) => Promise<void>
   completarPerfil: (data: CompletarPerfilData) => Promise<void>
@@ -139,6 +140,23 @@ export const useAuthStore = create<AuthState>()(
           })
           throw err
         }
+      },
+
+      // Acceso rápido sin credenciales — solo para explorar el portal
+      // TODO (backend): puede conectarse a /auth/acceso-anonimo si el backend lo soporta
+      loginAsGuest: () => {
+        const guestUser: User = {
+          id: 'guest-' + Date.now(),
+          email: 'invitado@gadcanar.gob.ec',
+          nombre: 'Invitado',
+          apellido: '',
+          role: 'INVITADO',
+          activo: true,
+          createdAt: new Date().toISOString(),
+        }
+        const guestToken = 'guest-token-' + Date.now()
+        localStorage.setItem('gad_access_token', guestToken)
+        set({ user: guestUser, accessToken: guestToken, refreshToken: null, error: null })
       },
 
       logout: () => {

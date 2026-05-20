@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Eye, EyeOff, AlertCircle, ArrowRight, Lock, Mail } from 'lucide-react'
+import { Eye, EyeOff, AlertCircle, ArrowRight } from 'lucide-react'
 import { useAuthStore } from '@/stores/auth.store'
 
 const loginSchema = z.object({
@@ -12,17 +12,19 @@ const loginSchema = z.object({
 })
 type LoginForm = z.infer<typeof loginSchema>
 
+// TODO (backend): El backend retorna el rol en el JWT.
+// El store lo lee y devuelve user.role para la redirección.
 const ROLE_REDIRECT: Record<string, string> = {
-  CIUDADANO:   '/ciudadano',
-  INVITADO:    '/ciudadano',
-  TECNICO:     '/tecnico',
-  SECRETARIA:  '/secretaria',
-  FINANCIERO:  '/financiero',
-  SUPERADMIN:  '/admin',
+  CIUDADANO:  '/ciudadano',
+  INVITADO:   '/ciudadano',
+  TECNICO:    '/tecnico',
+  SECRETARIA: '/secretaria',
+  FINANCIERO: '/financiero',
+  SUPERADMIN: '/admin',
 }
 
 export function LoginPage() {
-  const { login, isLoading, error, clearError } = useAuthStore()
+  const { login, loginAsGuest, isLoading, error, clearError } = useAuthStore()
   const navigate = useNavigate()
   const [showPass, setShowPass] = useState(false)
 
@@ -34,156 +36,161 @@ export function LoginPage() {
     clearError()
     try {
       await login(data.email, data.password)
-      const user = useAuthStore.getState().user
-      navigate(ROLE_REDIRECT[user?.role ?? ''] ?? '/ciudadano', { replace: true })
+      const role = useAuthStore.getState().user?.role ?? ''
+      navigate(ROLE_REDIRECT[role] ?? '/ciudadano', { replace: true })
     } catch {}
   }
 
+  const handleGuest = () => {
+    loginAsGuest()
+    navigate('/ciudadano', { replace: true })
+  }
+
   return (
-    <div className="min-h-screen flex" style={{ background: 'var(--dark)' }}>
+    <div className="min-h-screen flex" style={{ background: '#fff' }}>
 
-      {/* ── Panel izquierdo — Identidad institucional ── */}
+      {/* ── PANEL IZQUIERDO — Identidad institucional ── */}
       <div className="hidden lg:flex flex-1 flex-col items-center justify-center relative overflow-hidden"
-        style={{ background: '#0A0800' }}>
+        style={{ background: '#07112A', maxWidth: '52%' }}>
 
-        {/* Fondo decorativo con los colores del escudo */}
-        <div style={{
-          position: 'absolute', inset: 0,
-          background: `
-            radial-gradient(circle at 20% 20%, rgba(204,34,41,0.12) 0%, transparent 40%),
-            radial-gradient(circle at 80% 80%, rgba(46,139,87,0.08) 0%, transparent 40%),
-            radial-gradient(circle at 80% 20%, rgba(27,127,191,0.08) 0%, transparent 40%),
-            radial-gradient(circle at 20% 80%, rgba(37,99,235,0.05) 0%, transparent 40%)
-          `,
+        {/* Banda de colores institucionales — top */}
+        <div className="absolute top-0 left-0 right-0 flex" style={{ height: 5 }}>
+          {['#CC2229', '#F5C100', '#22C55E', '#2563EB'].map(c => (
+            <div key={c} className="flex-1" style={{ background: c }} />
+          ))}
+        </div>
+
+        {/* Patrón de fondo — topografía suave */}
+        <div className="absolute inset-0 pointer-events-none" style={{
+          backgroundImage: `radial-gradient(circle at 25% 30%, rgba(37,99,235,0.12) 0%, transparent 50%),
+            radial-gradient(circle at 75% 70%, rgba(34,197,94,0.06) 0%, transparent 50%),
+            radial-gradient(circle at 75% 25%, rgba(245,193,0,0.06) 0%, transparent 40%),
+            radial-gradient(circle at 25% 75%, rgba(204,34,41,0.06) 0%, transparent 40%)`,
         }} />
 
-        {/* Líneas decorativas */}
-        <div style={{
-          position: 'absolute', top: 0, left: 0, right: 0,
-          height: 4,
-          background: 'linear-gradient(90deg, #CC2229 25%, #2563EB 25% 50%, #2E8B57 50% 75%, #1B7FBF 75%)',
-        }} />
+        {/* Líneas decorativas tipo topografía */}
+        <svg className="absolute inset-0 w-full h-full opacity-[0.04]" xmlns="http://www.w3.org/2000/svg">
+          <pattern id="topo" x="0" y="0" width="80" height="80" patternUnits="userSpaceOnUse">
+            <circle cx="40" cy="40" r="35" fill="none" stroke="white" strokeWidth="0.8"/>
+            <circle cx="40" cy="40" r="25" fill="none" stroke="white" strokeWidth="0.8"/>
+            <circle cx="40" cy="40" r="15" fill="none" stroke="white" strokeWidth="0.8"/>
+          </pattern>
+          <rect width="100%" height="100%" fill="url(#topo)" />
+        </svg>
 
-        <div className="relative z-10 text-center px-12 max-w-md">
-          {/* Logo con glow */}
-          <div className="relative inline-block mb-8">
+        {/* Contenido */}
+        <div className="relative z-10 text-center px-14 max-w-md">
+          {/* Escudo con glow */}
+          <div className="relative inline-block mb-10">
+            <div className="absolute inset-0 rounded-3xl opacity-40 blur-2xl"
+              style={{ background: 'conic-gradient(#CC2229 0deg 90deg, #2563EB 90deg 180deg, #22C55E 180deg 270deg, #F5C100 270deg 360deg)', transform: 'scale(1.3)' }} />
             <img src="/logo-gad.png" alt="GAD Municipal de Cañar"
-              className="w-32 h-32 object-contain mx-auto"
-              style={{ background: 'white', borderRadius: 20, padding: 8, boxShadow: '0 0 60px rgba(37,99,235,0.3)' }} />
-            {/* Anillo giratorio de colores */}
-            <div style={{
-              position: 'absolute', inset: -6, borderRadius: 28,
-              background: 'conic-gradient(#CC2229 0deg 90deg, #2563EB 90deg 180deg, #2E8B57 180deg 270deg, #1B7FBF 270deg 360deg)',
-              opacity: 0.35,
-              zIndex: -1,
-              filter: 'blur(6px)',
-            }} />
+              className="relative w-36 h-36 object-contain"
+              style={{ background: 'white', borderRadius: 24, padding: 10, boxShadow: '0 0 0 1px rgba(255,255,255,0.1), 0 24px 64px rgba(0,0,0,0.4)' }} />
           </div>
 
-          <h2 className="font-heading font-extrabold text-blue-950 text-3xl mb-3">
+          <h2 className="font-heading font-black text-white mb-2"
+            style={{ fontSize: '2.5rem', letterSpacing: '-0.02em' }}>
             CAÑAR
           </h2>
-          <p className="font-bold mb-1" style={{ color: '#2563EB', letterSpacing: '0.2em', fontSize: '0.8rem' }}>
+          <p className="font-bold tracking-[0.25em] mb-1" style={{ color: '#F5C100', fontSize: '0.7rem' }}>
             GAD MUNICIPAL
           </p>
-          <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.75rem', marginBottom: '2rem' }}>
+          <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: '0.65rem', letterSpacing: '0.15em', marginBottom: '2.5rem' }}>
             ORDENAMIENTO TERRITORIAL
           </p>
 
-          {/* Cuatro bloques de colores del escudo */}
-          <div className="grid grid-cols-2 gap-3 mb-8">
+          {/* Divisor colores */}
+          <div className="flex gap-2 justify-center mb-8">
             {[
-              { c: '#CC2229', label: 'Justicia', desc: 'Equidad Social' },
-              { c: '#2563EB', label: 'Progreso', desc: 'Desarrollo Cantonal' },
-              { c: '#2E8B57', label: 'Naturaleza', desc: 'Sostenibilidad' },
-              { c: '#1B7FBF', label: 'Agua', desc: 'Recurso Vital' },
-            ].map(({ c, label, desc }) => (
-              <div key={label} className="p-4 rounded-xl text-center"
-                style={{ background: `${c}15`, border: `1px solid ${c}30` }}>
-                <p style={{ color: `${c}`, fontSize: '0.85rem', fontWeight: 700 }}>{label}</p>
-                <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.65rem', marginTop: 4 }}>{desc}</p>
+              { c: '#CC2229', label: 'Justicia' },
+              { c: '#F5C100', label: 'Progreso' },
+              { c: '#22C55E', label: 'Naturaleza' },
+              { c: '#2563EB', label: 'Agua' },
+            ].map(({ c, label }) => (
+              <div key={label} className="flex flex-col items-center gap-2">
+                <div style={{ width: 28, height: 4, background: c, borderRadius: 99, opacity: 0.9 }} />
+                <span style={{ color: 'rgba(255,255,255,0.3)', fontSize: '0.55rem', letterSpacing: '0.1em' }}>
+                  {label.toUpperCase()}
+                </span>
               </div>
             ))}
           </div>
 
-          <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.75rem', lineHeight: 1.7 }}>
-            Plataforma oficial de trámites digitales de ordenamiento territorial del Cantón Cañar
+          <p style={{ color: 'rgba(255,255,255,0.25)', fontSize: '0.72rem', lineHeight: 1.8 }}>
+            Plataforma oficial de trámites digitales<br />del Cantón Cañar, Ecuador
           </p>
         </div>
 
-        {/* Línea inferior */}
-        <div style={{
-          position: 'absolute', bottom: 0, left: 0, right: 0,
-          height: 4,
-          background: 'linear-gradient(90deg, #1B7FBF 25%, #2E8B57 25% 50%, #2563EB 50% 75%, #CC2229 75%)',
-        }} />
+        {/* Banda de colores — bottom */}
+        <div className="absolute bottom-0 left-0 right-0 flex" style={{ height: 5 }}>
+          {['#2563EB', '#22C55E', '#F5C100', '#CC2229'].map(c => (
+            <div key={c} className="flex-1" style={{ background: c }} />
+          ))}
+        </div>
       </div>
 
-      {/* ── Panel derecho — Formulario ── */}
-      <div className="flex-1 flex items-center justify-center px-6 py-12"
-        style={{ background: 'var(--dark)', maxWidth: 480, width: '100%' }}>
+      {/* ── PANEL DERECHO — Formulario minimalista ── */}
+      <div className="flex-1 flex items-center justify-center px-8 py-16 bg-white">
+        <div className="w-full max-w-xs">
 
-        <div className="w-full max-w-sm">
-          {/* Logo mobile */}
-          <div className="lg:hidden flex items-center gap-3 mb-8">
+          {/* Logo móvil */}
+          <div className="lg:hidden flex items-center gap-3 mb-10">
             <img src="/logo-gad.png" alt="GAD" className="w-10 h-10 object-contain rounded-xl"
-              style={{ background: 'white', padding: 3 }} />
+              style={{ background: 'white', padding: 2, boxShadow: '0 2px 12px rgba(0,0,0,0.1)' }} />
             <div>
-              <p className="font-heading font-bold text-blue-950">GAD Cañar</p>
-              <p style={{ color: 'rgba(37,99,235,0.5)', fontSize: '10px' }}>PORTAL CIUDADANO</p>
+              <p className="font-heading font-black text-blue-950 text-sm tracking-wide">CAÑAR</p>
+              <p style={{ color: '#F5C100', fontSize: '0.55rem', letterSpacing: '0.2em', fontWeight: 700 }}>GAD MUNICIPAL</p>
             </div>
           </div>
 
-          {/* Banda de colores del escudo — móvil */}
-          <div className="lg:hidden shield-band mb-8 rounded-full" style={{ height: 3 }} />
-
-          <h1 className="font-heading font-extrabold text-blue-950 text-2xl mb-2">
+          {/* Título */}
+          <h1 className="font-heading font-black text-blue-950 mb-1" style={{ fontSize: '1.9rem', letterSpacing: '-0.02em' }}>
             Inicia sesión
           </h1>
-          <p className="mb-8" style={{ color: '#64748b', fontSize: '0.9rem' }}>
-            Accede a tu portal según tu rol institucional
+          <p className="text-slate-400 mb-9" style={{ fontSize: '0.88rem' }}>
+            El sistema te llevará a tu espacio automáticamente.
           </p>
 
-          {/* Error */}
+          {/* Error global */}
           {error && (
-            <div className="flex items-center gap-3 p-4 rounded-xl mb-6" style={{
-              background: 'rgba(204,34,41,0.1)',
-              border: '1px solid rgba(204,34,41,0.3)',
-              color: '#F87171',
-              fontSize: '0.875rem',
-            }}>
-              <AlertCircle size={16} className="flex-shrink-0" />
+            <div className="flex items-center gap-2.5 p-3.5 rounded-xl mb-6 text-sm"
+              style={{ background: 'rgba(204,34,41,0.06)', border: '1px solid rgba(204,34,41,0.2)', color: '#CC2229' }}>
+              <AlertCircle size={15} className="flex-shrink-0" />
               {error}
             </div>
           )}
 
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+          {/* Form */}
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+
             {/* Email */}
             <div>
-              <label className="input-label">
-                <Mail size={12} className="inline mr-1" />
+              <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">
                 Correo electrónico
               </label>
               <input
                 {...register('email')}
                 id="login-email"
                 type="email"
-                className="input-field"
-                placeholder="nombre@gadcanar.gob.ec"
                 autoComplete="email"
+                autoFocus
+                placeholder="tu@correo.ec"
+                className="w-full px-4 py-3.5 rounded-xl text-sm font-medium outline-none transition-all"
+                style={{ background: '#f8fafc', border: '1.5px solid #e2e8f0', color: '#0f172a' }}
+                onFocus={e => { e.currentTarget.style.borderColor = '#2563EB'; e.currentTarget.style.background = '#fff'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(37,99,235,0.08)' }}
+                onBlur={e => { e.currentTarget.style.borderColor = '#e2e8f0'; e.currentTarget.style.background = '#f8fafc'; e.currentTarget.style.boxShadow = 'none' }}
               />
               {errors.email && (
-                <p className="input-error">
-                  <AlertCircle size={12} />
-                  {errors.email.message}
+                <p className="flex items-center gap-1 mt-1.5 text-xs" style={{ color: '#CC2229' }}>
+                  <AlertCircle size={11} />{errors.email.message}
                 </p>
               )}
             </div>
 
             {/* Password */}
             <div>
-              <label className="input-label">
-                <Lock size={12} className="inline mr-1" />
+              <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">
                 Contraseña
               </label>
               <div className="relative">
@@ -191,76 +198,84 @@ export function LoginPage() {
                   {...register('password')}
                   id="login-password"
                   type={showPass ? 'text' : 'password'}
-                  className="input-field pr-12"
-                  placeholder="••••••••"
                   autoComplete="current-password"
+                  placeholder="••••••••"
+                  className="w-full px-4 py-3.5 pr-12 rounded-xl text-sm font-medium outline-none transition-all"
+                  style={{ background: '#f8fafc', border: '1.5px solid #e2e8f0', color: '#0f172a' }}
+                  onFocus={e => { e.currentTarget.style.borderColor = '#2563EB'; e.currentTarget.style.background = '#fff'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(37,99,235,0.08)' }}
+                  onBlur={e => { e.currentTarget.style.borderColor = '#e2e8f0'; e.currentTarget.style.background = '#f8fafc'; e.currentTarget.style.boxShadow = 'none' }}
                 />
                 <button type="button" onClick={() => setShowPass(!showPass)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2"
-                  style={{ color: '#94a3b8' }}>
-                  {showPass ? <EyeOff size={18} /> : <Eye size={18} />}
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 transition-colors"
+                  style={{ color: '#94a3b8' }}
+                  onMouseEnter={e => (e.currentTarget.style.color = '#2563EB')}
+                  onMouseLeave={e => (e.currentTarget.style.color = '#94a3b8')}>
+                  {showPass ? <EyeOff size={17} /> : <Eye size={17} />}
                 </button>
               </div>
               {errors.password && (
-                <p className="input-error">
-                  <AlertCircle size={12} />
-                  {errors.password.message}
+                <p className="flex items-center gap-1 mt-1.5 text-xs" style={{ color: '#CC2229' }}>
+                  <AlertCircle size={11} />{errors.password.message}
                 </p>
               )}
             </div>
 
-            {/* Submit */}
-            <button type="submit" id="login-submit" disabled={isLoading} className="btn-primary w-full mt-2">
+            {/* Botón principal */}
+            <button
+              type="submit"
+              id="login-submit"
+              disabled={isLoading}
+              className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl font-bold text-sm text-white transition-all mt-2"
+              style={{
+                background: isLoading
+                  ? 'rgba(37,99,235,0.5)'
+                  : 'linear-gradient(135deg, #1E40AF 0%, #2563EB 100%)',
+                boxShadow: isLoading ? 'none' : '0 4px 16px rgba(37,99,235,0.3)',
+              }}
+              onMouseEnter={e => { if (!isLoading) (e.currentTarget as HTMLElement).style.transform = 'translateY(-1px)' }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = 'none' }}
+            >
               {isLoading
-                ? <div className="w-5 h-5 border-2 rounded-full animate-spin" style={{ borderColor: 'rgba(255,255,255,0.3)', borderTopColor: '#FFFFFF' }} />
-                : <><span>Ingresar al sistema</span><ArrowRight size={18} /></>}
+                ? <div className="w-5 h-5 border-2 rounded-full animate-spin"
+                    style={{ borderColor: 'rgba(255,255,255,0.3)', borderTopColor: '#fff' }} />
+                : <><span>Ingresar</span><ArrowRight size={17} /></>
+              }
             </button>
           </form>
 
-          {/* Divisor */}
+          {/* Enlace registro */}
+          <div className="mt-5 text-center">
+            <span className="text-sm text-slate-400">¿No tienes cuenta?{' '}</span>
+            <Link to="/registro" id="login-to-register"
+              className="text-sm font-semibold transition-colors"
+              style={{ color: '#2563EB' }}
+              onMouseEnter={e => (e.currentTarget.style.color = '#1E40AF')}
+              onMouseLeave={e => (e.currentTarget.style.color = '#2563EB')}>
+              Registrarme
+            </Link>
+          </div>
+
+          {/* Separador */}
           <div className="flex items-center gap-3 my-6">
-            <div className="flex-1 h-px" style={{ background: 'rgba(37,99,235,0.1)' }} />
-            <span style={{ color: '#64748b', fontSize: '0.75rem' }}>¿nuevo usuario?</span>
-            <div className="flex-1 h-px" style={{ background: 'rgba(37,99,235,0.1)' }} />
+            <div className="flex-1 h-px" style={{ background: '#f1f5f9' }} />
           </div>
 
-          <Link to="/registro" id="login-to-register"
-            className="btn-secondary w-full">
-            Crear cuenta ciudadana
-          </Link>
-
-          {/* Portales disponibles */}
-          <div className="mt-8 p-4 rounded-2xl" style={{ background: 'rgba(37,99,235,0.04)', border: '1px solid rgba(37,99,235,0.1)' }}>
-            <p style={{ color: '#64748b', fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 12, textAlign: 'center' }}>
-              Portales del sistema
-            </p>
-            <div className="grid grid-cols-3 gap-2">
-              {[
-                { role: 'Ciudadano', color: '#2563EB', icon: '👤', text: 'Trámites' },
-                { role: 'Secretaría', color: '#D97706', icon: '📋', text: 'Revisión Docs' },
-                { role: 'Técnico', color: '#2E8B57', icon: '🔬', text: 'Evaluación' },
-                { role: 'Financiero', color: '#7C3AED', icon: '💰', text: 'Cobros' },
-                { role: 'SuperAdmin', color: '#CC2229', icon: '🛡️', text: 'Control Total' },
-                { role: 'Invitado', color: '#64748b', icon: '👁️', text: 'Consulta' },
-              ].map(r => (
-                <div key={r.role} className="text-center p-3 rounded-xl transition-all"
-                  style={{ background: `${r.color}08`, border: `1px solid ${r.color}20` }}>
-                  <p style={{ fontSize: '1rem', marginBottom: 4 }}>{r.icon}</p>
-                  <p style={{ color: `${r.color}`, fontSize: '0.65rem', fontWeight: 700 }}>
-                    {r.role}
-                  </p>
-                  <p style={{ color: '#94a3b8', fontSize: '0.58rem', marginTop: 2 }}>
-                    {r.text}
-                  </p>
-                </div>
-              ))}
-            </div>
-            <p style={{ color: 'rgba(100,116,139,0.6)', fontSize: '0.65rem', textAlign: 'center', marginTop: 10 }}>
-              🔐 Cada rol ingresa con credenciales asignadas
-            </p>
+          {/* Enlace invitado — sutil y elegante */}
+          <div className="text-center">
+            <button
+              onClick={handleGuest}
+              id="login-guest"
+              className="text-xs transition-all"
+              style={{ color: '#94a3b8', textDecoration: 'underline', textUnderlineOffset: 3 }}
+              onMouseEnter={e => (e.currentTarget.style.color = '#64748b')}
+              onMouseLeave={e => (e.currentTarget.style.color = '#94a3b8')}
+            >
+              ¿Solo vienes a consultar? Entrar como invitado
+            </button>
           </div>
 
-          <p className="text-center mt-8" style={{ color: '#94a3b8', fontSize: '0.7rem' }}>
+          {/* Footer */}
+          <p className="text-center mt-10" style={{ color: '#cbd5e1', fontSize: '0.68rem' }}>
             © {new Date().getFullYear()} GAD Municipal de Cañar
           </p>
         </div>
