@@ -84,34 +84,38 @@ export function MisSolicitudes() {
                   </td>
                 </tr>
               ) : (
-                solicitudes.map((s) => (
-                  <tr key={s.id} className="border-b border-surface-border hover:bg-surface-muted/50 transition-colors">
-                    <td className="px-6 py-4">
-                      <p className="font-medium text-blue-950">{s.tipoTramite || 'Ordenamiento Territorial'}</p>
-                      <p className="text-xs text-slate-500 font-mono mt-0.5">#{s.id.slice(0, 8).toUpperCase()}</p>
-                    </td>
-                    <td className="px-6 py-4 text-slate-600">
-                      {s.predio?.direccion || '—'}
-                    </td>
-                    <td className="px-6 py-4 text-slate-600">
-                      {formatDateTime(s.createdAt)}
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className={getEstadoBadgeClass(s.estado)}>
-                        {getEstadoLabel(s.estado)}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <Link 
-                        to={`/ciudadano/solicitudes/${s.id}`} 
-                        className="inline-flex items-center justify-center p-2 text-primary-600 hover:bg-primary-50 rounded-lg transition-colors"
-                        title="Ver detalle"
-                      >
-                        <Eye size={18} />
-                      </Link>
-                    </td>
-                  </tr>
-                ))
+                solicitudes.map((s) => {
+                  const safeId = typeof s.id === 'string' ? s.id : String(s.id || '')
+                  const displayId = safeId ? safeId.slice(0, 8).toUpperCase() : 'N/A'
+                  return (
+                    <tr key={safeId} className="border-b border-surface-border hover:bg-surface-muted/50 transition-colors">
+                      <td className="px-6 py-4">
+                        <p className="font-medium text-blue-950">{s.tipoTramite || 'Ordenamiento Territorial'}</p>
+                        <p className="text-xs text-slate-500 font-mono mt-0.5">#{displayId}</p>
+                      </td>
+                      <td className="px-6 py-4 text-slate-600">
+                        {s.predio?.direccion || '—'}
+                      </td>
+                      <td className="px-6 py-4 text-slate-600">
+                        {s.createdAt ? formatDateTime(s.createdAt) : '—'}
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className={getEstadoBadgeClass(s.estado || 'BORRADOR')}>
+                          {getEstadoLabel(s.estado || 'BORRADOR')}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <Link 
+                          to={`/ciudadano/solicitudes/${safeId}`} 
+                          className="inline-flex items-center justify-center p-2 text-primary-600 hover:bg-primary-50 rounded-lg transition-colors"
+                          title="Ver detalle"
+                        >
+                          <Eye size={18} />
+                        </Link>
+                      </td>
+                    </tr>
+                  )
+                })
               )}
             </tbody>
           </table>

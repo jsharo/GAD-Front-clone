@@ -314,24 +314,28 @@ export function CiudadanoDashboard() {
           </div>
         ) : (
           <div className="divide-y divide-slate-100">
-            {solicitudes.slice(0, 5).map(sol => (
-              <Link key={sol.id} to={`/ciudadano/solicitudes/${sol.id}`}
-                className="block p-5 hover:bg-slate-50 transition-colors group">
-                <div className="flex items-center gap-4 mb-3">
-                  <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center flex-shrink-0">
-                    <FileText size={18} className="text-blue-500" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-bold text-blue-950 text-sm truncate">{sol.tipoTramite}</p>
-                    <p className="text-slate-400 text-xs">#{sol.id.slice(0,8)} · {sol.predio?.direccion || '—'}</p>
-                  </div>
-                  <ArrowRight size={15} className="text-slate-300 group-hover:text-blue-500 transition-colors flex-shrink-0" />
-                </div>
-                <div className="ml-14">
-                  <SolicitudTimeline estadoActual={sol.estado} />
-                </div>
-              </Link>
-            ))}
+             {solicitudes.slice(0, 5).map(sol => {
+               const safeId = typeof sol.id === 'string' ? sol.id : String(sol.id || '')
+               const displayId = safeId ? safeId.slice(0, 8).toUpperCase() : 'N/A'
+               return (
+                 <Link key={safeId} to={`/ciudadano/solicitudes/${safeId}`}
+                   className="block p-5 hover:bg-slate-50 transition-colors group">
+                   <div className="flex items-center gap-4 mb-3">
+                     <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center flex-shrink-0">
+                       <FileText size={18} className="text-blue-500" />
+                     </div>
+                     <div className="flex-1 min-w-0">
+                       <p className="font-bold text-blue-950 text-sm truncate">{sol.tipoTramite || 'Ordenamiento Territorial'}</p>
+                       <p className="text-slate-400 text-xs">#{displayId} · {sol.predio?.direccion || '—'}</p>
+                     </div>
+                     <ArrowRight size={15} className="text-slate-300 group-hover:text-blue-500 transition-colors flex-shrink-0" />
+                   </div>
+                   <div className="ml-14">
+                     <SolicitudTimeline estadoActual={sol.estado || 'BORRADOR'} />
+                   </div>
+                 </Link>
+               )
+             })}
           </div>
         )}
       </div>
