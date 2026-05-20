@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Search, FileCheck2, Eye, Filter, RefreshCw, Clock, XCircle } from 'lucide-react'
+import { Search, FileCheck2, Eye, Filter, RefreshCw, Clock, XCircle, RotateCcw } from 'lucide-react'
 import { solicitudesApi } from '@/lib/apiCalls'
+import { MockDb } from '@/lib/mockDb'
 
 const BRAND = '#D97706'
 
@@ -40,23 +41,33 @@ export function BandejaSecretaria() {
     }
   }
 
-  useEffect(() => { cargar() }, [filtro])
+  useEffect(() => {
+    cargar()
+  }, [filtro])
 
-  const filtradas = solicitudes.filter((s) => {
+  const handleResetDemo = () => {
+    MockDb.reset()
+    cargar()
+  }
+
+  const safeList = (solicitudes || []).filter((s) => s && typeof s === 'object')
+
+  const filtradas = safeList.filter((s) => {
     // Para "TODOS" mostramos PENDIENTE_SECRETARIA y OBSERVADO
     if (filtro === 'TODOS') {
-      if (!['PENDIENTE_SECRETARIA', 'OBSERVADO'].includes(s.estado)) return false
+      if (!s.estado || !['PENDIENTE_SECRETARIA', 'OBSERVADO'].includes(s.estado)) return false
     }
     if (busqueda) {
       const q = busqueda.toLowerCase()
       const nombre = `${s.ciudadano?.nombre ?? ''} ${s.ciudadano?.apellido ?? ''}`.toLowerCase()
-      if (!nombre.includes(q) && !s.id?.toLowerCase().includes(q) && !s.ciudadano?.cedula?.includes(q)) return false
+      const sId = typeof s.id === 'string' ? s.id : String(s.id || '')
+      if (!nombre.includes(q) && !sId.toLowerCase().includes(q) && !s.ciudadano?.cedula?.includes(q)) return false
     }
     return true
   })
 
-  const pendientes = solicitudes.filter(s => s.estado === 'PENDIENTE_SECRETARIA').length
-  const observados = solicitudes.filter(s => s.estado === 'OBSERVADO').length
+  const pendientes = safeList.filter(s => s && s.estado === 'PENDIENTE_SECRETARIA').length
+  const observados = safeList.filter(s => s && s.estado === 'OBSERVADO').length
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -69,11 +80,21 @@ export function BandejaSecretaria() {
             Verificación documental — firma y completitud de expedientes
           </p>
         </div>
-        <button onClick={cargar} disabled={loading}
-          className="p-2.5 rounded-xl border border-slate-200 text-slate-500 hover:bg-slate-50 transition-all"
-          title="Actualizar">
-          <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
-        </button>
+        <div className="flex items-center gap-2">
+          <button 
+            onClick={handleResetDemo}
+            className="btn-secondary px-3 py-2 text-xs flex items-center gap-2 border-dashed"
+            title="Limpiar base de datos local y restaurar simulador"
+          >
+            <RotateCcw size={13} />
+            <span>Reiniciar Demo</span>
+          </button>
+          <button onClick={cargar} disabled={loading}
+            className="p-2.5 rounded-xl border border-slate-200 text-slate-500 hover:bg-slate-50 transition-all"
+            title="Actualizar">
+            <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
+          </button>
+        </div>
       </div>
 
       {/* Stats rápidas */}
@@ -155,66 +176,72 @@ export function BandejaSecretaria() {
                   </td>
                 </tr>
               ) : (
-                filtradas.map((sol) => (
-                  <tr key={sol.id} className="hover:bg-slate-50 transition-colors">
-                    <td className="px-6 py-4">
-                      <p className="font-bold text-blue-950 text-sm font-mono">#{sol.id?.slice(0, 8).toUpperCase()}</p>
-                      <p style={{ color: '#94a3b8', fontSize: '0.7rem' }}>
-                        {sol.createdAt ? new Date(sol.createdAt).toLocaleDateString('es-EC') : '—'}
-                      </p>
-                    </td>
-                    <td className="px-6 py-4">
-                      <p className="font-semibold text-blue-950 text-sm">
-                        {sol.ciudadano?.nombre} {sol.ciudadano?.apellido}
-                      </p>
-                      <p style={{ color: '#64748b', fontSize: '0.75rem' }}>CI: {sol.ciudadano?.cedula || '—'}</p>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="px-3 py-1 rounded-full text-xs font-semibold"
-                        style={{
-                          background: `${TIPO_COLOR[sol.tipoTramite] ?? '#64748b'}15`,
-                          color: TIPO_COLOR[sol.tipoTramite] ?? '#64748b',
-                        }}>
-                        {TIPO_LABEL[sol.tipoTramite] ?? sol.tipoTramite}
-                      </span>
-                      <p style={{ color: '#94a3b8', fontSize: '0.7rem', marginTop: 4 }}>
-                        {sol.predio?.direccion ?? '—'}
-                      </p>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-2">
-                        <FileCheck2 size={14} style={{ color: '#64748b' }} />
-                        <span className="text-sm font-semibold text-blue-950">
-                          {sol.anexos?.length ?? 0} archivos
+                filtradas.map((sol) => {
+                  const safeId = typeof sol.id === 'string' ? sol.id : String(sol.id || '')
+                  const displayId = safeId ? safeId.slice(0, 8).toUpperCase() : 'N/A'
+                  const fechaCreacion = sol.createdAt ? new Date(sol.createdAt).toLocaleDateString('es-EC') : '—'
+                  const tipoTramite = sol.tipoTramite || 'PERMISO_CONSTRUCCION'
+                  return (
+                    <tr key={safeId} className="hover:bg-slate-50 transition-colors">
+                      <td className="px-6 py-4">
+                        <p className="font-bold text-blue-950 text-sm font-mono">#{displayId}</p>
+                        <p style={{ color: '#94a3b8', fontSize: '0.7rem' }}>
+                          {fechaCreacion}
+                        </p>
+                      </td>
+                      <td className="px-6 py-4">
+                        <p className="font-semibold text-blue-950 text-sm">
+                          {sol.ciudadano?.nombre || '—'} {sol.ciudadano?.apellido || ''}
+                        </p>
+                        <p style={{ color: '#64748b', fontSize: '0.75rem' }}>CI: {sol.ciudadano?.cedula || '—'}</p>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="px-3 py-1 rounded-full text-xs font-semibold"
+                          style={{
+                            background: `${TIPO_COLOR[tipoTramite] ?? '#64748b'}15`,
+                            color: TIPO_COLOR[tipoTramite] ?? '#64748b',
+                          }}>
+                          {TIPO_LABEL[tipoTramite] ?? tipoTramite}
                         </span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="px-3 py-1 rounded-full text-xs font-semibold"
-                        style={{
-                          background: sol.estado === 'PENDIENTE_SECRETARIA' ? 'rgba(245,158,11,0.1)' : 'rgba(239,68,68,0.1)',
-                          color: sol.estado === 'PENDIENTE_SECRETARIA' ? '#D97706' : '#DC2626',
-                          border: `1px solid ${sol.estado === 'PENDIENTE_SECRETARIA' ? 'rgba(245,158,11,0.3)' : 'rgba(239,68,68,0.3)'}`,
-                        }}>
-                        {sol.estado === 'PENDIENTE_SECRETARIA' ? '⏳ Pendiente' : '↩ Observado'}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <Link
-                        to={`/secretaria/bandeja/${sol.id}`}
-                        className="inline-flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold transition-all"
-                        style={{ background: 'rgba(217,119,6,0.08)', color: '#D97706', border: '1px solid rgba(217,119,6,0.2)' }}
-                        onMouseEnter={e => {
-                          (e.currentTarget as HTMLElement).style.background = 'rgba(217,119,6,0.15)'
-                        }}
-                        onMouseLeave={e => {
-                          (e.currentTarget as HTMLElement).style.background = 'rgba(217,119,6,0.08)'
-                        }}>
-                        <Eye size={14} /> Revisar
-                      </Link>
-                    </td>
-                  </tr>
-                ))
+                        <p style={{ color: '#94a3b8', fontSize: '0.7rem', marginTop: 4 }}>
+                          {sol.predio?.direccion ?? '—'}
+                        </p>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-2">
+                          <FileCheck2 size={14} style={{ color: '#64748b' }} />
+                          <span className="text-sm font-semibold text-blue-950">
+                            {sol.anexos?.length ?? 0} archivos
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="px-3 py-1 rounded-full text-xs font-semibold"
+                          style={{
+                            background: sol.estado === 'PENDIENTE_SECRETARIA' ? 'rgba(245,158,11,0.1)' : 'rgba(239,68,68,0.1)',
+                            color: sol.estado === 'PENDIENTE_SECRETARIA' ? '#D97706' : '#DC2626',
+                            border: `1px solid ${sol.estado === 'PENDIENTE_SECRETARIA' ? 'rgba(245,158,11,0.3)' : 'rgba(239,68,68,0.3)'}`,
+                          }}>
+                          {sol.estado === 'PENDIENTE_SECRETARIA' ? '⏳ Pendiente' : '↩ Observado'}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <Link
+                          to={`/secretaria/bandeja/${safeId}`}
+                          className="inline-flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold transition-all"
+                          style={{ background: 'rgba(217,119,6,0.08)', color: '#D97706', border: '1px solid rgba(217,119,6,0.2)' }}
+                          onMouseEnter={e => {
+                            (e.currentTarget as HTMLElement).style.background = 'rgba(217,119,6,0.15)'
+                          }}
+                          onMouseLeave={e => {
+                            (e.currentTarget as HTMLElement).style.background = 'rgba(217,119,6,0.08)'
+                          }}>
+                          <Eye size={14} /> Revisar
+                        </Link>
+                      </td>
+                    </tr>
+                  )
+                })
               )}
             </tbody>
           </table>
