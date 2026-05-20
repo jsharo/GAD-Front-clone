@@ -8,6 +8,7 @@ import {
 import { useAuthStore } from '@/stores/auth.store'
 import { CompletarPerfilModal } from '@/components/CompletarPerfilModal'
 import { SolicitudTimeline } from '@/components/SolicitudTimeline'
+import { solicitudesApi } from '@/lib/apiCalls'
 
 interface Solicitud {
   id: string
@@ -189,10 +190,22 @@ export function CiudadanoDashboard() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (user?.role === 'INVITADO') { setLoading(false); return }
-    // TODO: conectar con API — api.get('/solicitudes/mis-solicitudes')
-    setSolicitudes([])
-    setLoading(false)
+    if (user?.role === 'INVITADO') {
+      setLoading(false)
+      return
+    }
+    const fetchSol = async () => {
+      try {
+        setLoading(true)
+        const { data } = await solicitudesApi.misSolicitudes()
+        setSolicitudes(data.data || [])
+      } catch (e) {
+        console.error('Error cargando solicitudes dashboard:', e)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchSol()
   }, [user?.role])
 
   // ── Render Invitado ──

@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Eye, EyeOff, AlertCircle, ArrowRight } from 'lucide-react'
+import { Eye, EyeOff, AlertCircle, ArrowRight, ChevronDown } from 'lucide-react'
 import { useAuthStore } from '@/stores/auth.store'
 
 const loginSchema = z.object({
@@ -28,7 +28,7 @@ export function LoginPage() {
   const navigate = useNavigate()
   const [showPass, setShowPass] = useState(false)
 
-  const { register, handleSubmit, formState: { errors } } = useForm<LoginForm>({
+  const { register, handleSubmit, setValue, formState: { errors } } = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
   })
 
@@ -44,6 +44,17 @@ export function LoginPage() {
   const handleGuest = () => {
     loginAsGuest()
     navigate('/ciudadano', { replace: true })
+  }
+
+  const handleQuickLogin = async (email: string) => {
+    setValue('email', email)
+    setValue('password', '123456')
+    clearError()
+    try {
+      await login(email, '123456')
+      const role = useAuthStore.getState().user?.role ?? ''
+      navigate(ROLE_REDIRECT[role] ?? '/ciudadano', { replace: true })
+    } catch {}
   }
 
   return (
@@ -131,8 +142,8 @@ export function LoginPage() {
       </div>
 
       {/* ── PANEL DERECHO — Formulario minimalista ── */}
-      <div className="flex-1 flex items-center justify-center px-8 py-16 bg-white">
-        <div className="w-full max-w-xs">
+      <div className="flex-1 flex items-center justify-center px-8 py-16 bg-white overflow-y-auto">
+        <div className="w-full max-w-xs my-auto">
 
           {/* Logo móvil */}
           <div className="lg:hidden flex items-center gap-3 mb-10">
@@ -256,7 +267,7 @@ export function LoginPage() {
           </div>
 
           {/* Separador */}
-          <div className="flex items-center gap-3 my-6">
+          <div className="flex items-center gap-3 my-5">
             <div className="flex-1 h-px" style={{ background: '#f1f5f9' }} />
           </div>
 
@@ -265,7 +276,7 @@ export function LoginPage() {
             <button
               onClick={handleGuest}
               id="login-guest"
-              className="text-xs transition-all"
+              className="text-xs font-medium transition-all"
               style={{ color: '#94a3b8', textDecoration: 'underline', textUnderlineOffset: 3 }}
               onMouseEnter={e => (e.currentTarget.style.color = '#64748b')}
               onMouseLeave={e => (e.currentTarget.style.color = '#94a3b8')}
@@ -274,8 +285,40 @@ export function LoginPage() {
             </button>
           </div>
 
+          {/* ── PANEL DE ACCESO RÁPIDO DE SIMULACIÓN ── */}
+          <div className="mt-7 pt-4 border-t border-slate-100">
+            <details className="group cursor-pointer">
+              <summary className="list-none flex items-center justify-between text-[11px] font-bold text-slate-400 hover:text-slate-600 transition-colors uppercase tracking-wider">
+                <span>Pilotos / Cuentas Demo</span>
+                <ChevronDown size={12} className="transition-transform group-open:rotate-180" />
+              </summary>
+              <div className="mt-3 grid grid-cols-2 gap-1.5 text-[10px] text-slate-500">
+                {[
+                  { role: 'Ciudadano Verif.', email: 'ciudadano@cañar.gob.ec', color: '#2563EB', desc: 'Ver trámites y historial' },
+                  { role: 'Secretaría GAD', email: 'secretaria@gadcanar.gob.ec', color: '#D97706', desc: 'Verificar requisitos' },
+                  { role: 'Técnico Urbano', email: 'tecnico@gadcanar.gob.ec', color: '#2E8B57', desc: 'Inspeccionar urbano' },
+                  { role: 'Técnico Rural', email: 'tecnico.rural@gadcanar.gob.ec', color: '#059669', desc: 'Inspeccionar rural' },
+                  { role: 'Financiero GAD', email: 'financiero@gadcanar.gob.ec', color: '#7C3AED', desc: 'Cobros y liquidar' },
+                  { role: 'SuperAdmin GAD', email: 'admin@gadcanar.gob.ec', color: '#DC2626', desc: 'Control total logs' }
+                ].map(item => (
+                  <div key={item.email}
+                    onClick={() => handleQuickLogin(item.email)}
+                    className="p-2 rounded-lg text-left transition-all border border-slate-100 hover:border-slate-300 hover:bg-slate-50 active:scale-95"
+                    style={{ background: '#f8fafc' }}
+                  >
+                    <p className="font-bold flex items-center gap-1" style={{ color: item.color }}>
+                      <span className="w-1.5 h-1.5 rounded-full" style={{ background: item.color }} />
+                      {item.role}
+                    </p>
+                    <p className="font-mono text-[9px] text-slate-400 mt-0.5 truncate">{item.email}</p>
+                  </div>
+                ))}
+              </div>
+            </details>
+          </div>
+
           {/* Footer */}
-          <p className="text-center mt-10" style={{ color: '#cbd5e1', fontSize: '0.68rem' }}>
+          <p className="text-center mt-6" style={{ color: '#cbd5e1', fontSize: '0.65rem' }}>
             © {new Date().getFullYear()} GAD Municipal de Cañar
           </p>
         </div>
