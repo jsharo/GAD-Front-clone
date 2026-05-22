@@ -1,3 +1,4 @@
+
 import { createContext, useState, type ReactNode } from 'react';
 
 interface AuthContextType {
@@ -34,3 +35,4 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     </AuthContext.Provider>
   );
 }
+

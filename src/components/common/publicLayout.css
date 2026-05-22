@@ -1,0 +1,9 @@
+/* Layout for public pages (landing, login) */
+.public-root { display: flex; min-height: 100vh; }
+.public-left { flex: 1; background: linear-gradient(180deg,#0b0b0b,#2b0f07); color: white; display:flex; align-items:center; justify-content:center; }
+.public-brand { text-align:center; }
+.public-brand img { width: 140px; height: 140px; border-radius: 18px; background: white; padding: 18px; box-shadow: 0 10px 40px rgba(0,0,0,0.6); }
+.public-brand h2 { margin-top: 18px; font-size: 36px; letter-spacing: 1px; }
+.public-brand p { margin-top: 8px; opacity: 0.8; }
+.public-right { width: 480px; background: #f8fafc; display:flex; align-items:center; justify-content:center; }
+.public-right-inner { width: 380px; padding: 36px 12px; }
