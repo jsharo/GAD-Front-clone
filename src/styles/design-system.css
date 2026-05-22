@@ -1,0 +1,12 @@
+:root{
+  --color-ciudadano: #2563EB;
+  --color-secretaria: #D97706;
+  --color-tecnico: #2E8B57;
+  --color-financiero: #7C3AED;
+  --color-admin: #CC2229;
+  --color-invitado: #64748b;
+}
+
+body{ font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; }
+
+.card{ background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px }
