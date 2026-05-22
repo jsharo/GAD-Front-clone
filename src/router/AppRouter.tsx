@@ -1,3 +1,4 @@
+
 /**
  * AppRouter.tsx — Router principal de la aplicación
  * Centraliza todas las rutas organizadas por rol/portal.
