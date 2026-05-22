@@ -142,3 +142,4 @@ export function AppRouter() {
     </Routes>
   )
 }
+
