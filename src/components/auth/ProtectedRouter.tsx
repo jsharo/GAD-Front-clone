@@ -1,6 +1,6 @@
 import React from 'react';
 import { Navigate } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
+import { useAuthStore } from '../../stores/auth.store';
 
 type Props = {
 	children: React.ReactElement;
@@ -8,7 +8,7 @@ type Props = {
 };
 
 const ProtectedRouter = ({ children, allowedRoles }: Props) => {
-	const { user } = useAuth();
+	const { user } = useAuthStore();
 
 	if (!user) return <Navigate to="/login" replace />;
 	if (allowedRoles && !allowedRoles.includes(user.role)) return <Navigate to="/" replace />;

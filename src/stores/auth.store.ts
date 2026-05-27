@@ -1,4 +1,4 @@
-import { create } from 'zustand'
+import { create, type StateCreator } from 'zustand'
 import { persist } from 'zustand/middleware'
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
@@ -52,15 +52,15 @@ export interface CompletarPerfilData {
 
 // ─── Store ────────────────────────────────────────────────────────────────────
 export const useAuthStore = create<AuthState>()(
-  persist(
-    (set) => ({
+  (persist(
+    (set, get) => ({
       user: null,
       accessToken: null,
       refreshToken: null,
       isLoading: false,
       error: null,
 
-      login: async (email, password) => {
+      login: async (email: string, password: string) => {
         set({ isLoading: true, error: null })
         try {
           // Intentar llamada real primero
@@ -128,7 +128,7 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
-      register: async (_data) => {
+      register: async (_data: RegisterData) => {
         set({ isLoading: true, error: null })
         try {
           // TODO: conectar con API real
@@ -143,7 +143,7 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
-      registerInvitado: async (email) => {
+      registerInvitado: async (email: string) => {
         set({ isLoading: true, error: null })
         try {
           // TODO: conectar con API real — /auth/registro-rapido
@@ -169,7 +169,7 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
-      completarPerfil: async (_data) => {
+      completarPerfil: async (_data: CompletarPerfilData) => {
         set({ isLoading: true, error: null })
         try {
           // TODO: conectar con API real — /auth/completar-perfil
@@ -211,11 +211,11 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name: 'gad-auth',
-      partialize: (state) => ({
+      partialize: (state: AuthState) => ({
         user: state.user,
         accessToken: state.accessToken,
         refreshToken: state.refreshToken,
       }),
     },
-  ),
+  ) as unknown as StateCreator<AuthState>),
 )
