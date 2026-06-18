@@ -163,13 +163,13 @@ export function LandingPage() {
 
           {/* Acceso y Registro */}
           <div className="flex items-center gap-4">
-            <Link to="/login" className="flex items-center gap-1.5 text-xs font-bold text-slate-700 hover:text-blue-600 transition-colors">
+            <Link to="/auth/signin" className="flex items-center gap-1.5 text-xs font-bold text-slate-700 hover:text-blue-600 transition-colors">
               <span className="w-5 h-5 flex items-center justify-center border border-slate-300 rounded-lg text-slate-500">→</span>
-              Ingreso Portal Técnico
+              Sign In
             </Link>
-            <a href="#registro-profesional" className="btn-primary px-4 py-2 text-xs shadow-md">
-              Habilitación Profesional
-            </a>
+            <Link to="/auth/signup" className="btn-primary px-4 py-2 text-xs shadow-md">
+              Sign Up
+            </Link>
           </div>
         </div>
 
