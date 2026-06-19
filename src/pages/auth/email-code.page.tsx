@@ -2,20 +2,40 @@ import { useRef, useState } from 'react'
 import type { ClipboardEvent, KeyboardEvent } from 'react'
 import { Link, useNavigate, useLocation, Navigate } from 'react-router-dom'
 import { AlertCircle, MailCheck } from 'lucide-react'
+import api from '@/lib/api'
 
 const CODE_LENGTH = 6
+
+type EmailCodeLocationState = {
+  fromSignup?: boolean
+  email?: string
+}
+
+function getApiError(err: unknown, fallback: string): string {
+  if (typeof err === 'object' && err !== null && 'response' in err) {
+    const data = (err as { response?: { data?: { message?: string | string[] } } }).response?.data
+    const msg = data?.message
+    if (Array.isArray(msg)) return msg.join(', ')
+    if (typeof msg === 'string') return msg
+  }
+  return fallback
+}
 
 export function EmailCodePage() {
   const navigate = useNavigate()
   const location = useLocation()
-  const [digits, setDigits] = useState<string[]>(Array(CODE_LENGTH).fill(''))
+  const state = location.state as EmailCodeLocationState | null
 
-  if (!(location.state as { fromSignup?: boolean } | null)?.fromSignup) {
-    return <Navigate to="/auth/signup" replace />
-  }
+  const [digits, setDigits] = useState<string[]>(Array(CODE_LENGTH).fill(''))
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const inputs = useRef<Array<HTMLInputElement | null>>([])
+
+  if (!state?.fromSignup || !state.email) {
+    return <Navigate to="/auth/signup" replace />
+  }
+
+  const email = state.email
 
   const focusAt = (index: number) => inputs.current[index]?.focus()
 
@@ -52,40 +72,40 @@ export function EmailCodePage() {
     setError(null)
     setIsLoading(true)
     try {
-      // TODO: call verification API with code
+      await api.post('/verification/verify-email', { email, code })
       navigate('/auth/signin', { replace: true })
-    } catch {
-      setError('Invalid or expired code. Please try again.')
+    } catch (err) {
+      setError(getApiError(err, 'Invalid or expired code. Please try again.'))
     } finally {
       setIsLoading(false)
     }
   }
 
   return (
-    <div className="flex-1 flex items-center justify-center px-8 py-16 bg-scale-1 overflow-y-auto">
+    <div className="flex-1 flex items-center justify-center px-8 py-16 bg-neutral-50 overflow-y-auto">
       <div className="w-full max-w-xs my-auto">
 
         {/* Mobile logo */}
         <div className="lg:hidden flex flex-col items-center mb-8">
-          <img src="/logo-gad.png" alt="GAD" className="w-40 h-40 object-contain rounded-2xl bg-scale-1 p-1 mb-3" />
-          <p className="font-heading font-black text-scale-5 text-base tracking-wide">CAÑAR</p>
-          <p className="text-scale-4 text-[0.55rem] tracking-[0.2em] font-bold">GAD MUNICIPAL</p>
+          <img src="/logo-gad.png" alt="GAD" className="w-40 h-40 object-contain rounded-2xl bg-neutral-50 p-1 mb-3" />
+          <p className="font-heading font-black text-neutral-900 text-base tracking-wide">CAÑAR</p>
+          <p className="text-neutral-600 text-[0.55rem] tracking-[0.2em] font-bold">GAD MUNICIPAL</p>
         </div>
 
         {/* Title */}
         <div className="mb-10">
-          <h1 className="font-heading font-black text-scale-5 text-[1.9rem] tracking-[-0.02em]">
+          <h1 className="font-heading font-black text-neutral-900 text-[1.9rem] tracking-[-0.02em]">
             Verify Email Code
           </h1>
-          <p className="mt-2 text-sm text-scale-3 leading-relaxed flex items-center gap-2">
-            <MailCheck size={15} className="flex-shrink-0 text-scale-4" />
-            Enter the 6-digit code sent to your email address.
+          <p className="mt-2 text-sm text-neutral-500 leading-relaxed flex items-center gap-2">
+            <MailCheck size={15} className="flex-shrink-0 text-neutral-600" />
+            Enter the 6-digit code sent to <span className="font-medium text-neutral-700">{email}</span>.
           </p>
         </div>
 
         {/* Global error */}
         {error && (
-          <div className="flex items-center gap-2.5 p-3.5 rounded-xl mb-6 text-sm bg-scale-3/10 border border-scale-3/30 text-scale-4">
+          <div className="flex items-center gap-2.5 p-3.5 rounded-xl mb-6 text-sm bg-error-default/10 border border-error-default/30 text-error-dark">
             <AlertCircle size={15} className="flex-shrink-0" />
             {error}
           </div>
@@ -96,7 +116,7 @@ export function EmailCodePage() {
 
           {/* Code inputs */}
           <div>
-            <label className="block text-xs font-bold text-scale-3 tracking-widest mb-4">
+            <label className="block text-xs font-bold text-neutral-500 tracking-widest mb-4">
               Verification Code
             </label>
             <div className="flex gap-2 justify-between">
@@ -114,7 +134,7 @@ export function EmailCodePage() {
                   onChange={e => handleChange(i, e.target.value)}
                   onKeyDown={e => handleKeyDown(i, e)}
                   onPaste={handlePaste}
-                  className="w-full aspect-square text-center text-lg font-bold outline-none rounded-xl bg-scale-1 border-[1.5px] border-scale-2 text-scale-5 hover:border hover:border-solid hover:border-scale-3 active:border-transparent active:ring-[2px] active:ring-inset active:ring-scale-4 focus:border-transparent focus:bg-scale-1 focus:ring-[2px] focus:ring-inset focus:ring-scale-4 transition-all"
+                  className="w-full aspect-square text-center text-lg font-bold outline-none rounded-xl bg-neutral-50 border-[1.5px] border-neutral-200 text-neutral-900 hover:border hover:border-solid hover:border-neutral-400 active:border-transparent active:ring-[2px] active:ring-inset active:ring-primary-default focus:border-transparent focus:bg-neutral-50 focus:ring-[2px] focus:ring-inset focus:ring-primary-default transition-all"
                 />
               ))}
             </div>
@@ -125,14 +145,14 @@ export function EmailCodePage() {
             type="submit"
             id="email-code-submit"
             disabled={isLoading}
-            className={`w-full flex items-center justify-center gap-2 py-3.5 rounded-xl font-bold text-sm text-scale-1 transition-all mt-2 ${
+            className={`w-full flex items-center justify-center gap-2 py-3.5 rounded-xl font-bold text-sm text-neutral-50 transition-all mt-2 ${
               isLoading
-                ? 'bg-scale-3/50'
-                : 'bg-scale-5 hover:bg-scale-3'
+                ? 'bg-neutral-400/50'
+                : 'bg-primary-dark hover:bg-primary-default'
             }`}
           >
             {isLoading
-              ? <div className="w-5 h-5 border-2 rounded-full animate-spin border-scale-1/30 border-t-scale-1" />
+              ? <div className="w-5 h-5 border-2 rounded-full animate-spin border-neutral-50/30 border-t-neutral-50" />
               : <span>Verify</span>
             }
           </button>
@@ -140,15 +160,15 @@ export function EmailCodePage() {
 
         {/* Back link */}
         <div className="mt-5 text-center">
-          <span className="text-sm text-scale-3">Didn't receive a code?{' '}</span>
+          <span className="text-sm text-neutral-500">Didn't receive a code?{' '}</span>
           <Link to="/auth/signup" id="email-code-back"
-            className="text-sm font-semibold transition-colors text-scale-4 hover:text-scale-5">
+            className="text-sm font-semibold transition-colors text-neutral-600 hover:text-neutral-900">
             Go back
           </Link>
         </div>
 
         {/* Footer */}
-        <p className="text-center mt-6 text-scale-2 text-[0.65rem]">
+        <p className="text-center mt-6 text-neutral-400 text-[0.65rem]">
           © {new Date().getFullYear()} GAD Municipal de Cañar
         </p>
       </div>
