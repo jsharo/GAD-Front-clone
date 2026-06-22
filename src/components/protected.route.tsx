@@ -6,13 +6,10 @@ interface ProtectedRouteProps {
 }
 
 // Redirect pathways based on English roles and pages
-const ROLE_HOME: Record<Role, string> = {
+export const ROLE_HOME: Record<Role, string> = {
   SUPERADMIN: '/admin',
-  CITIZEN:    '/citizen',
   TECHNICIAN: '/technician',
   SECRETARY:  '/secretary',
-  FINANCE:    '/finance',
-  GUEST:      '/citizen',
   ARCHITECT:  '/architect',
 }
 
