@@ -1,11 +1,10 @@
-import { FileText, CheckCircle2, Clock, MapPin, DollarSign, XCircle, FileCheck2 } from 'lucide-react'
+import { FileText, CheckCircle2, Clock, MapPin, XCircle, FileCheck2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const STEPS = [
   { key: 'ENTRY', statuses: ['BORRADOR', 'DRAFT'], label: 'Ingresada', icon: FileText },
   { key: 'SECRETARY', statuses: ['PENDIENTE_SECRETARIA', 'PENDING_SECRETARY', 'OBSERVADO', 'OBSERVED'], label: 'Secretaría', icon: FileCheck2 },
   { key: 'TECHNICIAN', statuses: ['EN_REVISION', 'UNDER_REVIEW', 'INSPECCION', 'INSPECTION'], label: 'Técnico', icon: MapPin },
-  { key: 'PAYMENT', statuses: ['PENDIENTE_PAGO', 'PENDING_PAYMENT', 'PAGADO', 'PAID'], label: 'Financiero', icon: DollarSign },
   { key: 'END', statuses: ['APROBADO', 'APPROVED', 'NEGADO', 'REJECTED'], label: 'Resultado', icon: CheckCircle2 },
 ]
 
