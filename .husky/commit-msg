@@ -1,0 +1,2 @@
+# Validar que el mensaje del commit sigue Conventional Commits
+npx --no -- commitlint --edit ${1}

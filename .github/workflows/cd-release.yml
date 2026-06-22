@@ -1,0 +1,126 @@
+name: CD — Production Release
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+  id-token: write
+
+jobs:
+  # ──────────────────────────────────────────────────────
+  # JOB 1: Build completo de producción
+  # ──────────────────────────────────────────────────────
+  production-build:
+    name: Production Build & Verify
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout (full history para semantic-release)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: TypeScript check
+        run: npm run type-check
+
+      - name: Lint check
+        run: npm run lint
+
+      - name: Build for production
+        run: npm run build
+        env:
+          NODE_ENV: production
+
+      - name: Verify build output exists
+        run: |
+          if [ ! -d "dist" ]; then
+            echo "❌ Build fallido: directorio dist no encontrado"
+            exit 1
+          fi
+          echo "✅ Build exitoso"
+          du -sh dist/
+          ls -la dist/
+
+      - name: Upload production build
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-build-${{ github.sha }}
+          path: dist/
+          retention-days: 30
+
+  # ──────────────────────────────────────────────────────
+  # JOB 2: Versionado semántico y Release automático
+  # ──────────────────────────────────────────────────────
+  release:
+    name: Semantic Release
+    runs-on: ubuntu-latest
+    needs: production-build
+    outputs:
+      released: ${{ steps.release.outputs.new_release_published }}
+      version: ${{ steps.release.outputs.new_release_version }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Configure Git identity
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Run Semantic Release
+        id: release
+        run: npx semantic-release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # ──────────────────────────────────────────────────────
+  # JOB 3: Notificación del resultado
+  # ──────────────────────────────────────────────────────
+  notify:
+    name: Notify Release Result
+    runs-on: ubuntu-latest
+    needs: release
+    if: always()
+    steps:
+      - name: Notificar release exitoso
+        if: needs.release.outputs.released == 'true'
+        run: |
+          echo "🚀 Release v${{ needs.release.outputs.version }} publicado exitosamente en producción."
+          echo "✅ Changelog y tag generados automáticamente."
+
+      - name: Notificar que no hubo release
+        if: needs.release.outputs.released != 'true' && needs.release.result == 'success'
+        run: |
+          echo "ℹ️ No se generó una nueva versión (commits no implican un release semántico)."
+
+      - name: Notificar fallo
+        if: needs.release.result == 'failure'
+        run: |
+          echo "❌ El proceso de release falló. Revisar logs del workflow."
+          exit 1

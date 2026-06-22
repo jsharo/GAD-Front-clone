@@ -1,0 +1,25 @@
+# Propietarios de código — GAD-CANAR
+# Documentación: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Propietario por defecto de todo el repositorio
+*                           @Jbra420
+
+# Archivos de configuración críticos — solo Admin
+/.github/                   @Jbra420
+/package.json               @Jbra420
+/package-lock.json          @Jbra420
+/tsconfig.json              @Jbra420
+/tsconfig.app.json          @Jbra420
+/tsconfig.node.json         @Jbra420
+/vite.config.ts             @Jbra420
+/.env.example               @Jbra420
+
+# CI/CD — solo Admin
+/.github/workflows/         @Jbra420
+/.releaserc.json            @Jbra420
+
+# Configuración de calidad de código
+/.husky/                    @Jbra420
+/commitlint.config.js       @Jbra420
+/eslint.config.js           @Jbra420
+/.prettierrc                @Jbra420

@@ -1,0 +1,2 @@
+# Ejecutar lint-staged: ESLint + Prettier solo sobre archivos staged
+npx lint-staged
