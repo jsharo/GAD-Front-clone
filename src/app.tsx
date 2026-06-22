@@ -2,6 +2,10 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { useAuthStore } from '@/stores/auth.store'
 
 // Auth
+import { AuthLayout } from '@/layouts/auth.layout'
+import { SignInPage } from '@/pages/auth/signin.page'
+import { SignUpPage } from '@/pages/auth/signup.page'
+import { EmailCodePage } from '@/pages/auth/email-code.page'
 import { LoginPage } from '@/pages/auth/login.page'
 import { RegisterPage } from '@/pages/auth/register.page'
 import { RegisterArchitectPage } from '@/pages/auth/register.architect.page'
@@ -10,18 +14,10 @@ import { RegisterArchitectPage } from '@/pages/auth/register.architect.page'
 import { LandingPage } from '@/pages/landing.page'
 
 // Layouts
-import { CitizenLayout } from '@/layouts/citizen.layout'
 import { ArchitectLayout } from '@/layouts/architect.layout'
 import { TechnicianLayout } from '@/layouts/technician.layout'
 import { SecretaryLayout } from '@/layouts/secretary.layout'
-import { FinanceLayout } from '@/layouts/finance.layout'
 import { AdminLayout } from '@/layouts/admin.layout'
-
-// Citizen
-import { CitizenDashboard } from '@/pages/citizen/citizen.dashboard'
-import { MyApplications } from '@/pages/citizen/my.applications'
-import { NewApplication } from '@/pages/citizen/new.application'
-import { ApplicationDetail } from '@/pages/citizen/application.detail'
 
 // Architect
 import { ArchitectDashboard } from '@/pages/architect/architect.dashboard'
@@ -41,11 +37,6 @@ import { ApplicationDetailSecretary } from '@/pages/secretary/application.detail
 import { SecretaryTechnicians } from '@/pages/secretary/secretary.technicians'
 import { ArchitectApproval } from '@/pages/secretary/architect.approval'
 
-// Finance
-import { FinanceDashboard } from '@/pages/finance/finance.dashboard'
-import { PendingPayments } from '@/pages/finance/pending.payments'
-import { PaymentDetailPage } from '@/pages/finance/payment.detail.page'
-
 // Admin
 import { AdminDashboard } from '@/pages/admin/admin.dashboard'
 import { AdminUsers } from '@/pages/admin/admin.users'
@@ -55,27 +46,24 @@ import { AdminApplicationDetail } from '@/pages/admin/admin.application.detail'
 
 // Role redirection map
 const ROLE_REDIRECT: Record<string, string> = {
-  CITIZEN:    '/citizen',
-  GUEST:      '/citizen',
   ARCHITECT:  '/architect',
   TECHNICIAN: '/technician',
   SECRETARY:  '/secretary',
-  FINANCE:    '/finance',
   SUPERADMIN: '/admin',
 }
 
 // Role guard component
 function RequireRole({ allowed, children }: { allowed: string[]; children: React.ReactNode }) {
   const { user, access_token } = useAuthStore()
-  if (!access_token) return <Navigate to="/login" replace />
-  if (!allowed.includes(user?.role ?? '')) return <Navigate to="/login" replace />
+  if (!access_token) return <Navigate to="/auth/signin" replace />
+  if (!allowed.includes(user?.role ?? '')) return <Navigate to="/auth/signin" replace />
   return <>{children}</>
 }
 
 // Intelligent redirect on login or unknown routes
 function RoleRedirect() {
   const { user } = useAuthStore()
-  const dest = ROLE_REDIRECT[user?.role ?? ''] ?? '/citizen'
+  const dest = ROLE_REDIRECT[user?.role ?? ''] ?? '/auth/signin'
   return <Navigate to={dest} replace />
 }
 
@@ -89,15 +77,11 @@ export default function App() {
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/register-architect" element={<RegisterArchitectPage />} />
 
-        {/* ---- Citizen Portal ---- */}
-        <Route
-          path="/citizen"
-          element={<RequireRole allowed={['CITIZEN', 'GUEST']}><CitizenLayout /></RequireRole>}
-        >
-          <Route index element={<CitizenDashboard />} />
-          <Route path="applications" element={<MyApplications />} />
-          <Route path="applications/new" element={<NewApplication />} />
-          <Route path="applications/:id" element={<ApplicationDetail />} />
+        {/* Auth Routes */}
+        <Route path="/auth" element={<AuthLayout />}>
+          <Route path="signin" element={<SignInPage />} />
+          <Route path="signup" element={<SignUpPage />} />
+          <Route path="signup/email-code" element={<EmailCodePage />} />
         </Route>
 
         {/* ---- Portal Architect ---- */}
@@ -132,18 +116,6 @@ export default function App() {
           <Route index element={<TechnicianDashboard />} />
           <Route path="inbox" element={<TechnicianInbox />} />
           <Route path="inbox/:id" element={<InspectionPage />} />
-        </Route>
-
-        {/* ---- Portal Finance ---- */}
-        <Route
-          path="/finance"
-          element={<RequireRole allowed={['FINANCE']}><FinanceLayout /></RequireRole>}
-        >
-          <Route index element={<FinanceDashboard />} />
-          <Route path="payments" element={<PendingPayments />} />
-          <Route path="payments/:id" element={<PaymentDetailPage />} />
-          <Route path="history" element={<PendingPayments />} />
-          <Route path="settled" element={<PendingPayments />} />
         </Route>
 
         {/* ---- Admin Portal ---- */}
