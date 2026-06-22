@@ -123,4 +123,3 @@ jobs:
         if: needs.release.result == 'failure'
         run: |
           echo "❌ El proceso de release falló. Revisar logs del workflow."
-          exit 1
