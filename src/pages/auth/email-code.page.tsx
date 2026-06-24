@@ -1,95 +1,102 @@
-import { useRef, useState } from 'react'
-import type { ClipboardEvent, KeyboardEvent } from 'react'
-import { Link, useNavigate, useLocation, Navigate } from 'react-router-dom'
-import { AlertCircle, MailCheck } from 'lucide-react'
-import api from '@/lib/api'
+import { useRef, useState } from 'react';
+import type { ClipboardEvent, KeyboardEvent } from 'react';
+import { Link, useNavigate, useLocation, Navigate } from 'react-router-dom';
+import { AlertCircle, MailCheck } from 'lucide-react';
+import api from '@/lib/api';
 
-const CODE_LENGTH = 6
+const CODE_LENGTH = 6;
 
 type EmailCodeLocationState = {
-  fromSignup?: boolean
-  email?: string
-}
+  fromSignup?: boolean;
+  email?: string;
+};
 
 function getApiError(err: unknown, fallback: string): string {
   if (typeof err === 'object' && err !== null && 'response' in err) {
-    const data = (err as { response?: { data?: { message?: string | string[] } } }).response?.data
-    const msg = data?.message
-    if (Array.isArray(msg)) return msg.join(', ')
-    if (typeof msg === 'string') return msg
+    const data = (err as { response?: { data?: { message?: string | string[] } } }).response?.data;
+    const msg = data?.message;
+    if (Array.isArray(msg)) return msg.join(', ');
+    if (typeof msg === 'string') return msg;
   }
-  return fallback
+  return fallback;
 }
 
 export function EmailCodePage() {
-  const navigate = useNavigate()
-  const location = useLocation()
-  const state = location.state as EmailCodeLocationState | null
+  const navigate = useNavigate();
+  const location = useLocation();
+  const state = location.state as EmailCodeLocationState | null;
 
-  const [digits, setDigits] = useState<string[]>(Array(CODE_LENGTH).fill(''))
-  const [error, setError] = useState<string | null>(null)
-  const [isLoading, setIsLoading] = useState(false)
-  const inputs = useRef<Array<HTMLInputElement | null>>([])
+  const [digits, setDigits] = useState<string[]>(Array(CODE_LENGTH).fill(''));
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const inputs = useRef<Array<HTMLInputElement | null>>([]);
 
   if (!state?.fromSignup || !state.email) {
-    return <Navigate to="/auth/signup" replace />
+    return <Navigate to="/auth/signup" replace />;
   }
 
-  const email = state.email
+  const email = state.email;
 
-  const focusAt = (index: number) => inputs.current[index]?.focus()
+  const focusAt = (index: number) => inputs.current[index]?.focus();
 
   const handleChange = (index: number, value: string) => {
-    const digit = value.replace(/\D/g, '').slice(-1)
-    const next = [...digits]
-    next[index] = digit
-    setDigits(next)
-    if (digit && index < CODE_LENGTH - 1) focusAt(index + 1)
-  }
+    const digit = value.replace(/\D/g, '').slice(-1);
+    const next = [...digits];
+    next[index] = digit;
+    setDigits(next);
+    if (digit && index < CODE_LENGTH - 1) focusAt(index + 1);
+  };
 
   const handleKeyDown = (index: number, e: KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Backspace' && !digits[index] && index > 0) {
-      focusAt(index - 1)
+      focusAt(index - 1);
     }
-  }
+  };
 
   const handlePaste = (e: ClipboardEvent<HTMLInputElement>) => {
-    e.preventDefault()
-    const pasted = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, CODE_LENGTH)
-    const next = [...digits]
-    pasted.split('').forEach((ch, i) => { next[i] = ch })
-    setDigits(next)
-    focusAt(Math.min(pasted.length, CODE_LENGTH - 1))
-  }
+    e.preventDefault();
+    const pasted = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, CODE_LENGTH);
+    const next = [...digits];
+    pasted.split('').forEach((ch, i) => {
+      next[i] = ch;
+    });
+    setDigits(next);
+    focusAt(Math.min(pasted.length, CODE_LENGTH - 1));
+  };
 
   const onSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    const code = digits.join('')
+    e.preventDefault();
+    const code = digits.join('');
     if (code.length < CODE_LENGTH) {
-      setError('Please enter the complete 6-digit code.')
-      return
+      setError('Please enter the complete 6-digit code.');
+      return;
     }
-    setError(null)
-    setIsLoading(true)
+    setError(null);
+    setIsLoading(true);
     try {
-      await api.post('/verification/verify-email', { email, code })
-      navigate('/auth/signin', { replace: true })
+      await api.post('/verification/verify-email', { email, code });
+      navigate('/auth/signin', { replace: true });
     } catch (err) {
-      setError(getApiError(err, 'Invalid or expired code. Please try again.'))
+      setError(getApiError(err, 'Invalid or expired code. Please try again.'));
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
-    <div className="flex-1 flex items-center justify-center px-8 py-16 bg-neutral-50 overflow-y-auto">
+    <div className="flex-1 flex items-center justify-center px-8 py-16 bg-neutral-100 overflow-y-auto">
       <div className="w-full max-w-xs my-auto">
-
         {/* Mobile logo */}
         <div className="lg:hidden flex flex-col items-center mb-8">
-          <img src="/logo-gad.png" alt="GAD" className="w-40 h-40 object-contain rounded-2xl bg-neutral-50 p-1 mb-3" />
+          <img
+            src="/logo-gad.png"
+            alt="GAD"
+            className="w-40 h-40 object-contain rounded-2xl bg-primary-default p-1 mb-3"
+          />
           <p className="font-heading font-black text-neutral-900 text-base tracking-wide">CAÑAR</p>
-          <p className="text-neutral-600 text-[0.55rem] tracking-[0.2em] font-bold">GAD MUNICIPAL</p>
+          <p className="text-neutral-600 text-[0.55rem] tracking-[0.2em] font-bold">
+            GAD MUNICIPAL
+          </p>
         </div>
 
         {/* Title */}
@@ -99,7 +106,8 @@ export function EmailCodePage() {
           </h1>
           <p className="mt-2 text-sm text-neutral-500 leading-relaxed flex items-center gap-2">
             <MailCheck size={15} className="flex-shrink-0 text-neutral-600" />
-            Enter the 6-digit code sent to <span className="font-medium text-neutral-700">{email}</span>.
+            Enter the 6-digit code sent to{' '}
+            <span className="font-medium text-neutral-700">{email}</span>.
           </p>
         </div>
 
@@ -113,7 +121,6 @@ export function EmailCodePage() {
 
         {/* Form */}
         <form onSubmit={onSubmit} className="space-y-4">
-
           {/* Code inputs */}
           <div>
             <label className="block text-xs font-bold text-neutral-500 tracking-widest mb-4">
@@ -123,7 +130,9 @@ export function EmailCodePage() {
               {digits.map((digit, i) => (
                 <input
                   key={i}
-                  ref={el => { inputs.current[i] = el }}
+                  ref={(el) => {
+                    inputs.current[i] = el;
+                  }}
                   id={`email-code-${i}`}
                   type="text"
                   inputMode="numeric"
@@ -131,10 +140,10 @@ export function EmailCodePage() {
                   value={digit}
                   autoFocus={i === 0}
                   autoComplete="one-time-code"
-                  onChange={e => handleChange(i, e.target.value)}
-                  onKeyDown={e => handleKeyDown(i, e)}
+                  onChange={(e) => handleChange(i, e.target.value)}
+                  onKeyDown={(e) => handleKeyDown(i, e)}
                   onPaste={handlePaste}
-                  className="w-full aspect-square text-center text-lg font-bold outline-none rounded-xl bg-neutral-50 border-[1.5px] border-neutral-200 text-neutral-900 hover:border hover:border-solid hover:border-neutral-400 active:border-transparent active:ring-[2px] active:ring-inset active:ring-primary-default focus:border-transparent focus:bg-neutral-50 focus:ring-[2px] focus:ring-inset focus:ring-primary-default transition-all"
+                  className="w-full aspect-square text-center text-lg font-bold outline-none rounded-xl bg-neutral-50 border border-neutral-300 text-neutral-900 focus:border-primary-default focus:ring-2 focus:ring-primary-light"
                 />
               ))}
             </div>
@@ -145,24 +154,22 @@ export function EmailCodePage() {
             type="submit"
             id="email-code-submit"
             disabled={isLoading}
-            className={`w-full flex items-center justify-center gap-2 py-3.5 rounded-xl font-bold text-sm text-neutral-50 transition-all mt-2 ${
-              isLoading
-                ? 'bg-neutral-400/50'
-                : 'bg-primary-dark hover:bg-primary-default'
+            className={`w-full flex items-center justify-center gap-2 py-3.5 rounded-xl font-bold text-sm text-neutral-50 mt-2 ${
+              isLoading ? 'bg-neutral-400/50' : 'bg-primary-default hover:bg-primary-dark'
             }`}
           >
-            {isLoading
-              ? <div className="w-5 h-5 border-2 rounded-full animate-spin border-neutral-50/30 border-t-neutral-50" />
-              : <span>Verify</span>
-            }
+            {isLoading ? <span>Verificando...</span> : <span>Verify</span>}
           </button>
         </form>
 
         {/* Back link */}
         <div className="mt-5 text-center">
-          <span className="text-sm text-neutral-500">Didn't receive a code?{' '}</span>
-          <Link to="/auth/signup" id="email-code-back"
-            className="text-sm font-semibold transition-colors text-neutral-600 hover:text-neutral-900">
+          <span className="text-sm text-neutral-500">Didn't receive a code? </span>
+          <Link
+            to="/auth/signup"
+            id="email-code-back"
+            className="text-sm font-semibold text-neutral-600 hover:text-primary-dark"
+          >
             Go back
           </Link>
         </div>
@@ -173,5 +180,5 @@ export function EmailCodePage() {
         </p>
       </div>
     </div>
-  )
+  );
 }

@@ -1,8 +1,8 @@
-import { useEffect, useMemo, useState, useCallback } from 'react'
-import { Edit3, Plus, Search, Shield, Users, X } from 'lucide-react'
-import { users_api } from '@/lib/api.calls'
-import { formatDateTime, cn } from '@/lib/utils'
-import { mapUser, type User as AuthUser, type Role, ROLE_MAP_TO_BE } from '@/stores/auth.store'
+import { useEffect, useMemo, useState, useCallback } from 'react';
+import { Edit3, Plus, Search, Shield, Users, X } from 'lucide-react';
+import { users_api } from '@/lib/api.calls';
+import { formatDateTime, cn } from '@/lib/utils';
+import { mapUser, type User as AuthUser, type Role, ROLE_MAP_TO_BE } from '@/stores/auth.store';
 
 const EMPTY_FORM = {
   first_name: '',
@@ -13,92 +13,92 @@ const EMPTY_FORM = {
   password: '',
   role: 'TECHNICIAN' as Role,
   is_active: true,
-}
+};
 
 const ROLE_LABELS: Record<Role, string> = {
-  SUPERADMIN: 'SuperAdmin',
+  ADMIN: 'Administrador',
   TECHNICIAN: 'Técnico',
   SECRETARY: 'Secretaria',
-  FINANCE: 'Financiero',
-  CITIZEN: 'Ciudadano',
-  GUEST: 'Invitado',
   ARCHITECT: 'Arquitecto',
-}
+};
 
 const ROLE_OPTIONS: Array<{ value: Role; label: string }> = [
-  { value: 'SUPERADMIN', label: 'SuperAdmin (control total)' },
+  { value: 'ADMIN', label: 'Administrador (control total)' },
   { value: 'SECRETARY', label: 'Secretaria (verificación documental)' },
   { value: 'TECHNICIAN', label: 'Técnico (revisión técnica)' },
-  { value: 'FINANCE', label: 'Financiero (cobros)' },
-  { value: 'CITIZEN', label: 'Ciudadano' },
-  { value: 'GUEST', label: 'Invitado' },
-]
+  { value: 'ARCHITECT', label: 'Arquitecto' },
+];
 
 function roleBadge(role: Role) {
-  return role === 'SUPERADMIN' ? 'bg-red-100 text-red-700 border border-red-200'
-    : role === 'TECHNICIAN' ? 'bg-blue-100 text-blue-700 border border-blue-200'
-    : role === 'SECRETARY' ? 'bg-orange-100 text-orange-700 border border-orange-200'
-    : role === 'FINANCE' ? 'bg-violet-100 text-violet-700 border border-violet-200'
-    : role === 'GUEST' ? 'bg-slate-100 text-slate-700 border border-slate-200'
-    : role === 'ARCHITECT' ? 'bg-green-100 text-green-700 border border-green-200'
-    : 'bg-amber-100 text-amber-700 border border-amber-200'
+  return role === 'ADMIN'
+    ? 'bg-red-100 text-red-700 border border-red-200'
+    : role === 'TECHNICIAN'
+      ? 'bg-blue-100 text-blue-700 border border-blue-200'
+      : role === 'SECRETARY'
+        ? 'bg-orange-100 text-orange-700 border border-orange-200'
+        : role === 'ARCHITECT'
+          ? 'bg-green-100 text-green-700 border border-green-200'
+          : 'bg-amber-100 text-amber-700 border border-amber-200';
 }
 
 export function AdminUsers() {
-  const [users, set_users] = useState<AuthUser[]>([])
-  const [is_loading, set_is_loading] = useState(true)
-  const [role_filter, set_role_filter] = useState<string>('')
-  const [search, set_search] = useState('')
-  const [show_create_modal, set_show_create_modal] = useState(false)
-  const [editing_user, set_editing_user] = useState<AuthUser | null>(null)
-  const [form_data, set_form_data] = useState(EMPTY_FORM)
-  const [is_saving, set_is_saving] = useState(false)
-  const [error, set_error] = useState<string | null>(null)
+  const [users, set_users] = useState<AuthUser[]>([]);
+  const [is_loading, set_is_loading] = useState(true);
+  const [role_filter, set_role_filter] = useState<string>('');
+  const [search, set_search] = useState('');
+  const [show_create_modal, set_show_create_modal] = useState(false);
+  const [editing_user, set_editing_user] = useState<AuthUser | null>(null);
+  const [form_data, set_form_data] = useState(EMPTY_FORM);
+  const [is_saving, set_is_saving] = useState(false);
+  const [error, set_error] = useState<string | null>(null);
 
   const fetchUsers = useCallback(async () => {
     try {
-      const backend_role = role_filter ? (ROLE_MAP_TO_BE[role_filter as Role] || role_filter) : undefined
-      const params = backend_role ? { role: backend_role, limit: 100 } : { limit: 100 }
-      const { data } = await users_api.list(params)
-      const mapped = (data.data ?? []).map((u: any) => mapUser(u)).filter(Boolean) as AuthUser[]
-      set_users(mapped)
+      const backend_role = role_filter
+        ? ROLE_MAP_TO_BE[role_filter as Role] || role_filter
+        : undefined;
+      const params = backend_role ? { role: backend_role, limit: 100 } : { limit: 100 };
+      const { data } = await users_api.list(params);
+      const mapped = (data.data ?? []).map((u: any) => mapUser(u)).filter(Boolean) as AuthUser[];
+      set_users(mapped);
     } catch (e) {
-      console.error('Error fetching users:', e)
+      console.error('Error fetching users:', e);
     } finally {
-      set_is_loading(false)
+      set_is_loading(false);
     }
-  }, [role_filter])
+  }, [role_filter]);
 
   useEffect(() => {
-    set_is_loading(true)
-    fetchUsers()
-  }, [fetchUsers])
+    set_is_loading(true);
+    fetchUsers();
+  }, [fetchUsers]);
 
   const filteredUsers = useMemo(() => {
-    const q = search.trim().toLowerCase()
-    if (!q) return users
-    return users.filter((u) =>
-      `${u.first_name} ${u.last_name}`.toLowerCase().includes(q) ||
-      u.email.toLowerCase().includes(q) ||
-      (u.national_id ?? '').includes(q) ||
-      (u.phone ?? '').includes(q),
-    )
-  }, [search, users])
+    const q = search.trim().toLowerCase();
+    if (!q) return users;
+    return users.filter(
+      (u) =>
+        `${u.first_name} ${u.last_name}`.toLowerCase().includes(q) ||
+        u.email.toLowerCase().includes(q) ||
+        (u.national_id ?? '').includes(q) ||
+        (u.phone ?? '').includes(q)
+    );
+  }, [search, users]);
 
   const resetForm = () => {
-    set_form_data(EMPTY_FORM)
-    set_error(null)
-  }
+    set_form_data(EMPTY_FORM);
+    set_error(null);
+  };
 
   const openCreate = () => {
-    resetForm()
-    set_editing_user(null)
-    set_show_create_modal(true)
-  }
+    resetForm();
+    set_editing_user(null);
+    set_show_create_modal(true);
+  };
 
   const openEdit = (user: AuthUser) => {
-    set_error(null)
-    set_editing_user(user)
+    set_error(null);
+    set_editing_user(user);
     set_form_data({
       first_name: user.first_name ?? '',
       last_name: user.last_name ?? '',
@@ -108,14 +108,14 @@ export function AdminUsers() {
       password: '',
       role: user.role,
       is_active: user.is_active,
-    })
-  }
+    });
+  };
 
   const closeModal = () => {
-    set_show_create_modal(false)
-    set_editing_user(null)
-    resetForm()
-  }
+    set_show_create_modal(false);
+    set_editing_user(null);
+    resetForm();
+  };
 
   const getPayload = () => ({
     nombre: form_data.first_name.trim(),
@@ -126,48 +126,48 @@ export function AdminUsers() {
     role: ROLE_MAP_TO_BE[form_data.role] || form_data.role,
     activo: form_data.is_active,
     ...(form_data.password ? { password: form_data.password } : {}),
-  })
+  });
 
   const handleSave = async (e: React.FormEvent) => {
-    e.preventDefault()
-    set_is_saving(true)
-    set_error(null)
+    e.preventDefault();
+    set_is_saving(true);
+    set_error(null);
     try {
       if (editing_user) {
-        const { data } = await users_api.update(editing_user.id, getPayload())
-        const updated = mapUser(data)
+        const { data } = await users_api.update(editing_user.id, getPayload());
+        const updated = mapUser(data);
         if (updated) {
-          set_users((prev) => prev.map((u) => (u.id === editing_user.id ? updated : u)))
+          set_users((prev) => prev.map((u) => (u.id === editing_user.id ? updated : u)));
         }
       } else {
         if (!form_data.password) {
-          set_error('La contraseña temporal es obligatoria')
-          return
+          set_error('La contraseña temporal es obligatoria');
+          return;
         }
-        await users_api.createStaff(getPayload())
-        await fetchUsers()
+        await users_api.createStaff(getPayload());
+        await fetchUsers();
       }
-      closeModal()
+      closeModal();
     } catch (e: any) {
-      set_error(e.response?.data?.message || 'Error al guardar usuario')
+      set_error(e.response?.data?.message || 'Error al guardar usuario');
     } finally {
-      set_is_saving(false)
+      set_is_saving(false);
     }
-  }
+  };
 
   const handleToggleActive = async (user: AuthUser) => {
     try {
-      const { data } = await users_api.update(user.id, { activo: !user.is_active })
-      const updated = mapUser(data)
+      const { data } = await users_api.update(user.id, { activo: !user.is_active });
+      const updated = mapUser(data);
       if (updated) {
-        set_users((prev) => prev.map((u) => (u.id === user.id ? updated : u)))
+        set_users((prev) => prev.map((u) => (u.id === user.id ? updated : u)));
       }
     } catch (e: any) {
-      set_error(e.response?.data?.message || 'Error al cambiar estado')
+      set_error(e.response?.data?.message || 'Error al cambiar estado');
     }
-  }
+  };
 
-  const is_modal_open = show_create_modal || editing_user
+  const is_modal_open = show_create_modal || editing_user;
 
   return (
     <div className="animate-fade-in space-y-6">
@@ -207,7 +207,9 @@ export function AdminUsers() {
           >
             <option value="">Todos los roles</option>
             {ROLE_OPTIONS.map((role) => (
-              <option key={role.value} value={role.value}>{role.label}</option>
+              <option key={role.value} value={role.value}>
+                {role.label}
+              </option>
             ))}
           </select>
         </div>
@@ -240,25 +242,34 @@ export function AdminUsers() {
                 </tr>
               ) : (
                 filteredUsers.map((u) => (
-                  <tr key={u.id} className="border-b border-surface-border hover:bg-surface-muted/50 transition-colors">
+                  <tr
+                    key={u.id}
+                    className="border-b border-surface-border hover:bg-surface-muted/50 transition-colors"
+                  >
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-full bg-primary-50 flex items-center justify-center text-primary-600 font-bold">
-                          {(u.first_name?.charAt(0) || '?')}{(u.last_name?.charAt(0) || '')}
+                          {u.first_name?.charAt(0) || '?'}
+                          {u.last_name?.charAt(0) || ''}
                         </div>
                         <div>
-                          <p className="font-semibold text-blue-950">{u.first_name || 'Sin nombre'} {u.last_name}</p>
+                          <p className="font-semibold text-blue-950">
+                            {u.first_name || 'Sin nombre'} {u.last_name}
+                          </p>
                           <p className="text-xs text-slate-500">{u.email}</p>
                         </div>
                       </div>
                     </td>
                     <td className="px-6 py-4">
                       <span className={cn('badge', roleBadge(u.role))}>
-                        {u.role === 'SUPERADMIN' && <Shield size={12} />}
+                        {u.role === 'ADMIN' && <Shield size={12} />}
                         {ROLE_LABELS[u.role]}
                       </span>
                       {u.role === 'TECHNICIAN' && (
-                        <p className="text-xs text-slate-500 mt-1">Zona: {u.zone === 'RURAL' ? 'Rural' : u.zone === 'URBAN' ? 'Urbano' : 'Todas'}</p>
+                        <p className="text-xs text-slate-500 mt-1">
+                          Zona:{' '}
+                          {u.zone === 'RURAL' ? 'Rural' : u.zone === 'URBAN' ? 'Urbano' : 'Todas'}
+                        </p>
                       )}
                     </td>
                     <td className="px-6 py-4 text-slate-600">
@@ -273,14 +284,16 @@ export function AdminUsers() {
                         onClick={() => handleToggleActive(u)}
                         className={cn(
                           'relative inline-flex h-6 w-11 items-center rounded-full transition-colors',
-                          u.is_active ? 'bg-success' : 'bg-slate-300',
+                          u.is_active ? 'bg-success' : 'bg-slate-300'
                         )}
                         title={u.is_active ? 'Desactivar usuario' : 'Activar usuario'}
                       >
-                        <span className={cn(
-                          'inline-block h-4 w-4 transform rounded-full bg-white transition-transform',
-                          u.is_active ? 'translate-x-6' : 'translate-x-1',
-                        )} />
+                        <span
+                          className={cn(
+                            'inline-block h-4 w-4 transform rounded-full bg-white transition-transform',
+                            u.is_active ? 'translate-x-6' : 'translate-x-1'
+                          )}
+                        />
                       </button>
                     </td>
                     <td className="px-6 py-4 text-right">
@@ -333,7 +346,9 @@ export function AdminUsers() {
                     onChange={(e) => set_form_data({ ...form_data, role: e.target.value as Role })}
                   >
                     {ROLE_OPTIONS.map((role) => (
-                      <option key={role.value} value={role.value}>{role.label}</option>
+                      <option key={role.value} value={role.value}>
+                        {role.label}
+                      </option>
                     ))}
                   </select>
                 </div>
@@ -342,7 +357,9 @@ export function AdminUsers() {
                   <select
                     className="input-field"
                     value={form_data.is_active ? 'true' : 'false'}
-                    onChange={(e) => set_form_data({ ...form_data, is_active: e.target.value === 'true' })}
+                    onChange={(e) =>
+                      set_form_data({ ...form_data, is_active: e.target.value === 'true' })
+                    }
                   >
                     <option value="true">Activo</option>
                     <option value="false">Inactivo</option>
@@ -352,7 +369,8 @@ export function AdminUsers() {
 
               {form_data.role === 'TECHNICIAN' && editing_user?.zone && (
                 <div className="p-3 rounded-xl bg-orange-50 border border-orange-200 text-orange-700 text-sm">
-                  Zona actual: <strong>{editing_user.zone === 'RURAL' ? 'Rural' : 'Urbano'}</strong>. La asignación de zona la gestiona Secretaría.
+                  Zona actual: <strong>{editing_user.zone === 'RURAL' ? 'Rural' : 'Urbano'}</strong>
+                  . La asignación de zona la gestiona Secretaría.
                 </div>
               )}
 
@@ -439,5 +457,5 @@ export function AdminUsers() {
         </div>
       )}
     </div>
-  )
+  );
 }
