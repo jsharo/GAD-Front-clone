@@ -3,12 +3,12 @@ import { FileCheck2, Clock, CheckCircle2, XCircle, Inbox, TrendingUp } from 'luc
 import { applications_api } from '@/lib/api.calls';
 import { Link } from 'react-router-dom';
 import { formatDateTime } from '@/lib/utils';
-
-const TIPO_LABEL: Record<string, string> = {
-  PERMISO_CONSTRUCCION: 'Permiso de Construcción',
-  LINEA_FABRICAS: 'Línea de Fábricas',
-  APROBACION_PLANOS: 'Aprobación de Planos',
-};
+import { getProcedureTypeLabel } from '@/lib/constants/procedure-types';
+import { PageHeader } from '@/components/ui/page.header';
+import { StatCard, KpiGrid } from '@/components/ui/stat.card';
+import { LoadingSkeleton } from '@/components/ui/loading.skeleton';
+import { EmptyState } from '@/components/ui/empty.state';
+import { PanelCard } from '@/components/ui/panel.card';
 
 interface Application {
   id: string;
@@ -85,30 +85,23 @@ export function SecretaryDashboard() {
 
   return (
     <div className="space-y-8">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-extrabold text-blue-955">Panel de Secretaría</h1>
-        <p className="text-sm text-slate-500">
-          Revisión documental — verificación de firma y completitud
-        </p>
-      </div>
+      <PageHeader
+        title="Panel de Secretaría"
+        description="Revisión documental — verificación de firma y completitud"
+      />
 
-      {/* Estadísticas */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <KpiGrid>
         {stats.map((s) => (
-          <div key={s.label} className="rounded-2xl border border-neutral-200 bg-neutral-50 p-5">
-            <div className="flex items-center justify-between mb-3">
-              <div
-                className={`flex h-10 w-10 items-center justify-center rounded-xl ${s.iconWrapperClass}`}
-              >
-                <s.icon size={18} className={s.iconClass} />
-              </div>
-            </div>
-            <p className="text-3xl font-black text-slate-800">{s.value}</p>
-            <p className="mt-1 text-xs text-slate-500">{s.label}</p>
-          </div>
+          <StatCard
+            key={s.label}
+            label={s.label}
+            value={s.value}
+            icon={s.icon}
+            iconClassName={s.iconClass}
+            iconWrapperClassName={s.iconWrapperClass}
+          />
         ))}
-      </div>
+      </KpiGrid>
 
       {/* Flujo de etapas — orientación visual */}
       <div className="rounded-2xl border border-neutral-200 bg-neutral-50 p-6">
@@ -161,22 +154,28 @@ export function SecretaryDashboard() {
         </div>
       </div>
 
-      {/* Solicitudes recientes */}
-      <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-neutral-50">
-        <div className="flex items-center gap-3 border-b border-neutral-200 px-6 py-4">
-          <Inbox size={18} className="text-secondary-dark" />
-          <h2 className="font-bold text-blue-955">Solicitudes Pendientes de Revisión</h2>
-        </div>
+      <PanelCard
+        title="Solicitudes Pendientes de Revisión"
+        icon={Inbox}
+        iconClassName="text-secondary-dark"
+        footer={
+          <Link
+            to="/secretary/inbox"
+            className="text-sm font-semibold text-secondary-dark hover:text-primary-dark"
+          >
+            Ver bandeja completa →
+          </Link>
+        }
+      >
         <div className="divide-y divide-neutral-200">
           {is_loading ? (
-            <div className="p-6 space-y-4">
-              <div className="h-12 rounded-xl shimmer" />
-              <div className="h-12 rounded-xl shimmer" />
-            </div>
+            <LoadingSkeleton count={2} variant="row" className="p-6" />
           ) : pending_applications.length === 0 ? (
-            <div className="p-8 text-center text-slate-500">
-              No hay solicitudes pendientes de revisión
-            </div>
+            <EmptyState
+              icon={Inbox}
+              title="No hay solicitudes pendientes de revisión"
+              className="py-8"
+            />
           ) : (
             pending_applications.slice(0, 5).map((sol) => (
               <Link
@@ -193,7 +192,8 @@ export function SecretaryDashboard() {
                       {sol.citizen?.first_name} {sol.citizen?.last_name}
                     </p>
                     <p className="text-[0.75rem] text-slate-500">
-                      #{sol.id.slice(0, 8)} · {TIPO_LABEL[sol.procedure_type] || 'Trámite'}
+                      #{sol.id.slice(0, 8)} ·{' '}
+                      {getProcedureTypeLabel(sol.procedure_type) || 'Trámite'}
                     </p>
                   </div>
                 </div>
@@ -209,15 +209,7 @@ export function SecretaryDashboard() {
             ))
           )}
         </div>
-        <div className="border-t border-neutral-200 px-6 py-3 text-center">
-          <Link
-            to="/secretary/inbox"
-            className="text-sm font-semibold text-secondary-dark hover:text-primary-dark"
-          >
-            Ver bandeja completa →
-          </Link>
-        </div>
-      </div>
+      </PanelCard>
     </div>
   );
 }

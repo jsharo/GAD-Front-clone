@@ -4,7 +4,6 @@ import {
   HardHat,
   Award,
   CheckCircle2,
-  AlertCircle,
   FileText,
   Loader,
   Mail,
@@ -12,6 +11,12 @@ import {
   Calendar,
 } from 'lucide-react';
 import { formatDateTime } from '@/lib/utils';
+import { BaseModal } from '@/components/logic/base.modal';
+import { PageHeader } from '@/components/ui/page.header';
+import { LoadingSkeleton } from '@/components/ui/loading.skeleton';
+import { EmptyState } from '@/components/ui/empty.state';
+import { PanelCard } from '@/components/ui/panel.card';
+import { useToastStore } from '@/stores/toast.store';
 
 interface PendingArchitect {
   id: string;
@@ -27,11 +32,10 @@ interface PendingArchitect {
 }
 
 export function ArchitectApproval() {
+  const addToast = useToastStore((state) => state.addToast);
   const [architects, set_architects] = useState<PendingArchitect[]>([]);
   const [is_loading, set_is_loading] = useState(true);
   const [action_loading, set_action_loading] = useState<string | null>(null);
-  const [success_message, set_success_message] = useState<string | null>(null);
-  const [error_message, set_error_message] = useState<string | null>(null);
 
   // Modal title preview state
   const [preview_title, set_preview_title] = useState<{ name: string; file: string } | null>(null);
@@ -65,17 +69,20 @@ export function ArchitectApproval() {
 
   const handleApprove = async (id: string) => {
     set_action_loading(id);
-    set_error_message(null);
-    set_success_message(null);
 
     try {
       await users_api.approveArchitect(id, true);
-      set_success_message('El arquitecto ha sido habilitado y notificado con éxito.');
+      addToast({
+        type: 'success',
+        message: 'El arquitecto ha sido habilitado y notificado con éxito.',
+      });
       fetchPending();
     } catch (err: any) {
-      set_error_message(
-        err.response?.data?.message || 'Ocurrió un error al intentar aprobar al arquitecto.'
-      );
+      addToast({
+        type: 'error',
+        message:
+          err.response?.data?.message || 'Ocurrió un error al intentar aprobar al arquitecto.',
+      });
     } finally {
       set_action_loading(null);
     }
@@ -83,57 +90,32 @@ export function ArchitectApproval() {
 
   return (
     <div className="space-y-8">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-extrabold text-blue-950">Aprobación de Arquitectos</h1>
-        <p className="text-sm text-slate-500">
-          Verifica la validez de los títulos profesionales registrados y habilita sus cuentas para
-          tramitar.
-        </p>
-      </div>
+      <PageHeader
+        title="Aprobación de Arquitectos"
+        description="Verifica la validez de los títulos profesionales registrados y habilita sus cuentas para tramitar."
+        icon={HardHat}
+      />
 
-      {success_message && (
-        <div className="flex items-center gap-3 p-4 rounded-2xl bg-green-50 border border-green-200 text-green-800 text-sm">
-          <CheckCircle2 size={18} className="text-green-600 flex-shrink-0" />
-          <span>{success_message}</span>
-        </div>
-      )}
-
-      {error_message && (
-        <div className="flex items-center gap-3 p-4 rounded-2xl bg-red-50 border border-red-200 text-red-800 text-sm">
-          <AlertCircle size={18} className="text-red-600 flex-shrink-0" />
-          <span>{error_message}</span>
-        </div>
-      )}
-
-      {/* Main List */}
-      <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-neutral-50">
-        <div className="flex items-center justify-between border-b border-neutral-200 px-6 py-4">
-          <div className="flex items-center gap-3">
-            <HardHat size={20} className="text-secondary-dark" />
-            <h2 className="font-bold text-blue-950">Arquitectos por Habilitar</h2>
-          </div>
-          <span className="text-xs px-2.5 py-1 rounded-full font-bold bg-amber-50 text-amber-700">
+      <PanelCard
+        title="Arquitectos por Habilitar"
+        icon={HardHat}
+        iconClassName="text-secondary-dark"
+        actions={
+          <span className="rounded-full bg-amber-50 px-2.5 py-1 text-xs font-bold text-amber-700">
             {architects.length} pendientes
           </span>
-        </div>
-
+        }
+      >
         <div className="divide-y divide-neutral-200">
           {is_loading ? (
-            <div className="p-12 text-center text-slate-500 space-y-3">
-              <Loader size={32} className="animate-spin mx-auto text-amber-500" />
-              <p className="text-xs">Cargando registros pendientes...</p>
-            </div>
+            <LoadingSkeleton count={2} variant="row" className="p-6" />
           ) : architects.length === 0 ? (
-            <div className="p-12 text-center text-slate-500 space-y-2">
-              <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mx-auto text-slate-400">
-                <CheckCircle2 size={24} />
-              </div>
-              <p className="font-bold text-sm text-slate-800">¡Todo al día!</p>
-              <p className="text-xs text-slate-400">
-                No hay cuentas de arquitectos pendientes de aprobación.
-              </p>
-            </div>
+            <EmptyState
+              icon={CheckCircle2}
+              title="¡Todo al día!"
+              description="No hay cuentas de arquitectos pendientes de aprobación."
+              className="py-12"
+            />
           ) : (
             architects.map((architect) => (
               <div
@@ -218,27 +200,19 @@ export function ArchitectApproval() {
             ))
           )}
         </div>
-      </div>
+      </PanelCard>
 
-      {/* DOCUMENT PREVIEW MODAL */}
-      {preview_title && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 p-4">
-          <div className="relative flex w-full max-w-lg flex-col overflow-hidden rounded-3xl border border-neutral-200 bg-neutral-50 p-6">
-            <div className="mb-4 flex items-center justify-between border-b border-neutral-200 pb-3">
-              <div>
-                <h3 className="font-bold text-slate-800 text-base">Título Profesional</h3>
-                <p className="text-xs text-slate-400">Profesional: {preview_title.name}</p>
-              </div>
-              <button
-                onClick={() => set_preview_title(null)}
-                className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center font-bold"
-              >
-                ✕
-              </button>
-            </div>
+      <BaseModal
+        isOpen={!!preview_title}
+        onClose={() => set_preview_title(null)}
+        title="Título Profesional"
+        size="lg"
+      >
+        {preview_title && (
+          <>
+            <p className="text-xs text-slate-400 mb-4 -mt-2">Profesional: {preview_title.name}</p>
 
-            {/* Simulated document visual */}
-            <div className="flex-1 rounded-2xl bg-slate-100 p-8 border border-slate-200 flex flex-col items-center justify-center min-h-[280px] text-center relative overflow-hidden">
+            <div className="rounded-2xl bg-slate-100 p-8 border border-slate-200 flex flex-col items-center justify-center min-h-[280px] text-center relative overflow-hidden">
               <div className="absolute top-2 right-2 bg-green-100 border border-green-200 text-green-800 text-[10px] font-bold px-2 py-0.5 rounded-md flex items-center gap-1">
                 <CheckCircle2 size={10} /> Validado SENESCYT
               </div>
@@ -269,9 +243,9 @@ export function ArchitectApproval() {
             >
               Cerrar Vista Previa
             </button>
-          </div>
-        </div>
-      )}
+          </>
+        )}
+      </BaseModal>
     </div>
   );
 }

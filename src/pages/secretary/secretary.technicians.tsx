@@ -1,7 +1,14 @@
 import { useEffect, useMemo, useState } from 'react';
-import { MapPin, Save, Search, Users } from 'lucide-react';
+import { MapPin, Save, Users } from 'lucide-react';
 import { users_api } from '@/lib/api.calls';
 import { mapUser, type User } from '@/stores/auth.store';
+import { PageHeader } from '@/components/ui/page.header';
+import { StatCard, KpiGrid } from '@/components/ui/stat.card';
+import { AlertBanner } from '@/components/ui/alert.banner';
+import { LoadingSkeleton } from '@/components/ui/loading.skeleton';
+import { EmptyState } from '@/components/ui/empty.state';
+import { SearchInput } from '@/components/ui/search.input';
+import { PanelCard } from '@/components/ui/panel.card';
 
 export function SecretaryTechnicians() {
   const [technicians, set_technicians] = useState<User[]>([]);
@@ -68,68 +75,65 @@ export function SecretaryTechnicians() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-extrabold text-blue-950">Asignación de Técnicos</h1>
-        <p className="text-slate-500 text-sm mt-1">
-          Secretaría define qué zona atiende cada técnico.
-        </p>
-      </div>
+      <PageHeader
+        title="Asignación de Técnicos"
+        description="Secretaría define qué zona atiende cada técnico."
+        icon={Users}
+      />
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <KpiGrid>
         {[
           {
             label: 'Técnicos',
             value: counts.all,
-            colorClass: 'text-primary-default',
-            bgClass: 'bg-primary-light/10',
+            icon: Users,
+            iconClassName: 'text-primary-default',
+            iconWrapperClassName: 'bg-primary-light/10',
           },
           {
             label: 'Urbano',
             value: counts.urban,
-            colorClass: 'text-primary-dark',
-            bgClass: 'bg-primary-light/10',
+            icon: MapPin,
+            iconClassName: 'text-primary-dark',
+            iconWrapperClassName: 'bg-primary-light/10',
           },
           {
             label: 'Rural',
             value: counts.rural,
-            colorClass: 'text-success-dark',
-            bgClass: 'bg-success-light/20',
+            icon: MapPin,
+            iconClassName: 'text-success-dark',
+            iconWrapperClassName: 'bg-success-light/20',
           },
           {
             label: 'Sin zona',
             value: counts.no_zone,
-            colorClass: 'text-secondary-dark',
-            bgClass: 'bg-secondary-light/20',
+            icon: Users,
+            iconClassName: 'text-secondary-dark',
+            iconWrapperClassName: 'bg-secondary-light/20',
           },
         ].map((stat) => (
-          <div key={stat.label} className="rounded-2xl border border-neutral-200 bg-neutral-50 p-5">
-            <div
-              className={`mb-3 flex h-10 w-10 items-center justify-center rounded-xl ${stat.bgClass} ${stat.colorClass}`}
-            >
-              <Users size={18} />
-            </div>
-            <p className="text-3xl font-black text-blue-950">{stat.value}</p>
-            <p className="text-xs text-slate-500 mt-1">{stat.label}</p>
-          </div>
-        ))}
-      </div>
-
-      {error && (
-        <div className="p-3 rounded-xl bg-red-50 text-red-600 text-sm border border-red-200">
-          {error}
-        </div>
-      )}
-
-      <div className="rounded-2xl border border-neutral-200 bg-neutral-50 p-6">
-        <div className="relative mb-5">
-          <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
-          <input
-            value={search}
-            onChange={(e) => set_search(e.target.value)}
-            className="input-field pl-10"
-            placeholder="Buscar técnico por nombre, correo o teléfono..."
+          <StatCard
+            key={stat.label}
+            label={stat.label}
+            value={stat.value}
+            icon={stat.icon}
+            iconClassName={stat.iconClassName}
+            iconWrapperClassName={stat.iconWrapperClassName}
+            isLoading={is_loading}
           />
-        </div>
+        ))}
+      </KpiGrid>
+
+      {error && <AlertBanner message={error} onDismiss={() => set_error(null)} />}
+
+      <PanelCard className="p-6">
+        <SearchInput
+          containerClassName="mb-5"
+          iconSize={16}
+          value={search}
+          onChange={(e) => set_search(e.target.value)}
+          placeholder="Buscar técnico por nombre, correo o teléfono..."
+        />
 
         <div className="overflow-x-auto rounded-xl border border-neutral-200">
           <table className="w-full text-sm text-left">
@@ -144,14 +148,19 @@ export function SecretaryTechnicians() {
             <tbody>
               {is_loading ? (
                 <tr>
-                  <td colSpan={4} className="px-6 py-8 text-center text-slate-500">
-                    Cargando técnicos...
+                  <td colSpan={4} className="px-6 py-4">
+                    <LoadingSkeleton count={2} variant="row" />
                   </td>
                 </tr>
               ) : filtered_technicians.length === 0 ? (
                 <tr>
-                  <td colSpan={4} className="px-6 py-8 text-center text-slate-500">
-                    No se encontraron técnicos
+                  <td colSpan={4}>
+                    <EmptyState
+                      icon={Users}
+                      title="No se encontraron técnicos"
+                      description="Prueba con otro término de búsqueda."
+                      className="py-8"
+                    />
                   </td>
                 </tr>
               ) : (
@@ -212,7 +221,7 @@ export function SecretaryTechnicians() {
             </tbody>
           </table>
         </div>
-      </div>
+      </PanelCard>
     </div>
   );
 }

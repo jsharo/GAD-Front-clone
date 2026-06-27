@@ -1,8 +1,15 @@
 import { useEffect, useMemo, useState, useCallback } from 'react';
-import { Edit3, Plus, Search, Shield, Users, X } from 'lucide-react';
+import { Edit3, Plus, Shield, Users } from 'lucide-react';
 import { users_api } from '@/lib/api.calls';
 import { formatDateTime, cn } from '@/lib/utils';
 import { mapUser, type User as AuthUser, type Role, ROLE_MAP_TO_BE } from '@/stores/auth.store';
+import { BaseModal } from '@/components/logic/base.modal';
+import { useToastStore } from '@/stores/toast.store';
+import { PageHeader } from '@/components/ui/page.header';
+import { AlertBanner } from '@/components/ui/alert.banner';
+import { LoadingSkeleton } from '@/components/ui/loading.skeleton';
+import { EmptyState } from '@/components/ui/empty.state';
+import { SearchInput } from '@/components/ui/search.input';
 
 const EMPTY_FORM = {
   first_name: '',
@@ -42,6 +49,7 @@ function roleBadge(role: Role) {
 }
 
 export function AdminUsers() {
+  const addToast = useToastStore((state) => state.addToast);
   const [users, set_users] = useState<AuthUser[]>([]);
   const [is_loading, set_is_loading] = useState(true);
   const [role_filter, set_role_filter] = useState<string>('');
@@ -148,8 +156,16 @@ export function AdminUsers() {
         await fetchUsers();
       }
       closeModal();
+      addToast({
+        type: 'success',
+        message: editing_user
+          ? 'Usuario actualizado correctamente'
+          : 'Usuario creado correctamente',
+      });
     } catch (e: any) {
-      set_error(e.response?.data?.message || 'Error al guardar usuario');
+      const message = e.response?.data?.message || 'Error al guardar usuario';
+      set_error(message);
+      addToast({ type: 'error', message });
     } finally {
       set_is_saving(false);
     }
@@ -162,44 +178,41 @@ export function AdminUsers() {
       if (updated) {
         set_users((prev) => prev.map((u) => (u.id === user.id ? updated : u)));
       }
+      addToast({
+        type: 'success',
+        message: user.is_active ? 'Usuario desactivado' : 'Usuario activado',
+      });
     } catch (e: any) {
-      set_error(e.response?.data?.message || 'Error al cambiar estado');
+      const message = e.response?.data?.message || 'Error al cambiar estado';
+      set_error(message);
+      addToast({ type: 'error', message });
     }
   };
 
-  const is_modal_open = show_create_modal || editing_user;
+  const is_modal_open = show_create_modal || !!editing_user;
 
   return (
     <div className="animate-fade-in space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <h1 className="font-heading text-2xl font-bold text-blue-950 flex items-center gap-3">
-          <Users className="text-primary-600" />
-          Gestión de Usuarios y Permisos
-        </h1>
+      <PageHeader
+        title="Gestión de Usuarios y Permisos"
+        icon={Users}
+        actions={
+          <button onClick={openCreate} className="btn-primary">
+            <Plus size={18} /> Nuevo Usuario
+          </button>
+        }
+      />
 
-        <button onClick={openCreate} className="btn-primary">
-          <Plus size={18} /> Nuevo Usuario
-        </button>
-      </div>
-
-      {error && !is_modal_open && (
-        <div className="p-3 rounded-xl bg-red-50 text-red-600 text-sm border border-red-200">
-          {error}
-        </div>
-      )}
+      {error && !is_modal_open && <AlertBanner message={error} onDismiss={() => set_error(null)} />}
 
       <div className="glass-card p-6">
         <div className="flex flex-col md:flex-row gap-4 mb-6">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-            <input
-              type="text"
-              placeholder="Buscar por nombre, email, cédula o teléfono..."
-              className="input-field pl-10"
-              value={search}
-              onChange={(e) => set_search(e.target.value)}
-            />
-          </div>
+          <SearchInput
+            containerClassName="flex-1"
+            placeholder="Buscar por nombre, email, cédula o teléfono..."
+            value={search}
+            onChange={(e) => set_search(e.target.value)}
+          />
           <select
             value={role_filter}
             onChange={(e) => set_role_filter(e.target.value)}
@@ -229,15 +242,19 @@ export function AdminUsers() {
             <tbody>
               {is_loading ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-8 text-center text-slate-500">
-                    <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-2" />
-                    Cargando usuarios...
+                  <td colSpan={6} className="px-6 py-4">
+                    <LoadingSkeleton count={3} variant="row" />
                   </td>
                 </tr>
               ) : filteredUsers.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-8 text-center text-slate-500">
-                    No se encontraron usuarios
+                  <td colSpan={6}>
+                    <EmptyState
+                      icon={Users}
+                      title="No se encontraron usuarios"
+                      description="Prueba con otro término de búsqueda."
+                      className="py-8"
+                    />
                   </td>
                 </tr>
               ) : (
@@ -312,150 +329,141 @@ export function AdminUsers() {
         </div>
       </div>
 
-      {is_modal_open && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-blue-950/40 backdrop-blur-sm">
-          <div className="glass-card w-full max-w-2xl p-6 relative animate-slide-up max-h-[90vh] overflow-y-auto">
-            <button
-              onClick={closeModal}
-              className="absolute right-4 top-4 text-slate-400 hover:text-blue-955"
-            >
-              <X size={20} />
-            </button>
+      <BaseModal
+        isOpen={is_modal_open}
+        onClose={closeModal}
+        title={editing_user ? 'Editar usuario y permisos' : 'Registrar usuario'}
+        size="lg"
+      >
+        <p className="text-sm text-slate-500 mb-6 -mt-2">
+          El rol define a qué portal y operaciones tendrá acceso la cuenta.
+        </p>
 
-            <h2 className="text-xl font-bold font-heading text-blue-955 mb-1">
-              {editing_user ? 'Editar usuario y permisos' : 'Registrar usuario'}
-            </h2>
-            <p className="text-sm text-slate-500 mb-6">
-              El rol define a qué portal y operaciones tendrá acceso la cuenta.
-            </p>
-
-            {error && (
-              <div className="mb-4 p-3 rounded-xl bg-red-50 text-red-600 text-sm border border-red-200">
-                {error}
-              </div>
-            )}
-
-            <form onSubmit={handleSave} className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="input-label">Rol / Permiso principal *</label>
-                  <select
-                    required
-                    className="input-field"
-                    value={form_data.role}
-                    onChange={(e) => set_form_data({ ...form_data, role: e.target.value as Role })}
-                  >
-                    {ROLE_OPTIONS.map((role) => (
-                      <option key={role.value} value={role.value}>
-                        {role.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="input-label">Estado de cuenta</label>
-                  <select
-                    className="input-field"
-                    value={form_data.is_active ? 'true' : 'false'}
-                    onChange={(e) =>
-                      set_form_data({ ...form_data, is_active: e.target.value === 'true' })
-                    }
-                  >
-                    <option value="true">Activo</option>
-                    <option value="false">Inactivo</option>
-                  </select>
-                </div>
-              </div>
-
-              {form_data.role === 'TECHNICIAN' && editing_user?.zone && (
-                <div className="p-3 rounded-xl bg-orange-50 border border-orange-200 text-orange-700 text-sm">
-                  Zona actual: <strong>{editing_user.zone === 'RURAL' ? 'Rural' : 'Urbano'}</strong>
-                  . La asignación de zona la gestiona Secretaría.
-                </div>
-              )}
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="input-label">Nombres *</label>
-                  <input
-                    required
-                    type="text"
-                    className="input-field"
-                    value={form_data.first_name}
-                    onChange={(e) => set_form_data({ ...form_data, first_name: e.target.value })}
-                  />
-                </div>
-                <div>
-                  <label className="input-label">Apellidos *</label>
-                  <input
-                    required
-                    type="text"
-                    className="input-field"
-                    value={form_data.last_name}
-                    onChange={(e) => set_form_data({ ...form_data, last_name: e.target.value })}
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="input-label">Correo electrónico *</label>
-                  <input
-                    required
-                    type="email"
-                    className="input-field"
-                    value={form_data.email}
-                    onChange={(e) => set_form_data({ ...form_data, email: e.target.value })}
-                  />
-                </div>
-                <div>
-                  <label className="input-label">Cédula</label>
-                  <input
-                    type="text"
-                    className="input-field"
-                    maxLength={10}
-                    value={form_data.national_id}
-                    onChange={(e) => set_form_data({ ...form_data, national_id: e.target.value })}
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="input-label">Teléfono</label>
-                  <input
-                    type="text"
-                    className="input-field"
-                    value={form_data.phone}
-                    onChange={(e) => set_form_data({ ...form_data, phone: e.target.value })}
-                  />
-                </div>
-                <div>
-                  <label className="input-label">
-                    {editing_user ? 'Nueva contraseña (opcional)' : 'Contraseña temporal *'}
-                  </label>
-                  <input
-                    required={!editing_user}
-                    type="password"
-                    className="input-field"
-                    value={form_data.password}
-                    onChange={(e) => set_form_data({ ...form_data, password: e.target.value })}
-                  />
-                </div>
-              </div>
-
-              <div className="pt-4 flex justify-end gap-3">
-                <button type="button" onClick={closeModal} className="btn-secondary">
-                  Cancelar
-                </button>
-                <button type="submit" disabled={is_saving} className="btn-primary">
-                  {is_saving ? 'Guardando...' : editing_user ? 'Guardar Cambios' : 'Crear Usuario'}
-                </button>
-              </div>
-            </form>
+        {error && (
+          <div className="mb-4 p-3 rounded-xl bg-red-50 text-red-600 text-sm border border-red-200">
+            {error}
           </div>
-        </div>
-      )}
+        )}
+
+        <form onSubmit={handleSave} className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="input-label">Rol / Permiso principal *</label>
+              <select
+                required
+                className="input-field"
+                value={form_data.role}
+                onChange={(e) => set_form_data({ ...form_data, role: e.target.value as Role })}
+              >
+                {ROLE_OPTIONS.map((role) => (
+                  <option key={role.value} value={role.value}>
+                    {role.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="input-label">Estado de cuenta</label>
+              <select
+                className="input-field"
+                value={form_data.is_active ? 'true' : 'false'}
+                onChange={(e) =>
+                  set_form_data({ ...form_data, is_active: e.target.value === 'true' })
+                }
+              >
+                <option value="true">Activo</option>
+                <option value="false">Inactivo</option>
+              </select>
+            </div>
+          </div>
+
+          {form_data.role === 'TECHNICIAN' && editing_user?.zone && (
+            <div className="p-3 rounded-xl bg-orange-50 border border-orange-200 text-orange-700 text-sm">
+              Zona actual: <strong>{editing_user.zone === 'RURAL' ? 'Rural' : 'Urbano'}</strong>. La
+              asignación de zona la gestiona Secretaría.
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="input-label">Nombres *</label>
+              <input
+                required
+                type="text"
+                className="input-field"
+                value={form_data.first_name}
+                onChange={(e) => set_form_data({ ...form_data, first_name: e.target.value })}
+              />
+            </div>
+            <div>
+              <label className="input-label">Apellidos *</label>
+              <input
+                required
+                type="text"
+                className="input-field"
+                value={form_data.last_name}
+                onChange={(e) => set_form_data({ ...form_data, last_name: e.target.value })}
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="input-label">Correo electrónico *</label>
+              <input
+                required
+                type="email"
+                className="input-field"
+                value={form_data.email}
+                onChange={(e) => set_form_data({ ...form_data, email: e.target.value })}
+              />
+            </div>
+            <div>
+              <label className="input-label">Cédula</label>
+              <input
+                type="text"
+                className="input-field"
+                maxLength={10}
+                value={form_data.national_id}
+                onChange={(e) => set_form_data({ ...form_data, national_id: e.target.value })}
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="input-label">Teléfono</label>
+              <input
+                type="text"
+                className="input-field"
+                value={form_data.phone}
+                onChange={(e) => set_form_data({ ...form_data, phone: e.target.value })}
+              />
+            </div>
+            <div>
+              <label className="input-label">
+                {editing_user ? 'Nueva contraseña (opcional)' : 'Contraseña temporal *'}
+              </label>
+              <input
+                required={!editing_user}
+                type="password"
+                className="input-field"
+                value={form_data.password}
+                onChange={(e) => set_form_data({ ...form_data, password: e.target.value })}
+              />
+            </div>
+          </div>
+
+          <div className="pt-4 flex justify-end gap-3">
+            <button type="button" onClick={closeModal} className="btn-secondary">
+              Cancelar
+            </button>
+            <button type="submit" disabled={is_saving} className="btn-primary">
+              {is_saving ? 'Guardando...' : editing_user ? 'Guardar Cambios' : 'Crear Usuario'}
+            </button>
+          </div>
+        </form>
+      </BaseModal>
     </div>
   );
 }

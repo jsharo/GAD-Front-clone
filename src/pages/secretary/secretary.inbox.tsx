@@ -1,21 +1,22 @@
 import { useEffect, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, FileCheck2, Eye, Filter, RefreshCw, Clock, XCircle } from 'lucide-react';
+import { FileCheck2, Eye, RefreshCw, Clock, XCircle } from 'lucide-react';
 import { applications_api } from '@/lib/api.calls';
+import { ApplicationFilterBar } from '@/components/logic/application.filter-bar';
+import type { FilterState } from '@/lib/constants/application-filters';
+import { StatusBadge } from '@/components/ui/status.badge';
+import { PageHeader } from '@/components/ui/page.header';
+import { StatCard, KpiGrid } from '@/components/ui/stat.card';
+import { LoadingSkeleton } from '@/components/ui/loading.skeleton';
+import { EmptyState } from '@/components/ui/empty.state';
+import { PanelCard } from '@/components/ui/panel.card';
+import { ProcedureTypeBadge } from '@/components/ui/procedure-type.badge';
 
-type StatusFilter = 'TODOS' | 'PENDIENTE_SECRETARIA' | 'OBSERVADO';
-
-const TIPO_LABEL: Record<string, string> = {
-  PERMISO_CONSTRUCCION: 'Permiso de Construcción',
-  LINEA_FABRICAS: 'Línea de Fábricas',
-  APROBACION_PLANOS: 'Aprobación de Planos',
-};
-
-const TIPO_COLOR: Record<string, string> = {
-  PERMISO_CONSTRUCCION: '#2563EB',
-  LINEA_FABRICAS: '#D97706',
-  APROBACION_PLANOS: '#2E8B57',
-};
+const SECRETARY_STATUS_OPTIONS = [
+  { value: '', label: 'Todos (activos)' },
+  { value: 'PENDIENTE_SECRETARIA', label: 'Pendientes' },
+  { value: 'OBSERVADO', label: 'Observados' },
+];
 
 interface Application {
   id: string;
@@ -36,15 +37,25 @@ interface Application {
 export function SecretaryInbox() {
   const [applications, set_applications] = useState<Application[]>([]);
   const [is_loading, set_is_loading] = useState(true);
-  const [filter, set_filter] = useState<StatusFilter>('TODOS');
-  const [search, set_search] = useState('');
+  const [filters, set_filters] = useState<FilterState>({
+    search: '',
+    procedureType: '',
+    status: '',
+    dateFrom: '',
+    dateTo: '',
+  });
+
+  const handleFilterChange = useCallback((next: FilterState) => {
+    set_filters(next);
+  }, []);
 
   const loadInbox = useCallback(async () => {
     set_is_loading(true);
     try {
-      const params: any = {};
-      if (filter !== 'TODOS') params.estado = filter;
-      const { data } = await applications_api.list({ ...params, limit: 100 });
+      const params: Record<string, string | number> = { limit: 100 };
+      if (filters.status) params.estado = filters.status;
+      if (filters.procedureType) params.tipoTramite = filters.procedureType;
+      const { data } = await applications_api.list(params);
 
       const mapped = (data.data || []).map((s: any) => ({
         id: s.id,
@@ -74,26 +85,40 @@ export function SecretaryInbox() {
     } finally {
       set_is_loading(false);
     }
-  }, [filter]);
+  }, [filters.status, filters.procedureType]);
 
   useEffect(() => {
     loadInbox();
   }, [loadInbox]);
 
   const filtered_applications = applications.filter((s) => {
-    if (filter === 'TODOS') {
-      if (!['PENDIENTE_SECRETARIA', 'OBSERVADO'].includes(s.status)) return false;
+    if (!filters.status && !['PENDIENTE_SECRETARIA', 'OBSERVADO'].includes(s.status)) {
+      return false;
     }
-    if (search) {
-      const q = search.toLowerCase();
+
+    if (filters.search) {
+      const q = filters.search.toLowerCase();
       const name = `${s.citizen?.first_name ?? ''} ${s.citizen?.last_name ?? ''}`.toLowerCase();
       if (
         !name.includes(q) &&
         !s.id?.toLowerCase().includes(q) &&
         !s.citizen?.national_id?.includes(q)
-      )
+      ) {
         return false;
+      }
     }
+
+    if (filters.dateFrom) {
+      const from = new Date(filters.dateFrom);
+      if (new Date(s.created_at) < from) return false;
+    }
+
+    if (filters.dateTo) {
+      const to = new Date(filters.dateTo);
+      to.setHours(23, 59, 59, 999);
+      if (new Date(s.created_at) > to) return false;
+    }
+
     return true;
   });
 
@@ -102,94 +127,56 @@ export function SecretaryInbox() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-extrabold text-blue-955">Bandeja de Trámites</h1>
-          <p className="text-sm text-slate-500">
-            Verificación documental — firma y completitud de expedientes
-          </p>
-        </div>
-        <button
-          onClick={loadInbox}
-          disabled={is_loading}
-          className="rounded-xl border border-slate-200 p-2.5 text-slate-500 hover:bg-primary-dark hover:text-neutral-50 hover:border-primary-dark"
-          title="Actualizar"
-        >
-          <RefreshCw size={16} className={is_loading ? 'animate-spin' : ''} />
-        </button>
-      </div>
+      <PageHeader
+        title="Bandeja de Trámites"
+        description="Verificación documental — firma y completitud de expedientes"
+        actions={
+          <button
+            onClick={loadInbox}
+            disabled={is_loading}
+            className="rounded-xl border border-neutral-200 p-2.5 text-slate-500 hover:bg-primary-dark hover:text-neutral-50 hover:border-primary-dark"
+            title="Actualizar"
+          >
+            <RefreshCw size={16} className={is_loading ? 'animate-spin' : ''} />
+          </button>
+        }
+      />
 
-      {/* Stats rápidas */}
-      <div className="grid grid-cols-3 gap-4">
-        {[
-          {
-            label: 'Pendientes',
-            count: pending_count,
-            colorClass: 'text-warning-dark',
-            bgClass: 'bg-warning-light/20',
-            icon: <Clock size={16} />,
-          },
-          {
-            label: 'Observados',
-            count: observed_count,
-            colorClass: 'text-error-dark',
-            bgClass: 'bg-error-light/20',
-            icon: <XCircle size={16} />,
-          },
-          {
-            label: 'Total activos',
-            count: pending_count + observed_count,
-            colorClass: 'text-primary-default',
-            bgClass: 'bg-primary-light/10',
-            icon: <FileCheck2 size={16} />,
-          },
-        ].map((stat) => (
-          <div key={stat.label} className="glass-card p-4 flex items-center gap-3">
-            <div className={`rounded-xl p-2 ${stat.bgClass} ${stat.colorClass}`}>{stat.icon}</div>
-            <div>
-              <p className="text-2xl font-extrabold text-blue-955">{stat.count}</p>
-              <p className="text-slate-400 text-xs">{stat.label}</p>
-            </div>
-          </div>
-        ))}
-      </div>
+      <KpiGrid columns="3">
+        <StatCard
+          label="Pendientes"
+          value={pending_count}
+          icon={Clock}
+          iconClassName="text-warning-dark"
+          iconWrapperClassName="bg-warning-light/20"
+          isLoading={is_loading}
+        />
+        <StatCard
+          label="Observados"
+          value={observed_count}
+          icon={XCircle}
+          iconClassName="text-error-dark"
+          iconWrapperClassName="bg-error-light/20"
+          isLoading={is_loading}
+        />
+        <StatCard
+          label="Total activos"
+          value={pending_count + observed_count}
+          icon={FileCheck2}
+          iconClassName="text-primary-default"
+          iconWrapperClassName="bg-primary-light/10"
+          isLoading={is_loading}
+        />
+      </KpiGrid>
 
-      {/* Barra de herramientas */}
-      <div className="flex flex-col sm:flex-row gap-3">
-        {/* Búsqueda */}
-        <div className="relative flex-1">
-          <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
-          <input
-            type="text"
-            placeholder="Buscar por ciudadano, cédula o ID..."
-            value={search}
-            onChange={(e) => set_search(e.target.value)}
-            className="w-full rounded-xl border border-neutral-200 bg-neutral-50 py-3 pl-10 pr-4 text-sm text-slate-800"
-          />
-        </div>
+      <ApplicationFilterBar
+        onFilterChange={handleFilterChange}
+        statusOptions={SECRETARY_STATUS_OPTIONS}
+        showProcedureFilter
+        showDateFilters
+      />
 
-        {/* Filtros */}
-        <div className="flex items-center gap-2">
-          <Filter size={16} className="text-slate-500" />
-          {(['TODOS', 'PENDIENTE_SECRETARIA', 'OBSERVADO'] as StatusFilter[]).map((f) => (
-            <button
-              key={f}
-              onClick={() => set_filter(f)}
-              className={`rounded-xl border px-4 py-2.5 text-xs font-semibold ${
-                filter === f
-                  ? 'border-secondary-dark bg-secondary-light/20 text-secondary-dark'
-                  : 'border-neutral-200 bg-neutral-50 text-slate-500 hover:border-primary-dark hover:bg-primary-dark hover:text-neutral-50'
-              }`}
-            >
-              {f === 'TODOS' ? 'Todos' : f === 'PENDIENTE_SECRETARIA' ? 'Pendientes' : 'Observados'}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Tabla */}
-      <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-neutral-50">
+      <PanelCard>
         <div className="overflow-x-auto">
           <table className="w-full text-left">
             <thead>
@@ -214,16 +201,18 @@ export function SecretaryInbox() {
             <tbody className="divide-y divide-neutral-200">
               {is_loading ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-16 text-center">
-                    <div className="w-6 h-6 border-2 border-amber-500 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-                    <p className="text-slate-400 text-sm">Cargando bandeja...</p>
+                  <td colSpan={6} className="px-6 py-4">
+                    <LoadingSkeleton count={3} variant="row" />
                   </td>
                 </tr>
               ) : filtered_applications.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="py-16 text-center">
-                    <FileCheck2 size={40} className="mx-auto mb-3 text-neutral-300" />
-                    <p className="text-slate-400">No hay solicitudes que coincidan</p>
+                  <td colSpan={6}>
+                    <EmptyState
+                      icon={FileCheck2}
+                      title="No hay solicitudes que coincidan"
+                      className="py-12"
+                    />
                   </td>
                 </tr>
               ) : (
@@ -248,19 +237,7 @@ export function SecretaryInbox() {
                       </p>
                     </td>
                     <td className="px-6 py-4">
-                      <span
-                        className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                          sol.procedure_type === 'PERMISO_CONSTRUCCION'
-                            ? 'bg-primary-light/10 text-primary-default'
-                            : sol.procedure_type === 'LINEA_FABRICAS'
-                              ? 'bg-secondary-light/20 text-secondary-dark'
-                              : sol.procedure_type === 'APROBACION_PLANOS'
-                                ? 'bg-success-light/20 text-success-dark'
-                                : 'bg-neutral-200 text-slate-600'
-                        }`}
-                      >
-                        {TIPO_LABEL[sol.procedure_type] ?? sol.procedure_type}
-                      </span>
+                      <ProcedureTypeBadge type={sol.procedure_type} />
                       <p className="mt-1 text-[0.7rem] text-slate-400">
                         {sol.property?.address ?? '—'}
                       </p>
@@ -274,15 +251,7 @@ export function SecretaryInbox() {
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <span
-                        className={`rounded-full border px-3 py-1 text-xs font-semibold ${
-                          sol.status === 'PENDIENTE_SECRETARIA'
-                            ? 'border-warning-light bg-warning-light/20 text-warning-dark'
-                            : 'border-error-light bg-error-light/20 text-error-dark'
-                        }`}
-                      >
-                        {sol.status === 'PENDIENTE_SECRETARIA' ? '⏳ Pendiente' : '↩ Observado'}
-                      </span>
+                      <StatusBadge status={sol.status} />
                     </td>
                     <td className="px-6 py-4">
                       <Link
@@ -298,7 +267,7 @@ export function SecretaryInbox() {
             </tbody>
           </table>
         </div>
-      </div>
+      </PanelCard>
     </div>
   );
 }

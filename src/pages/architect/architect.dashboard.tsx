@@ -15,7 +15,15 @@ import {
 } from 'lucide-react';
 import { useAuthStore } from '@/stores/auth.store';
 import api from '@/lib/api';
-import { ApplicationTimeline } from '@/components/application.timeline';
+import { ApplicationTimeline } from '@/components/ui/application.timeline';
+import { CompleteProfileModal } from '@/components/logic/complete.profile.modal';
+import { PageHeader } from '@/components/ui/page.header';
+import { StatCard, KpiGrid } from '@/components/ui/stat.card';
+import { LoadingSkeleton } from '@/components/ui/loading.skeleton';
+import { EmptyState } from '@/components/ui/empty.state';
+import { DetailSection } from '@/components/ui/detail.section';
+import { PanelCard } from '@/components/ui/panel.card';
+import { InfoGrid } from '@/components/ui/info.grid';
 
 interface Application {
   id: string;
@@ -62,6 +70,7 @@ export function ArchitectDashboard() {
   const [is_loading, set_is_loading] = useState(true);
 
   const is_enabled = user?.is_enabled === true;
+  const needs_profile_completion = !user?.national_id || !user?.first_name?.trim();
 
   useEffect(() => {
     api
@@ -127,102 +136,85 @@ export function ArchitectDashboard() {
 
   return (
     <div className="space-y-6">
-      {!is_enabled && <PendienteHabilitacionBanner />}
+      {!is_enabled && needs_profile_completion && <CompleteProfileModal allowClose={false} />}
 
-      {/* Header */}
-      <div className="flex items-start justify-between">
-        <div>
-          <h1 className="font-heading text-2xl font-bold text-blue-955">
-            Bienvenido, {user?.first_name || 'Arquitecto'} 👷
-          </h1>
-          <p className="text-blue-800 mt-1">
-            {is_enabled
-              ? 'Gestiona los trámites de tus clientes desde aquí.'
-              : 'Tu cuenta está siendo verificada por el GAD Municipal.'}
-          </p>
-        </div>
-        {is_enabled && (
-          <Link to="/architect/procedures/new" className="btn-primary">
-            <PlusCircle size={18} />
-            <span className="hidden sm:inline">Nuevo Trámite</span>
-          </Link>
-        )}
-      </div>
+      {!is_enabled && !needs_profile_completion && <PendienteHabilitacionBanner />}
 
-      {/* Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <PageHeader
+        title={`Bienvenido, ${user?.first_name || 'Arquitecto'} 👷`}
+        description={
+          is_enabled
+            ? 'Gestiona los trámites de tus clientes desde aquí.'
+            : 'Tu cuenta está siendo verificada por el GAD Municipal.'
+        }
+        actions={
+          is_enabled ? (
+            <Link to="/architect/procedures/new" className="btn-primary">
+              <PlusCircle size={18} />
+              <span className="hidden sm:inline">Nuevo Trámite</span>
+            </Link>
+          ) : undefined
+        }
+      />
+
+      <KpiGrid>
         {stats.map((stat) => (
-          <div key={stat.label} className="stat-card">
-            <div
-              className={`flex h-10 w-10 items-center justify-center rounded-xl ${stat.iconWrapperClass}`}
-            >
-              <stat.icon size={20} className={stat.iconClass} />
-            </div>
-            <div>
-              <p className="text-2xl font-heading font-bold text-blue-955">{stat.value}</p>
-              <p className="text-xs text-slate-500">{stat.label}</p>
-            </div>
-          </div>
+          <StatCard
+            key={stat.label}
+            label={stat.label}
+            value={stat.value}
+            icon={stat.icon}
+            iconClassName={stat.iconClass}
+            iconWrapperClassName={stat.iconWrapperClass}
+          />
         ))}
-      </div>
+      </KpiGrid>
 
       {/* Información profesional */}
       {user?.title && (
-        <div className="glass-card p-5">
-          <h2 className="font-heading font-semibold text-blue-955 mb-4 flex items-center gap-2">
-            <HardHat size={16} className="text-primary-default" />
-            Mi perfil profesional
-          </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            {[
+        <DetailSection title="Mi perfil profesional" icon={HardHat}>
+          <InfoGrid
+            columns={3}
+            items={[
               { label: 'Título', value: user.title },
               { label: 'N° Registro SENESCYT', value: user.registration_number },
               {
                 label: 'Estado',
                 value: is_enabled ? '✅ Habilitado por el GAD' : '⏳ Pendiente de habilitación',
               },
-            ].map(({ label, value }) => (
-              <div key={label} className="p-3 rounded-xl bg-slate-50 border border-slate-200">
-                <p className="text-xs text-slate-500 font-bold uppercase mb-1">{label}</p>
-                <p className="text-sm font-medium text-blue-955">{value || '—'}</p>
-              </div>
-            ))}
-          </div>
-        </div>
+            ]}
+          />
+        </DetailSection>
       )}
 
-      {/* Trámites recientes */}
-      <div className="glass-card">
-        <div className="flex items-center justify-between p-6 border-b border-surface-border">
-          <h2 className="font-heading font-semibold text-blue-955">Trámites Recientes</h2>
+      <PanelCard
+        variant="glass"
+        title="Trámites Recientes"
+        actions={
           <Link
             to="/architect/procedures"
             className="text-sm flex items-center gap-1 font-bold text-primary-default hover:text-primary-dark"
           >
             Ver todos <ArrowRight size={14} />
           </Link>
-        </div>
-
+        }
+      >
         {is_loading ? (
-          <div className="p-6 space-y-4">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="h-24 rounded-xl shimmer" />
-            ))}
-          </div>
+          <LoadingSkeleton count={3} variant="block" className="p-6" />
         ) : applications.length === 0 ? (
-          <div className="p-12 text-center">
-            <TrendingUp size={40} className="text-slate-400 mx-auto mb-4" />
-            <p className="text-blue-800 font-medium">Sin trámites aún</p>
-            <p className="text-slate-500 text-sm mt-1">
-              Inicia el primer trámite para un ciudadano
-            </p>
-            {is_enabled && (
-              <Link to="/architect/procedures/new" className="btn-primary mt-4 inline-flex">
-                <PlusCircle size={16} />
-                Nuevo Trámite
-              </Link>
-            )}
-          </div>
+          <EmptyState
+            icon={TrendingUp}
+            title="Sin trámites aún"
+            description="Inicia el primer trámite para un ciudadano"
+            action={
+              is_enabled ? (
+                <Link to="/architect/procedures/new" className="btn-primary inline-flex">
+                  <PlusCircle size={16} />
+                  Nuevo Trámite
+                </Link>
+              ) : undefined
+            }
+          />
         ) : (
           <div className="divide-y divide-surface-border">
             {applications.slice(0, 5).map((sol) => (
@@ -259,7 +251,7 @@ export function ArchitectDashboard() {
             ))}
           </div>
         )}
-      </div>
+      </PanelCard>
     </div>
   );
 }

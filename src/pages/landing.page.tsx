@@ -13,10 +13,10 @@ import {
   HardHat,
   XCircle,
   AlertCircle,
-  Loader,
   HelpCircle,
 } from 'lucide-react';
 import { applications_api } from '@/lib/api.calls';
+import { BaseModal } from '@/components/logic/base.modal';
 
 const STATS = [
   { value: '3,200+', label: 'Planos y Proyectos Aprobados', icon: FileText },
@@ -517,161 +517,144 @@ export function LandingPage() {
         </div>
       </footer>
 
-      {/* MODAL: TRACKING DE TRÁMITE */}
-      {is_modal_open && tracking_result && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-          <div
-            className="absolute inset-0 bg-neutral-900/40"
-            onClick={() => set_is_modal_open(false)}
-          />
+      <BaseModal
+        isOpen={is_modal_open && !!tracking_result}
+        onClose={() => set_is_modal_open(false)}
+        title="Estado de Trámites"
+        size="xl"
+      >
+        {citizen && (
+          <p className="text-xs text-neutral-500 mb-4 -mt-2">
+            Propietario: {citizen.first_name} {citizen.last_name}
+          </p>
+        )}
 
-          <div className="relative w-full max-w-2xl bg-neutral-50 rounded-3xl border border-neutral-200 p-6 overflow-hidden max-h-[90vh] flex flex-col text-left">
-            <div className="flex items-center justify-between border-b pb-4 mb-4">
-              <div>
-                <h3 className="text-xl font-bold text-neutral-900">Estado de Trámites</h3>
-                {citizen && (
-                  <p className="text-xs text-neutral-500">
-                    Propietario: {citizen.first_name} {citizen.last_name}
-                  </p>
-                )}
-              </div>
-              <button
-                onClick={() => set_is_modal_open(false)}
-                className="w-8 h-8 rounded-full bg-neutral-100 hover:bg-primary-dark hover:text-neutral-50 text-neutral-600 font-bold flex items-center justify-center text-sm"
+        <div className="space-y-6 pr-1">
+          {applications.map((sol: any) => {
+            const info = STATUS_INFO[sol.status] || {
+              label: sol.status,
+              badgeClass: 'bg-neutral-200 text-neutral-700 border border-neutral-300',
+              step: 1,
+            };
+            const steps = [
+              { num: 1, label: 'Ingreso' },
+              { num: 2, label: 'Revisión' },
+              { num: 3, label: 'Pago Tasas' },
+              { num: 4, label: 'Finalizado' },
+            ];
+
+            return (
+              <div
+                key={sol.id}
+                className="p-5 rounded-2xl bg-neutral-100 border border-neutral-200/60 space-y-4"
               >
-                ✕
-              </button>
-            </div>
-
-            <div className="flex-1 overflow-y-auto space-y-6 pr-1">
-              {applications.map((sol: any) => {
-                const info = STATUS_INFO[sol.status] || {
-                  label: sol.status,
-                  badgeClass: 'bg-neutral-200 text-neutral-700 border border-neutral-300',
-                  step: 1,
-                };
-                const steps = [
-                  { num: 1, label: 'Ingreso' },
-                  { num: 2, label: 'Revisión' },
-                  { num: 3, label: 'Pago Tasas' },
-                  { num: 4, label: 'Finalizado' },
-                ];
-
-                return (
-                  <div
-                    key={sol.id}
-                    className="p-5 rounded-2xl bg-neutral-100 border border-neutral-200/60 space-y-4"
-                  >
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                      <div>
-                        <span className="text-[10px] bg-neutral-200 text-neutral-700 font-bold px-2 py-1 rounded">
-                          ID: #{sol.id.slice(0, 8).toUpperCase()}
-                        </span>
-                        <h4 className="font-bold text-neutral-800 text-base mt-1">
-                          {PROCEDURE_TYPE_LABELS[sol.procedure_type] || sol.procedure_type}
-                        </h4>
-                        <p className="text-xs text-neutral-500 flex items-center gap-1 mt-0.5">
-                          <MapPin size={12} /> {sol.address} ({sol.location})
-                        </p>
-                      </div>
-                      <span
-                        className={`text-xs font-bold px-3 py-1.5 rounded-full w-max text-center ${info.badgeClass}`}
-                      >
-                        {info.label}
-                      </span>
-                    </div>
-
-                    <div className="pt-2">
-                      <div className="flex items-start justify-between gap-2 max-w-md mx-auto">
-                        {steps.map((s, index) => {
-                          const is_past = info.step > s.num;
-                          const is_active = info.step === s.num;
-
-                          let bg_circle = 'bg-neutral-200 text-neutral-400';
-
-                          if (is_past) {
-                            bg_circle = 'bg-success-default text-neutral-50';
-                          } else if (is_active) {
-                            bg_circle = 'bg-primary-default text-neutral-50 font-bold';
-                          }
-
-                          return (
-                            <div key={s.num} className="flex items-center flex-1 last:flex-none">
-                              <div className="flex flex-col items-center relative z-10 min-w-8">
-                                <div
-                                  className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold ${bg_circle}`}
-                                >
-                                  {is_past ? '✓' : s.num}
-                                </div>
-                                <span
-                                  className={`text-[10px] mt-1.5 font-bold text-center ${is_active ? 'text-primary-default' : 'text-neutral-500'}`}
-                                >
-                                  {s.label}
-                                </span>
-                              </div>
-                              {index < steps.length - 1 && (
-                                <div
-                                  className={`h-1 flex-1 mx-2 mt-[-18px] rounded-full ${info.step > s.num ? 'bg-primary-default' : 'bg-neutral-200'}`}
-                                />
-                              )}
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-
-                    {sol.status === 'OBSERVADO' && sol.observations && (
-                      <div className="p-3.5 rounded-xl bg-error-light/20 border border-error-light text-error-dark text-xs">
-                        <p className="font-bold flex items-center gap-1.5 mb-1 text-error-dark">
-                          <AlertCircle size={14} /> Observación documental a subsanar:
-                        </p>
-                        <p>{sol.observations}</p>
-                      </div>
-                    )}
-
-                    {sol.status === 'RECHAZADO' && sol.rejection_reason && (
-                      <div className="p-3.5 rounded-xl bg-error-light/20 border border-error-light text-error-dark text-xs">
-                        <p className="font-bold flex items-center gap-1.5 mb-1 text-error-dark">
-                          <XCircle size={14} /> Motivo del rechazo técnico:
-                        </p>
-                        <p>{sol.rejection_reason}</p>
-                      </div>
-                    )}
-
-                    {sol.status === 'PENDIENTE_PAGO' && sol.payment && (
-                      <div className="p-3.5 rounded-xl bg-warning-light/20 border border-warning-light text-warning-dark text-xs flex justify-between items-center">
-                        <div>
-                          <p className="font-bold text-warning-dark">Monto Liquidado a Pagar:</p>
-                          <p className="text-neutral-500">{sol.payment.concept}</p>
-                        </div>
-                        <span className="text-lg font-black text-warning-default">
-                          ${sol.payment.amount}
-                        </span>
-                      </div>
-                    )}
-
-                    <div className="text-[10px] text-neutral-400 text-right">
-                      Última actualización: {new Date(sol.updated_at).toLocaleDateString('es-EC')} a
-                      las{' '}
-                      {new Date(sol.updated_at).toLocaleTimeString('es-EC', {
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      })}
-                    </div>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <div>
+                    <span className="text-[10px] bg-neutral-200 text-neutral-700 font-bold px-2 py-1 rounded">
+                      ID: #{sol.id.slice(0, 8).toUpperCase()}
+                    </span>
+                    <h4 className="font-bold text-neutral-800 text-base mt-1">
+                      {PROCEDURE_TYPE_LABELS[sol.procedure_type] || sol.procedure_type}
+                    </h4>
+                    <p className="text-xs text-neutral-500 flex items-center gap-1 mt-0.5">
+                      <MapPin size={12} /> {sol.address} ({sol.location})
+                    </p>
                   </div>
-                );
-              })}
-            </div>
+                  <span
+                    className={`text-xs font-bold px-3 py-1.5 rounded-full w-max text-center ${info.badgeClass}`}
+                  >
+                    {info.label}
+                  </span>
+                </div>
 
-            <div className="border-t pt-4 mt-4 text-center">
-              <p className="text-[11px] text-neutral-400 flex items-center justify-center gap-1">
-                <HelpCircle size={12} /> Para soporte adicional, contacta al departamento de
-                Planificación GAD Cañar.
-              </p>
-            </div>
-          </div>
+                <div className="pt-2">
+                  <div className="flex items-start justify-between gap-2 max-w-md mx-auto">
+                    {steps.map((s, index) => {
+                      const is_past = info.step > s.num;
+                      const is_active = info.step === s.num;
+
+                      let bg_circle = 'bg-neutral-200 text-neutral-400';
+
+                      if (is_past) {
+                        bg_circle = 'bg-success-default text-neutral-50';
+                      } else if (is_active) {
+                        bg_circle = 'bg-primary-default text-neutral-50 font-bold';
+                      }
+
+                      return (
+                        <div key={s.num} className="flex items-center flex-1 last:flex-none">
+                          <div className="flex flex-col items-center relative z-10 min-w-8">
+                            <div
+                              className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold ${bg_circle}`}
+                            >
+                              {is_past ? '✓' : s.num}
+                            </div>
+                            <span
+                              className={`text-[10px] mt-1.5 font-bold text-center ${is_active ? 'text-primary-default' : 'text-neutral-500'}`}
+                            >
+                              {s.label}
+                            </span>
+                          </div>
+                          {index < steps.length - 1 && (
+                            <div
+                              className={`h-1 flex-1 mx-2 mt-[-18px] rounded-full ${info.step > s.num ? 'bg-primary-default' : 'bg-neutral-200'}`}
+                            />
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {sol.status === 'OBSERVADO' && sol.observations && (
+                  <div className="p-3.5 rounded-xl bg-error-light/20 border border-error-light text-error-dark text-xs">
+                    <p className="font-bold flex items-center gap-1.5 mb-1 text-error-dark">
+                      <AlertCircle size={14} /> Observación documental a subsanar:
+                    </p>
+                    <p>{sol.observations}</p>
+                  </div>
+                )}
+
+                {sol.status === 'RECHAZADO' && sol.rejection_reason && (
+                  <div className="p-3.5 rounded-xl bg-error-light/20 border border-error-light text-error-dark text-xs">
+                    <p className="font-bold flex items-center gap-1.5 mb-1 text-error-dark">
+                      <XCircle size={14} /> Motivo del rechazo técnico:
+                    </p>
+                    <p>{sol.rejection_reason}</p>
+                  </div>
+                )}
+
+                {sol.status === 'PENDIENTE_PAGO' && sol.payment && (
+                  <div className="p-3.5 rounded-xl bg-warning-light/20 border border-warning-light text-warning-dark text-xs flex justify-between items-center">
+                    <div>
+                      <p className="font-bold text-warning-dark">Monto Liquidado a Pagar:</p>
+                      <p className="text-neutral-500">{sol.payment.concept}</p>
+                    </div>
+                    <span className="text-lg font-black text-warning-default">
+                      ${sol.payment.amount}
+                    </span>
+                  </div>
+                )}
+
+                <div className="text-[10px] text-neutral-400 text-right">
+                  Última actualización: {new Date(sol.updated_at).toLocaleDateString('es-EC')} a las{' '}
+                  {new Date(sol.updated_at).toLocaleTimeString('es-EC', {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  })}
+                </div>
+              </div>
+            );
+          })}
         </div>
-      )}
+
+        <div className="border-t pt-4 mt-4 text-center">
+          <p className="text-[11px] text-neutral-400 flex items-center justify-center gap-1">
+            <HelpCircle size={12} /> Para soporte adicional, contacta al departamento de
+            Planificación GAD Cañar.
+          </p>
+        </div>
+      </BaseModal>
     </div>
   );
 }

@@ -23,6 +23,9 @@ import {
 import { applications_api, attachments_api } from '@/lib/api.calls';
 import { mapUser, type User as AuthUser } from '@/stores/auth.store';
 import { cn } from '@/lib/utils';
+import { PROCEDURE_TYPE_LABELS } from '@/lib/constants/procedure-types';
+import { PageHeader } from '@/components/ui/page.header';
+import { AlertBanner } from '@/components/ui/alert.banner';
 import api from '@/lib/api';
 
 type ProcedureType = 'LINEA_FABRICAS' | 'APROBACION_PLANOS' | 'PERMISO_CONSTRUCCION';
@@ -30,7 +33,7 @@ type ProcedureType = 'LINEA_FABRICAS' | 'APROBACION_PLANOS' | 'PERMISO_CONSTRUCC
 const PROCEDURES = [
   {
     value: 'LINEA_FABRICAS' as ProcedureType,
-    label: 'Línea de Fábricas',
+    label: PROCEDURE_TYPE_LABELS.LINEA_FABRICAS,
     desc: 'Certificado que establece el lindero frontal de un predio respecto a la vía pública.',
     icon: <Factory size={28} />,
     color: '#D97706',
@@ -44,7 +47,7 @@ const PROCEDURES = [
   },
   {
     value: 'APROBACION_PLANOS' as ProcedureType,
-    label: 'Aprobación de Planos',
+    label: PROCEDURE_TYPE_LABELS.APROBACION_PLANOS,
     desc: 'Revisión y aprobación técnica de planos arquitectónicos y estructurales.',
     icon: <Layers size={28} />,
     color: '#2563EB',
@@ -59,7 +62,7 @@ const PROCEDURES = [
   },
   {
     value: 'PERMISO_CONSTRUCCION' as ProcedureType,
-    label: 'Permiso de Construcción',
+    label: PROCEDURE_TYPE_LABELS.PERMISO_CONSTRUCCION,
     desc: 'Autorización municipal para ejecutar obras de construcción, ampliación o remodelación.',
     icon: <HardHat size={28} />,
     color: '#2E8B57',
@@ -280,13 +283,10 @@ export function NewProcedure() {
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="font-heading text-2xl font-bold text-blue-955">Nuevo Trámite</h1>
-        <p className="text-blue-800 mt-1 text-sm">
-          Inicia un trámite en nombre del ciudadano propietario del predio
-        </p>
-      </div>
+      <PageHeader
+        title="Nuevo Trámite"
+        description="Inicia un trámite en nombre del ciudadano propietario del predio"
+      />
 
       {/* Stepper */}
       <div className="flex items-center gap-1">
@@ -322,12 +322,7 @@ export function NewProcedure() {
       </div>
 
       {/* Error */}
-      {error && (
-        <div className="flex items-center gap-3 p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm">
-          <AlertCircle size={16} className="flex-shrink-0" />
-          {error}
-        </div>
-      )}
+      {error && <AlertBanner message={error} onDismiss={() => set_error(null)} />}
 
       {/* ── PASO 1: Propietario ── */}
       {step === 1 && (

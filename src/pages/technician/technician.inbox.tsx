@@ -9,33 +9,17 @@ import {
   MapPin,
   FileText,
   XCircle,
-  Building2,
-  Trees,
 } from 'lucide-react';
 import { applications_api } from '@/lib/api.calls';
 import { useAuthStore } from '@/stores/auth.store';
-import { getStatusBadgeClass, getStatusLabel, formatDate, cn } from '@/lib/utils';
-
-// ── Reusable zone badge ──────────────────────────────
-function ZoneBadge({ zone, size = 'md' }: { zone?: string | null; size?: 'sm' | 'md' }) {
-  if (!zone) return null;
-  const is_urban = zone === 'URBAN' || zone === 'URBANO';
-  const small = size === 'sm';
-  return (
-    <span
-      className={cn(
-        'inline-flex items-center gap-1 rounded-lg border font-medium',
-        small ? 'px-2 py-0.5 text-xs' : 'px-3 py-1 text-sm',
-        is_urban
-          ? 'border-primary-light bg-primary-light/10 text-primary-default'
-          : 'border-success-light bg-success-light/20 text-success-dark'
-      )}
-    >
-      {is_urban ? <Building2 size={small ? 10 : 13} /> : <Trees size={small ? 10 : 13} />}
-      {is_urban ? 'Urbano' : 'Rural'}
-    </span>
-  );
-}
+import { formatDate, cn } from '@/lib/utils';
+import { StatusBadge } from '@/components/ui/status.badge';
+import { ZoneBadge } from '@/components/ui/zone.badge';
+import { PageHeader } from '@/components/ui/page.header';
+import { StatCard, KpiGrid } from '@/components/ui/stat.card';
+import { LoadingSkeleton } from '@/components/ui/loading.skeleton';
+import { EmptyState } from '@/components/ui/empty.state';
+import { PanelCard } from '@/components/ui/panel.card';
 
 interface Application {
   id: string;
@@ -119,87 +103,50 @@ export function TechnicianInbox() {
 
   return (
     <div className="space-y-6">
-      {/* ── Header with technician zone ─────────────────────── */}
-      <div className="flex items-start justify-between gap-4 flex-wrap">
-        <div>
-          <div className="flex items-center gap-3 flex-wrap">
-            <h1 className="font-heading text-2xl font-bold text-blue-955">Bandeja de Trabajo</h1>
-            {/* Authenticated technician zone badge */}
-            <ZoneBadge zone={user?.zone} />
-          </div>
-          <p className="text-blue-800 mt-1 text-sm">
-            {user?.zone
-              ? `Solicitudes asignadas de la zona ${user.zone === 'URBAN' ? 'Urbana' : 'Rural'}`
-              : 'Solicitudes asignadas para revisión técnica'}
-          </p>
-        </div>
+      <PageHeader
+        title="Bandeja de Trabajo"
+        description={
+          user?.zone
+            ? `Solicitudes asignadas de la zona ${user.zone === 'URBAN' ? 'Urbana' : 'Rural'}`
+            : 'Solicitudes asignadas para revisión técnica'
+        }
+        actions={<ZoneBadge zone={user?.zone} />}
+      />
 
-        {/* Zone info with descriptive icon */}
-        {user?.zone && (
-          <div
-            className={cn(
-              'flex items-center gap-2 rounded-xl border px-4 py-2 text-sm',
-              user.zone === 'URBAN'
-                ? 'border-primary-light bg-primary-light/10 text-primary-default'
-                : 'border-success-light bg-success-light/20 text-success-dark'
-            )}
-          >
-            {user.zone === 'URBAN' ? (
-              <>
-                <Building2 size={14} /> Solo trámites de zona <strong>Urbana</strong>
-              </>
-            ) : (
-              <>
-                <Trees size={14} /> Solo trámites de zona <strong>Rural</strong>
-              </>
-            )}
-          </div>
-        )}
-      </div>
-
-      {/* ── Stats ───────────────────────────────────────────── */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        {[
-          {
-            label: 'En Revisión',
-            value: counts.under_review,
-            color: 'text-warning-dark',
-            bg: 'bg-warning-light/20',
-            icon: Clock,
-          },
-          {
-            label: 'En Inspección',
-            value: counts.inspection,
-            color: 'text-primary-default',
-            bg: 'bg-primary-light/10',
-            icon: MapPin,
-          },
-          {
-            label: 'Aprobadas',
-            value: counts.approved,
-            color: 'text-success-dark',
-            bg: 'bg-success-light/20',
-            icon: CheckCircle2,
-          },
-          {
-            label: 'Negadas',
-            value: counts.rejected,
-            color: 'text-error-dark',
-            bg: 'bg-error-light/20',
-            icon: XCircle,
-          },
-        ].map((s) => (
-          <div key={s.label} className="stat-card">
-            <div className={`w-10 h-10 rounded-xl ${s.bg} flex items-center justify-center`}>
-              <s.icon size={20} className={s.color} />
-            </div>
-            <div>
-              <p className="text-2xl font-heading font-bold text-blue-955">{s.value}</p>
-              <p className="text-xs text-slate-500">{s.label}</p>
-            </div>
-          </div>
-        ))}
-      </div>
+      <KpiGrid>
+        <StatCard
+          label="En Revisión"
+          value={counts.under_review}
+          icon={Clock}
+          iconClassName="text-warning-dark"
+          iconWrapperClassName="bg-warning-light/20"
+          isLoading={is_loading}
+        />
+        <StatCard
+          label="En Inspección"
+          value={counts.inspection}
+          icon={MapPin}
+          iconClassName="text-primary-default"
+          iconWrapperClassName="bg-primary-light/10"
+          isLoading={is_loading}
+        />
+        <StatCard
+          label="Aprobadas"
+          value={counts.approved}
+          icon={CheckCircle2}
+          iconClassName="text-success-dark"
+          iconWrapperClassName="bg-success-light/20"
+          isLoading={is_loading}
+        />
+        <StatCard
+          label="Negadas"
+          value={counts.rejected}
+          icon={XCircle}
+          iconClassName="text-error-dark"
+          iconWrapperClassName="bg-error-light/20"
+          isLoading={is_loading}
+        />
+      </KpiGrid>
 
       {/* ── Filters ─────────────────────────────────────────── */}
       <div className="flex gap-2 flex-wrap">
@@ -220,28 +167,19 @@ export function TechnicianInbox() {
       </div>
 
       {/* ── Applications List ─────────────────────────────── */}
-      <div className="glass-card overflow-hidden">
+      <PanelCard variant="glass">
         {is_loading ? (
-          <div className="p-6 space-y-3">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="h-20 rounded-xl shimmer" />
-            ))}
-          </div>
+          <LoadingSkeleton count={3} variant="row" className="p-6" />
         ) : filtered_applications.length === 0 ? (
-          <div className="p-12 text-center">
-            <Inbox size={40} className="text-slate-500 mx-auto mb-4" />
-            <p className="text-blue-800 font-medium">Sin solicitudes en esta categoría</p>
-            {user?.zone && (
-              <p className="text-slate-500 text-sm mt-2">
-                Solo se muestran solicitudes de zona{' '}
-                <strong
-                  className={user.zone === 'URBAN' ? 'text-primary-default' : 'text-success-dark'}
-                >
-                  {user.zone}
-                </strong>
-              </p>
-            )}
-          </div>
+          <EmptyState
+            icon={Inbox}
+            title="Sin solicitudes en esta categoría"
+            description={
+              user?.zone
+                ? `Solo se muestran solicitudes de zona ${user.zone === 'URBAN' ? 'Urbana' : 'Rural'}`
+                : undefined
+            }
+          />
         ) : (
           <div className="divide-y divide-surface-border">
             {filtered_applications.map((app) => (
@@ -261,9 +199,7 @@ export function TechnicianInbox() {
                     <p className="text-blue-955 font-medium text-sm">
                       {app.procedure_type || 'Trámite'}
                     </p>
-                    <span className={getStatusBadgeClass(app.status)}>
-                      {getStatusLabel(app.status)}
-                    </span>
+                    <StatusBadge status={app.status} />
                     {/* Zone badge of each application */}
                     <ZoneBadge zone={app.property?.location} size="sm" />
                   </div>
@@ -296,7 +232,7 @@ export function TechnicianInbox() {
             ))}
           </div>
         )}
-      </div>
+      </PanelCard>
     </div>
   );
 }

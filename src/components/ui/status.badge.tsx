@@ -1,4 +1,4 @@
-import React from 'react'
+import React from 'react';
 import {
   FileText,
   Clock,
@@ -7,8 +7,11 @@ import {
   MapPin,
   CheckCircle,
   XCircle,
-  type LucideIcon
-} from 'lucide-react'
+  CreditCard,
+  Banknote,
+  type LucideIcon,
+} from 'lucide-react';
+import { normalizeApplicationStatus } from '@/lib/status';
 
 export type ApplicationStatus =
   | 'DRAFT'
@@ -16,15 +19,17 @@ export type ApplicationStatus =
   | 'OBSERVED'
   | 'PENDING_TECHNICIAN'
   | 'INSPECTION'
+  | 'PENDING_PAYMENT'
+  | 'PAID'
   | 'APPROVED'
-  | 'REJECTED'
+  | 'REJECTED';
 
 interface StatusConfig {
-  label: string
-  bgClass: string
-  textClass: string
-  borderClass: string
-  icon: LucideIcon
+  label: string;
+  bgClass: string;
+  textClass: string;
+  borderClass: string;
+  icon: LucideIcon;
 }
 
 const STATUS_MAP: Record<ApplicationStatus, StatusConfig> = {
@@ -63,6 +68,20 @@ const STATUS_MAP: Record<ApplicationStatus, StatusConfig> = {
     borderClass: 'border-purple-300/50',
     icon: MapPin,
   },
+  PENDING_PAYMENT: {
+    label: 'Pendiente de Pago',
+    bgClass: 'bg-orange-50/70 backdrop-blur-md',
+    textClass: 'text-orange-800',
+    borderClass: 'border-orange-300/50',
+    icon: CreditCard,
+  },
+  PAID: {
+    label: 'Pagado',
+    bgClass: 'bg-teal-50/70 backdrop-blur-md',
+    textClass: 'text-teal-800',
+    borderClass: 'border-teal-300/50',
+    icon: Banknote,
+  },
   APPROVED: {
     label: 'Aprobado',
     bgClass: 'bg-green-50/70 backdrop-blur-md',
@@ -77,16 +96,17 @@ const STATUS_MAP: Record<ApplicationStatus, StatusConfig> = {
     borderClass: 'border-red-300/50',
     icon: XCircle,
   },
-}
+};
 
 export interface StatusBadgeProps {
-  status: ApplicationStatus
-  className?: string
+  status: string;
+  className?: string;
 }
 
 export function StatusBadge({ status, className = '' }: StatusBadgeProps) {
-  const config = STATUS_MAP[status] || STATUS_MAP.DRAFT
-  const Icon = config.icon
+  const normalized = normalizeApplicationStatus(status);
+  const config = STATUS_MAP[normalized] || STATUS_MAP.DRAFT;
+  const Icon = config.icon;
 
   return (
     <span
@@ -95,5 +115,5 @@ export function StatusBadge({ status, className = '' }: StatusBadgeProps) {
       <Icon size={12} className="flex-shrink-0 animate-pulse" />
       <span>{config.label}</span>
     </span>
-  )
+  );
 }

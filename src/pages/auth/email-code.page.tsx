@@ -1,8 +1,10 @@
 import { useRef, useState } from 'react';
 import type { ClipboardEvent, KeyboardEvent } from 'react';
 import { Link, useNavigate, useLocation, Navigate } from 'react-router-dom';
-import { AlertCircle, MailCheck } from 'lucide-react';
+import { MailCheck } from 'lucide-react';
 import api from '@/lib/api';
+import { getApiError } from '@/lib/errors';
+import { AlertBanner } from '@/components/ui/alert.banner';
 
 const CODE_LENGTH = 6;
 
@@ -10,16 +12,6 @@ type EmailCodeLocationState = {
   fromSignup?: boolean;
   email?: string;
 };
-
-function getApiError(err: unknown, fallback: string): string {
-  if (typeof err === 'object' && err !== null && 'response' in err) {
-    const data = (err as { response?: { data?: { message?: string | string[] } } }).response?.data;
-    const msg = data?.message;
-    if (Array.isArray(msg)) return msg.join(', ');
-    if (typeof msg === 'string') return msg;
-  }
-  return fallback;
-}
 
 export function EmailCodePage() {
   const navigate = useNavigate();
@@ -112,12 +104,7 @@ export function EmailCodePage() {
         </div>
 
         {/* Global error */}
-        {error && (
-          <div className="flex items-center gap-2.5 p-3.5 rounded-xl mb-6 text-sm bg-error-default/10 border border-error-default/30 text-error-dark">
-            <AlertCircle size={15} className="flex-shrink-0" />
-            {error}
-          </div>
-        )}
+        {error && <AlertBanner message={error} onDismiss={() => setError(null)} className="mb-6" />}
 
         {/* Form */}
         <form onSubmit={onSubmit} className="space-y-4">

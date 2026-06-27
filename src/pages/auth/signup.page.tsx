@@ -5,6 +5,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Eye, EyeOff, AlertCircle } from 'lucide-react';
 import api from '@/lib/api';
+import { getApiError } from '@/lib/errors';
+import { AlertBanner } from '@/components/ui/alert.banner';
 
 const SignUpSchema = z
   .object({
@@ -22,16 +24,6 @@ type SignUpForm = z.infer<typeof SignUpSchema>;
 function tempCedula(): string {
   const raw = `${Date.now()}${Math.floor(Math.random() * 1000)}`;
   return raw.replace(/\D/g, '').slice(-10).padStart(10, '0');
-}
-
-function getApiError(err: unknown, fallback: string): string {
-  if (typeof err === 'object' && err !== null && 'response' in err) {
-    const data = (err as { response?: { data?: { message?: string | string[] } } }).response?.data;
-    const msg = data?.message;
-    if (Array.isArray(msg)) return msg.join(', ');
-    if (typeof msg === 'string') return msg;
-  }
-  return fallback;
 }
 
 export function SignUpPage() {
@@ -92,10 +84,7 @@ export function SignUpPage() {
 
         {/* Global error */}
         {error && (
-          <div className="flex items-center gap-2.5 p-3.5 rounded-xl mb-6 text-sm bg-error-default/10 border border-error-default/30 text-error-dark">
-            <AlertCircle size={15} className="flex-shrink-0" />
-            {error}
-          </div>
+          <AlertBanner message={error} onDismiss={() => set_error(null)} className="mb-6" />
         )}
 
         {/* Form */}

@@ -1,51 +1,45 @@
-import React, { useEffect, useRef } from 'react'
-import { X } from 'lucide-react'
+import React, { useEffect, useRef } from 'react';
+import { X } from 'lucide-react';
 
 export interface BaseModalProps {
-  isOpen: boolean
-  onClose: () => void
-  title?: string
-  children: React.ReactNode
-  size?: 'sm' | 'md' | 'lg' | 'xl'
+  isOpen: boolean;
+  onClose: () => void;
+  title?: string;
+  children: React.ReactNode;
+  size?: 'sm' | 'md' | 'lg' | 'xl';
 }
 
-export function BaseModal({
-  isOpen,
-  onClose,
-  title,
-  children,
-  size = 'md',
-}: BaseModalProps) {
-  const modalRef = useRef<HTMLDivElement>(null)
+export function BaseModal({ isOpen, onClose, title, children, size = 'md' }: BaseModalProps) {
+  const modalRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        onClose()
+        onClose();
       }
-    }
+    };
 
     if (isOpen) {
-      document.body.style.overflow = 'hidden'
-      window.addEventListener('keydown', handleEscape)
+      document.body.style.overflow = 'hidden';
+      window.addEventListener('keydown', handleEscape);
     } else {
-      document.body.style.overflow = 'unset'
+      document.body.style.overflow = 'unset';
     }
 
     return () => {
-      document.body.style.overflow = 'unset'
-      window.removeEventListener('keydown', handleEscape)
-    }
-  }, [isOpen, onClose])
+      document.body.style.overflow = 'unset';
+      window.removeEventListener('keydown', handleEscape);
+    };
+  }, [isOpen, onClose]);
 
-  if (!isOpen) return null
+  if (!isOpen) return null;
 
   const sizeClasses = {
     sm: 'max-w-md',
     md: 'max-w-lg',
     lg: 'max-w-2xl',
     xl: 'max-w-5xl',
-  }
+  };
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/45 backdrop-blur-xs animate-fade-in">
@@ -80,10 +74,8 @@ export function BaseModal({
         </div>
 
         {/* Modal Body */}
-        <div className="p-6 overflow-y-auto max-h-[75vh]">
-          {children}
-        </div>
+        <div className="p-6 overflow-y-auto max-h-[75vh]">{children}</div>
       </div>
     </div>
-  )
+  );
 }

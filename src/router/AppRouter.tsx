@@ -23,7 +23,9 @@ export function AppRouter() {
       {/* Auth Routes */}
       <Route path="/auth" element={<AuthLayout />}>
         <Route path="signin" element={<SignInPage />} />
+        <Route path="login" element={<Navigate to="/auth/signin" replace />} />
         <Route path="signup" element={<SignUpPage />} />
+        <Route path="register" element={<Navigate to="/auth/signup" replace />} />
         <Route path="signup/email-code" element={<EmailCodePage />} />
       </Route>
 

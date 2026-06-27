@@ -8,26 +8,20 @@ import {
   CheckCircle2,
   XCircle,
   AlertCircle,
-  Eye,
-  Download,
   Clock,
   FileCheck2,
 } from 'lucide-react';
 import { applications_api } from '@/lib/api.calls';
 import api from '@/lib/api';
 import { formatDateTime } from '@/lib/utils';
-
-const TIPO_LABEL: Record<string, string> = {
-  PERMISO_CONSTRUCCION: 'Permiso de Construcción',
-  LINEA_FABRICAS: 'Línea de Fábricas',
-  APROBACION_PLANOS: 'Aprobación de Planos',
-};
-
-const TIPO_THEME: Record<string, string> = {
-  PERMISO_CONSTRUCCION: 'border-primary-light bg-primary-light/10 text-primary-default',
-  LINEA_FABRICAS: 'border-secondary-light bg-secondary-light/10 text-secondary-dark',
-  APROBACION_PLANOS: 'border-success-light bg-success-light/20 text-success-dark',
-};
+import { getProcedureTypeLabel } from '@/lib/constants/procedure-types';
+import { AttachmentRow } from '@/components/logic/attachment.row';
+import { LoadingSkeleton } from '@/components/ui/loading.skeleton';
+import { EmptyState } from '@/components/ui/empty.state';
+import { AlertBanner } from '@/components/ui/alert.banner';
+import { DetailSection } from '@/components/ui/detail.section';
+import { InfoGrid } from '@/components/ui/info.grid';
+import { DetailPageHeader } from '@/components/ui/detail-page.header';
 
 interface Attachment {
   id: string;
@@ -73,76 +67,6 @@ interface ApplicationDetail {
     description: string | null;
   } | null;
   attachments: Attachment[];
-}
-
-// ── Fila de documento con ver + descargar ──
-function AttachmentRow({ attachment }: { attachment: Attachment }) {
-  const url = `/api/v1/files/${encodeURIComponent(attachment.key)}`;
-
-  const openBlob = async (download = false) => {
-    try {
-      const response = await api.get(url, { responseType: 'blob' });
-      const blob_url = window.URL.createObjectURL(
-        new Blob([response.data], { type: response.headers['content-type'] as string })
-      );
-      if (download) {
-        const link = document.createElement('a');
-        link.href = blob_url;
-        link.download = attachment.name;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-      } else {
-        window.open(blob_url, '_blank');
-      }
-    } catch {
-      alert('Error al cargar el documento');
-    }
-  };
-
-  const is_pdf = attachment.mime_type === 'application/pdf' || attachment.name?.endsWith('.pdf');
-
-  return (
-    <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-4 hover:bg-slate-50">
-      <div
-        className={
-          is_pdf
-            ? 'rounded-xl bg-error-light/10 p-2.5 flex-shrink-0'
-            : 'rounded-xl bg-primary-light/10 p-2.5 flex-shrink-0'
-        }
-      >
-        <FileText size={18} className={is_pdf ? 'text-error-default' : 'text-primary-default'} />
-      </div>
-      <div className="flex-1 min-w-0">
-        <p className="text-blue-955 text-sm font-semibold truncate">{attachment.name}</p>
-        <p className="text-slate-400 text-xs mt-0.5">
-          {is_pdf ? 'PDF' : 'Imagen'} • {(attachment.size / 1024).toFixed(1)} KB
-          {attachment.hash && (
-            <>
-              {' '}
-              • <span className="font-mono">SHA: {attachment.hash.slice(0, 12)}…</span>
-            </>
-          )}
-        </p>
-      </div>
-      <div className="flex items-center gap-1">
-        <button
-          onClick={() => openBlob(false)}
-          title="Ver"
-          className="rounded-lg p-2 text-blue-600 hover:bg-blue-50"
-        >
-          <Eye size={16} />
-        </button>
-        <button
-          onClick={() => openBlob(true)}
-          title="Descargar"
-          className="rounded-lg p-2 text-slate-500 hover:bg-slate-100"
-        >
-          <Download size={16} />
-        </button>
-      </div>
-    </div>
-  );
 }
 
 // ── Indicador de campo del formulario de dictamen ──
@@ -297,31 +221,25 @@ export function ApplicationDetailSecretary() {
   };
 
   if (is_loading) {
-    return (
-      <div className="space-y-4 max-w-3xl mx-auto">
-        {[1, 2, 3].map((i) => (
-          <div key={i} className="h-32 rounded-2xl shimmer" />
-        ))}
-      </div>
-    );
+    return <LoadingSkeleton className="max-w-3xl mx-auto" />;
   }
 
   if (!application || error) {
     return (
-      <div className="glass-card p-12 text-center max-w-xl mx-auto">
-        <AlertCircle size={40} className="mx-auto mb-4 text-red-500" />
-        <p className="text-red-600">{error || 'Solicitud no encontrada'}</p>
-        <Link to="/secretary/inbox" className="btn-secondary mt-4 inline-flex">
-          <ArrowLeft size={16} /> Volver a la bandeja
-        </Link>
-      </div>
+      <EmptyState
+        icon={AlertCircle}
+        title={error || 'Solicitud no encontrada'}
+        action={
+          <Link to="/secretary/inbox" className="btn-secondary inline-flex">
+            <ArrowLeft size={16} /> Volver a la bandeja
+          </Link>
+        }
+        className="glass-card max-w-xl mx-auto"
+      />
     );
   }
 
-  const tipo_label = TIPO_LABEL[application.procedure_type] ?? application.procedure_type;
-  const tipo_theme =
-    TIPO_THEME[application.procedure_type] ??
-    'border-primary-light bg-primary-light/10 text-primary-default';
+  const tipo_label = getProcedureTypeLabel(application.procedure_type);
   const citizen_docs = (application.attachments ?? []).filter(
     (a: any) => a.mime_type !== 'INSPECCION_FOTO'
   );
@@ -331,139 +249,89 @@ export function ApplicationDetailSecretary() {
 
   return (
     <div className="animate-fade-in space-y-5 max-w-3xl mx-auto pb-10">
-      {/* ── Header ── */}
-      <div className="flex items-start gap-4">
-        <Link to="/secretary/inbox" className="btn-secondary p-2 mt-1 flex-shrink-0">
-          <ArrowLeft size={18} />
-        </Link>
-        <div className="flex-1 min-w-0 text-left">
-          <div className="flex items-center gap-3 flex-wrap">
-            <h1 className="font-heading text-xl font-bold text-blue-955">{tipo_label}</h1>
-            <span className={`rounded-full border px-3 py-1 text-xs font-bold ${tipo_theme}`}>
-              {tipo_label}
-            </span>
-            <span
-              className={
-                application.status === 'PENDIENTE_SECRETARIA'
-                  ? 'rounded-full border border-warning-light bg-warning-light/20 px-3 py-1 text-xs font-semibold text-warning-dark'
-                  : 'rounded-full border border-error-light bg-error-light/10 px-3 py-1 text-xs font-semibold text-error-default'
-              }
-            >
-              {application.status === 'PENDIENTE_SECRETARIA'
-                ? '⏳ Pendiente de revisión'
-                : '↩ Observado'}
-            </span>
-          </div>
-          <p className="text-slate-400 text-sm mt-1 flex items-center gap-2">
+      <DetailPageHeader
+        backTo="/secretary/inbox"
+        title={tipo_label}
+        subtitle={
+          <span className="flex items-center gap-2 text-slate-400">
             <Clock size={14} />
             Recibido: {formatDateTime(application.created_at)}
-          </p>
-        </div>
-      </div>
+          </span>
+        }
+        status={application.status}
+        contentClassName="text-left"
+      />
 
       {/* Error */}
       {error && (
-        <div className="flex items-center gap-3 p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm text-left">
-          <AlertCircle size={16} className="flex-shrink-0" />
-          {error}
-        </div>
+        <AlertBanner message={error} onDismiss={() => set_error(null)} className="text-left" />
       )}
 
-      {/* ── Datos del ciudadano ── */}
       {application.citizen && (
-        <div className="glass-card p-5 text-left">
-          <h2 className="font-heading font-semibold text-blue-955 mb-4 flex items-center gap-2 text-sm">
-            <User size={15} className="text-blue-600" /> Ciudadano Solicitante
-          </h2>
-          <div className="grid grid-cols-2 gap-4 text-sm">
-            {[
+        <DetailSection title="Ciudadano Solicitante" icon={User} className="text-left">
+          <InfoGrid
+            items={[
               {
-                l: 'Nombre completo',
-                v: `${application.citizen.first_name} ${application.citizen.last_name}`,
+                label: 'Nombre completo',
+                value: `${application.citizen.first_name} ${application.citizen.last_name}`,
               },
-              { l: 'Cédula', v: application.citizen.national_id || '—' },
-              { l: 'Correo', v: application.citizen.email },
-              { l: 'Teléfono', v: application.citizen.phone || '—' },
-            ].map(({ l, v }) => (
-              <div key={l}>
-                <p className="text-slate-400 text-xs font-semibold uppercase tracking-wide mb-0.5">
-                  {l}
-                </p>
-                <p className="text-blue-955 font-medium">{v}</p>
-              </div>
-            ))}
-          </div>
-        </div>
+              { label: 'Cédula', value: application.citizen.national_id },
+              { label: 'Correo', value: application.citizen.email },
+              { label: 'Teléfono', value: application.citizen.phone },
+            ]}
+          />
+        </DetailSection>
       )}
 
-      {/* ── Datos del arquitecto ── */}
       {application.architect && (
-        <div className="glass-card p-5 text-left">
-          <h2 className="font-heading font-semibold text-blue-955 mb-4 flex items-center gap-2 text-sm">
-            <User size={15} className="text-amber-600" /> Arquitecto Responsable (Patrocinador)
-          </h2>
-          <div className="grid grid-cols-2 gap-4 text-sm">
-            {[
+        <DetailSection
+          title="Arquitecto Responsable (Patrocinador)"
+          icon={User}
+          className="text-left"
+        >
+          <InfoGrid
+            items={[
               {
-                l: 'Nombre completo',
-                v: `${application.architect.first_name} ${application.architect.last_name}`,
+                label: 'Nombre completo',
+                value: `${application.architect.first_name} ${application.architect.last_name}`,
               },
-              { l: 'Cédula', v: application.architect.national_id || '—' },
-              { l: 'Título profesional', v: application.architect.title || '—' },
-              { l: 'Registro SENESCYT', v: application.architect.registration_number || '—' },
-              { l: 'Correo', v: application.architect.email },
-              { l: 'Teléfono', v: application.architect.phone || '—' },
-            ].map(({ l, v }) => (
-              <div key={l}>
-                <p className="text-slate-400 text-xs font-semibold uppercase tracking-wide mb-0.5">
-                  {l}
-                </p>
-                <p className="text-blue-955 font-medium">{v}</p>
-              </div>
-            ))}
-          </div>
-        </div>
+              { label: 'Cédula', value: application.architect.national_id },
+              { label: 'Título profesional', value: application.architect.title },
+              { label: 'Registro SENESCYT', value: application.architect.registration_number },
+              { label: 'Correo', value: application.architect.email },
+              { label: 'Teléfono', value: application.architect.phone },
+            ]}
+          />
+        </DetailSection>
       )}
 
-      {/* ── Datos del predio ── */}
-      <div className="glass-card p-5 text-left">
-        <h2 className="font-heading font-semibold text-blue-955 mb-4 flex items-center gap-2 text-sm">
-          <MapPin size={15} className="text-blue-600" /> Datos del Predio
-        </h2>
-        <div className="grid grid-cols-2 gap-4 text-sm">
-          {[
-            { l: 'Tipo de trámite', v: tipo_label },
+      <DetailSection title="Datos del Predio" icon={MapPin} className="text-left">
+        <InfoGrid
+          items={[
+            { label: 'Tipo de trámite', value: tipo_label },
             {
-              l: 'Zona',
-              v: application.property?.location === 'URBANO' ? '🏙️ Urbano' : '🌾 Rural',
+              label: 'Zona',
+              value: application.property?.location === 'URBANO' ? '🏙️ Urbano' : '🌾 Rural',
             },
-            { l: 'Dirección', v: application.property?.address },
-            { l: 'Área', v: application.property?.area ? `${application.property.area} m²` : '—' },
-          ].map(({ l, v }) => (
-            <div key={l}>
-              <p className="text-slate-400 text-xs font-semibold uppercase tracking-wide mb-0.5">
-                {l}
-              </p>
-              <p className="text-blue-955 font-medium">{v || '—'}</p>
-            </div>
-          ))}
-        </div>
+            { label: 'Dirección', value: application.property?.address },
+            {
+              label: 'Área',
+              value: application.property?.area ? `${application.property.area} m²` : undefined,
+            },
+          ]}
+        />
         {application.property?.description && (
           <p className="text-slate-500 text-sm mt-3 pt-3 border-t border-slate-100">
             {application.property.description}
           </p>
         )}
-      </div>
+      </DetailSection>
 
-      {/* ── Documentos del ciudadano ── */}
-      <div className="glass-card p-5 text-left">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="font-heading font-semibold text-blue-955 flex items-center gap-2 text-sm">
-            <FileText size={15} className="text-blue-600" />
-            Expediente Documental ({citizen_docs.length} archivos)
-          </h2>
-        </div>
-
+      <DetailSection
+        title={`Expediente Documental (${citizen_docs.length} archivos)`}
+        icon={FileText}
+        className="text-left"
+      >
         {citizen_docs.length === 0 ? (
           <div className="text-center py-8 text-slate-400">
             <FileText size={32} className="mx-auto mb-2 opacity-30" />
@@ -476,7 +344,7 @@ export function ApplicationDetailSecretary() {
             ))}
           </div>
         )}
-      </div>
+      </DetailSection>
 
       {/* ── PANEL DE DICTAMEN (solo si no está resuelta) ── */}
       {!is_already_resolved ? (
