@@ -1,17 +1,14 @@
-import api from '@/lib/api'
+import api from '@/lib/api';
 
 // ---- Auth ----
 export const auth_api = {
-  login: (email: string, password: string) =>
-    api.post('/auth/login', { email, password }),
+  login: (email: string, password: string) => api.post('/auth/login', { email, password }),
   register: (data: object) => api.post('/auth/register', data),
-  registerGuest: (email: string) =>
-    api.post('/auth/registro-rapido', { email }),
-  completeProfile: (data: object) =>
-    api.post('/auth/completar-perfil', data),
+  requestTrackedAccess: (email: string) => api.post('/auth/registro-rapido', { email }),
+  completeProfile: (data: object) => api.post('/auth/completar-perfil', data),
   me: () => api.get('/auth/me'),
   refresh: (refresh_token: string) => api.post('/auth/refresh', { refreshToken: refresh_token }),
-}
+};
 
 // ---- Applications ----
 export const applications_api = {
@@ -35,36 +32,36 @@ export const applications_api = {
     const query_params = {
       email: params.email,
       cedula: params.national_id,
-    }
-    return api.get('/solicitudes/seguimiento-publico', { params: query_params })
+    };
+    return api.get('/solicitudes/seguimiento-publico', { params: query_params });
   },
 
   /**
    * Upload technical inspection report (JPEG/PNG photos + comments)
    */
   uploadReport: (id: string, comments: string, photos: File[]) => {
-    const form_data = new FormData()
-    form_data.append('comentarios', comments)
-    photos.forEach((f) => form_data.append('fotos', f))
+    const form_data = new FormData();
+    form_data.append('comentarios', comments);
+    photos.forEach((f) => form_data.append('fotos', f));
     return api.post(`/solicitudes/${id}/reporte-inspeccion`, form_data, {
       headers: { 'Content-Type': 'multipart/form-data' },
-    })
+    });
   },
-}
+};
 
 // ---- Attachments ----
 export const attachments_api = {
   upload: (application_id: string, file: File) => {
-    const form_data = new FormData()
-    form_data.append('file', file)
+    const form_data = new FormData();
+    form_data.append('file', file);
     return api.post(`/solicitudes/${application_id}/anexos`, form_data, {
       headers: { 'Content-Type': 'multipart/form-data' },
-    })
+    });
   },
   list: (application_id: string) => api.get(`/solicitudes/${application_id}/anexos`),
   delete: (id: string) => api.delete(`/solicitudes/anexos/${id}`),
   getUrl: (key: string) => `/api/v1/files/${encodeURIComponent(key)}`,
-}
+};
 
 // ---- Notifications ----
 export const notifications_api = {
@@ -73,7 +70,7 @@ export const notifications_api = {
   count: () => api.get('/notificaciones/contador'),
   markRead: (id: string) => api.patch(`/notificaciones/${id}/leer`),
   markAllRead: () => api.patch('/notificaciones/leer-todas'),
-}
+};
 
 // ---- Users ----
 export const users_api = {
@@ -82,8 +79,8 @@ export const users_api = {
   createStaff: (data: object) => api.post('/users/institucional', data),
   update: (id: string, data: object) => api.patch(`/users/${id}`, data),
   updateTechnicianZone: (id: string, zone: 'URBAN' | 'RURAL' | null) => {
-    const zona = zone === 'URBAN' ? 'URBANO' : zone === 'RURAL' ? 'RURAL' : null
-    return api.patch(`/users/${id}/zona`, { zona })
+    const zona = zone === 'URBAN' ? 'URBANO' : zone === 'RURAL' ? 'RURAL' : null;
+    return api.patch(`/users/${id}/zona`, { zona });
   },
   dashboardStats: () => api.get('/users/dashboard/stats'),
   toggleActive: (id: string, is_active: boolean) =>
@@ -91,10 +88,10 @@ export const users_api = {
   pendingArchitects: () => api.get('/users/arquitectos/pendientes'),
   approveArchitect: (id: string, approved: boolean) =>
     api.patch(`/users/${id}/habilitar-arquitecto`, { habilitado: approved }),
-}
+};
 
 // ---- Audit ----
 export const audit_api = {
   list: (params?: object) => api.get('/audit', { params }),
   verify: () => api.get('/audit/verificar'),
-}
+};

@@ -1,84 +1,84 @@
-import React, { useState } from 'react'
-import { BaseModal } from '@/components/ui/BaseModal'
-import { DigitalSignatureSimulator } from '@/components/common/DigitalSignatureSimulator'
-import { useAuthStore } from '@/stores/auth.store'
-import { MapPin, CheckCircle, XCircle, AlertCircle, Camera, CheckSquare } from 'lucide-react'
+import React, { useState } from 'react';
+import { BaseModal } from '@/components/logic/base.modal';
+import { DigitalSignatureSimulator } from '@/components/logic/digital.signature-simulator';
+import { useAuthStore } from '@/stores/auth.store';
+import { MapPin, CheckCircle, XCircle, AlertCircle, Camera, CheckSquare } from 'lucide-react';
 
 export interface InspectionReporterProps {
   onSubmitReport: (reportData: {
-    status: 'APPROVED' | 'REJECTED'
-    dimensionsVerified: number
-    frontSetback: boolean
-    backSetback: boolean
-    leftSetback: boolean
-    rightSetback: boolean
-    observations: string
-    gpsLatitude?: string
-    gpsLongitude?: string
-    attachments: string[]
-    signatureHash: string
-    files?: File[]
-  }) => void
+    status: 'APPROVED' | 'REJECTED';
+    dimensionsVerified: number;
+    frontSetback: boolean;
+    backSetback: boolean;
+    leftSetback: boolean;
+    rightSetback: boolean;
+    observations: string;
+    gpsLatitude?: string;
+    gpsLongitude?: string;
+    attachments: string[];
+    signatureHash: string;
+    files?: File[];
+  }) => void;
 }
 
 export function InspectionReporter({ onSubmitReport }: InspectionReporterProps) {
-  const { user } = useAuthStore()
+  const { user } = useAuthStore();
 
   // Form State
-  const [status, setStatus] = useState<'APPROVED' | 'REJECTED'>('APPROVED')
-  const [dimensions, setDimensions] = useState<string>('')
-  const [frontSetback, setFrontSetback] = useState(false)
-  const [backSetback, setBackSetback] = useState(false)
-  const [leftSetback, setLeftSetback] = useState(false)
-  const [rightSetback, setRightSetback] = useState(false)
-  const [observations, setObservations] = useState('')
-  const [gpsLat, setGpsLat] = useState('')
-  const [gpsLng, setGpsLng] = useState('')
-  const [uploadedPhotos, setUploadedPhotos] = useState<string[]>([])
-  const [photoFiles, setPhotoFiles] = useState<File[]>([])
-  
+  const [status, setStatus] = useState<'APPROVED' | 'REJECTED'>('APPROVED');
+  const [dimensions, setDimensions] = useState<string>('');
+  const [frontSetback, setFrontSetback] = useState(false);
+  const [backSetback, setBackSetback] = useState(false);
+  const [leftSetback, setLeftSetback] = useState(false);
+  const [rightSetback, setRightSetback] = useState(false);
+  const [observations, setObservations] = useState('');
+  const [gpsLat, setGpsLat] = useState('');
+  const [gpsLng, setGpsLng] = useState('');
+  const [uploadedPhotos, setUploadedPhotos] = useState<string[]>([]);
+  const [photoFiles, setPhotoFiles] = useState<File[]>([]);
+
   // Signature Modal state
-  const [isSignModalOpen, setIsSignModalOpen] = useState(false)
-  const [validationError, setValidationError] = useState<string | null>(null)
+  const [isSignModalOpen, setIsSignModalOpen] = useState(false);
+  const [validationError, setValidationError] = useState<string | null>(null);
 
   // GPS Simulation
   const simulateGPS = () => {
     // Simulated GPS Coordinates for Cañar region
-    const randomLat = (-2.6283 + (Math.random() - 0.5) * 0.01).toFixed(6)
-    const randomLng = (-78.9372 + (Math.random() - 0.5) * 0.01).toFixed(6)
-    setGpsLat(randomLat)
-    setGpsLng(randomLng)
-  }
+    const randomLat = (-2.6283 + (Math.random() - 0.5) * 0.01).toFixed(6);
+    const randomLng = (-78.9372 + (Math.random() - 0.5) * 0.01).toFixed(6);
+    setGpsLat(randomLat);
+    setGpsLng(randomLng);
+  };
 
   // Photo uploads simulation
   const handlePhotoAdd = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files ?? [])
-    const names = files.map(f => f.name)
-    setUploadedPhotos(prev => [...prev, ...names])
-    setPhotoFiles(prev => [...prev, ...files])
-  }
+    const files = Array.from(e.target.files ?? []);
+    const names = files.map((f) => f.name);
+    setUploadedPhotos((prev) => [...prev, ...names]);
+    setPhotoFiles((prev) => [...prev, ...files]);
+  };
 
   const handlePreSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    setValidationError(null)
+    e.preventDefault();
+    setValidationError(null);
 
     if (!dimensions || parseFloat(dimensions) <= 0) {
-      setValidationError('Por favor ingresa una dimensión de predio válida en m².')
-      return
+      setValidationError('Por favor ingresa una dimensión de predio válida en m².');
+      return;
     }
 
     if (status === 'REJECTED' && !observations.trim()) {
-      setValidationError('Debes ingresar observaciones detallando el motivo de rechazo.')
-      return
+      setValidationError('Debes ingresar observaciones detallando el motivo de rechazo.');
+      return;
     }
 
     // Open digital signature modal
-    setIsSignModalOpen(true)
-  }
+    setIsSignModalOpen(true);
+  };
 
   const handleSignatureComplete = (signatureHash: string) => {
     setTimeout(() => {
-      setIsSignModalOpen(false)
+      setIsSignModalOpen(false);
       onSubmitReport({
         status,
         dimensionsVerified: parseFloat(dimensions),
@@ -92,20 +92,24 @@ export function InspectionReporter({ onSubmitReport }: InspectionReporterProps) 
         attachments: uploadedPhotos,
         signatureHash,
         files: photoFiles,
-      })
-    }, 1500)
-  }
+      });
+    }, 1500);
+  };
 
   // Defaults if no technician is logged in
-  const techName = user ? `${user.first_name} ${user.last_name}` : 'Téc. Municipal Cañar'
-  const techId = user?.national_id || '0301234567'
+  const techName = user ? `${user.first_name} ${user.last_name}` : 'Téc. Municipal Cañar';
+  const techId = user?.national_id || '0301234567';
 
   return (
     <div className="w-full max-w-2xl mx-auto bg-white/75 backdrop-blur-md border border-slate-200/50 rounded-3xl p-6 sm:p-8 shadow-md">
       <form onSubmit={handlePreSubmit} className="space-y-6 text-left">
         <div>
-          <h2 className="font-heading font-black text-slate-900 text-xl tracking-wide">Ficha de Inspección Técnica</h2>
-          <p className="text-slate-500 text-xs mt-1">Registra los resultados y observaciones de la inspección de campo</p>
+          <h2 className="font-heading font-black text-slate-900 text-xl tracking-wide">
+            Ficha de Inspección Técnica
+          </h2>
+          <p className="text-slate-500 text-xs mt-1">
+            Registra los resultados y observaciones de la inspección de campo
+          </p>
         </div>
 
         {validationError && (
@@ -247,7 +251,10 @@ export function InspectionReporter({ onSubmitReport }: InspectionReporterProps) 
               onChange={handlePhotoAdd}
               className="sr-only"
             />
-            <Camera size={24} className="text-slate-400 group-hover:text-blue-500 mb-2 transition-colors" />
+            <Camera
+              size={24}
+              className="text-slate-400 group-hover:text-blue-500 mb-2 transition-colors"
+            />
             <p className="text-xs font-semibold text-slate-700">Subir fotos de inspección</p>
             <p className="text-[10px] text-slate-400 mt-0.5">Formatos JPEG, PNG — Máximo 10MB</p>
           </label>
@@ -255,13 +262,16 @@ export function InspectionReporter({ onSubmitReport }: InspectionReporterProps) 
           {uploadedPhotos.length > 0 && (
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-2">
               {uploadedPhotos.map((name, i) => (
-                <div key={i} className="flex items-center gap-1.5 p-2 rounded-xl bg-blue-50/50 border border-blue-100 text-[10px] font-semibold text-blue-800">
+                <div
+                  key={i}
+                  className="flex items-center gap-1.5 p-2 rounded-xl bg-blue-50/50 border border-blue-100 text-[10px] font-semibold text-blue-800"
+                >
                   <div className="truncate flex-1">{name}</div>
                   <button
                     type="button"
                     onClick={() => {
-                      setUploadedPhotos(prev => prev.filter((_, idx) => idx !== i))
-                      setPhotoFiles(prev => prev.filter((_, idx) => idx !== i))
+                      setUploadedPhotos((prev) => prev.filter((_, idx) => idx !== i));
+                      setPhotoFiles((prev) => prev.filter((_, idx) => idx !== i));
                     }}
                     className="text-red-500 hover:text-red-655 font-bold"
                   >
@@ -311,7 +321,8 @@ export function InspectionReporter({ onSubmitReport }: InspectionReporterProps) 
       >
         <div className="space-y-4">
           <p className="text-xs text-slate-500 text-left">
-            Como inspector técnico del GAD Cañar, debes validar los datos reportados y aplicar tu firma digital criptográfica de forma irrevocable sobre este documento técnico.
+            Como inspector técnico del GAD Cañar, debes validar los datos reportados y aplicar tu
+            firma digital criptográfica de forma irrevocable sobre este documento técnico.
           </p>
           <DigitalSignatureSimulator
             signerName={techName}
@@ -323,5 +334,5 @@ export function InspectionReporter({ onSubmitReport }: InspectionReporterProps) 
         </div>
       </BaseModal>
     </div>
-  )
+  );
 }

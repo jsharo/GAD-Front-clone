@@ -1,158 +1,165 @@
-import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
-import { FileText, ArrowRight, Search, User } from 'lucide-react'
-import api from '@/lib/api'
-import { getStatusBadgeClass, getStatusLabel, formatDateTime } from '@/lib/utils'
-import { ApplicationTimeline } from '@/components/application.timeline'
-
-const STATUS_OPTIONS = [
-  { value: '', label: 'Todos' },
-  { value: 'BORRADOR', label: 'Borrador' },
-  { value: 'PENDIENTE_SECRETARIA', label: 'En Secretaría' },
-  { value: 'OBSERVADO', label: 'Observado' },
-  { value: 'EN_REVISION_TECNICA', label: 'Revisión Técnica' },
-  { value: 'PENDIENTE_PAGO', label: 'Pendiente Pago' },
-  { value: 'PAGADO', label: 'Pagado' },
-  { value: 'APROBADO', label: 'Aprobado' },
-  { value: 'RECHAZADO', label: 'Rechazado' },
-]
-
-const ARCHITECT_COLOR = '#D97706'
+import { useEffect, useState, useCallback, useMemo } from 'react';
+import { Link } from 'react-router-dom';
+import { FileText, ArrowRight, User } from 'lucide-react';
+import api from '@/lib/api';
+import { formatDateTime } from '@/lib/utils';
+import { ApplicationTimeline } from '@/components/ui/application.timeline';
+import { ApplicationFilterBar } from '@/components/logic/application.filter-bar';
+import { DEFAULT_STATUS_OPTIONS, type FilterState } from '@/lib/constants/application-filters';
+import { StatusBadge } from '@/components/ui/status.badge';
+import { PageHeader } from '@/components/ui/page.header';
+import { LoadingSkeleton } from '@/components/ui/loading.skeleton';
+import { EmptyState } from '@/components/ui/empty.state';
+import { PanelCard } from '@/components/ui/panel.card';
 
 interface Application {
-  id: string
-  status: string
-  procedure_type: string
-  property?: { address: string } | null
-  citizen?: { first_name: string; last_name: string; national_id?: string } | null
-  created_at: string
-  updated_at: string
+  id: string;
+  status: string;
+  procedure_type: string;
+  property?: { address: string } | null;
+  citizen?: { first_name: string; last_name: string; national_id?: string } | null;
+  created_at: string;
+  updated_at: string;
 }
 
 export function MyProcedures() {
-  const [applications, set_applications] = useState<Application[]>([])
-  const [is_loading, set_is_loading] = useState(true)
-  const [status_filter, set_status_filter] = useState('')
-  const [search, set_search] = useState('')
+  const [applications, set_applications] = useState<Application[]>([]);
+  const [is_loading, set_is_loading] = useState(true);
+  const [filters, set_filters] = useState<FilterState>({
+    search: '',
+    procedureType: '',
+    status: '',
+    dateFrom: '',
+    dateTo: '',
+  });
+
+  const handleFilterChange = useCallback((next: FilterState) => {
+    set_filters(next);
+  }, []);
 
   useEffect(() => {
-    const params = new URLSearchParams()
-    if (status_filter) params.set('estado', status_filter)
-    api.get(`/solicitudes/mis-solicitudes?${params}`).then(({ data }) => {
-      const mapped = (data.data || []).map((s: any) => ({
-        id: s.id,
-        status: s.estado,
-        procedure_type: s.tipoTramite,
-        property: s.predio ? {
-          address: s.predio.direccion
-        } : null,
-        citizen: s.ciudadano ? {
-          first_name: s.ciudadano.nombre,
-          last_name: s.ciudadano.apellido,
-          national_id: s.ciudadano.cedula
-        } : null,
-        created_at: s.createdAt,
-        updated_at: s.updatedAt
-      }))
-      set_applications(mapped)
-    }).catch(() => {
-      set_applications([])
-    }).finally(() => set_is_loading(false))
-  }, [status_filter])
+    set_is_loading(true);
+    const params = new URLSearchParams();
+    if (filters.status) params.set('estado', filters.status);
+    if (filters.procedureType) params.set('tipoTramite', filters.procedureType);
+    api
+      .get(`/solicitudes/mis-solicitudes?${params}`)
+      .then(({ data }) => {
+        const mapped = (data.data || []).map((s: any) => ({
+          id: s.id,
+          status: s.estado,
+          procedure_type: s.tipoTramite,
+          property: s.predio
+            ? {
+                address: s.predio.direccion,
+              }
+            : null,
+          citizen: s.ciudadano
+            ? {
+                first_name: s.ciudadano.nombre,
+                last_name: s.ciudadano.apellido,
+                national_id: s.ciudadano.cedula,
+              }
+            : null,
+          created_at: s.createdAt,
+          updated_at: s.updatedAt,
+        }));
+        set_applications(mapped);
+      })
+      .catch(() => {
+        set_applications([]);
+      })
+      .finally(() => set_is_loading(false));
+  }, [filters.status, filters.procedureType]);
 
-  const filtered_applications = applications.filter(s => {
-    if (!search) return true
-    const term = search.toLowerCase()
-    const citizen_name = s.citizen ? `${s.citizen.first_name} ${s.citizen.last_name}`.toLowerCase() : ''
-    return (
-      s.id.toLowerCase().includes(term) ||
-      s.procedure_type?.toLowerCase().includes(term) ||
-      citizen_name.includes(term) ||
-      s.citizen?.national_id?.includes(term) ||
-      s.property?.address?.toLowerCase().includes(term)
-    )
-  })
+  const filtered_applications = useMemo(() => {
+    return applications.filter((s) => {
+      if (!filters.search) return true;
+      const term = filters.search.toLowerCase();
+      const citizen_name = s.citizen
+        ? `${s.citizen.first_name} ${s.citizen.last_name}`.toLowerCase()
+        : '';
+      return (
+        s.id.toLowerCase().includes(term) ||
+        s.procedure_type?.toLowerCase().includes(term) ||
+        citizen_name.includes(term) ||
+        s.citizen?.national_id?.includes(term) ||
+        s.property?.address?.toLowerCase().includes(term)
+      );
+    });
+  }, [applications, filters.search]);
 
   return (
-    <div className="space-y-6 animate-fade-in">
-      <div>
-        <h1 className="font-heading text-2xl font-bold text-blue-955">Mis Trámites</h1>
-        <p className="text-blue-800 mt-1 text-sm">Todos los trámites que has gestionado para tus clientes</p>
-      </div>
+    <div className="space-y-6">
+      <PageHeader
+        title="Mis Trámites"
+        description="Todos los trámites que has gestionado para tus clientes"
+      />
 
-      {/* Filtros */}
-      <div className="glass-card p-4 flex flex-col sm:flex-row gap-3">
-        <div className="relative flex-1">
-          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-          <input
-            type="text"
-            value={search}
-            onChange={e => set_search(e.target.value)}
-            placeholder="Buscar por ciudadano, cédula, dirección..."
-            className="input-field pl-9 py-2"
-          />
-        </div>
-        <select
-          value={status_filter}
-          onChange={e => { set_status_filter(e.target.value); set_is_loading(true) }}
-          className="input-field py-2 sm:w-48"
-        >
-          {STATUS_OPTIONS.map(e => (
-            <option key={e.value} value={e.value}>{e.label}</option>
-          ))}
-        </select>
-      </div>
+      <ApplicationFilterBar
+        onFilterChange={handleFilterChange}
+        statusOptions={DEFAULT_STATUS_OPTIONS}
+      />
 
-      {/* Lista */}
-      <div className="glass-card">
+      <PanelCard variant="glass">
         {is_loading ? (
-          <div className="p-6 space-y-4">
-            {[1, 2, 3].map(i => <div key={i} className="h-28 rounded-xl shimmer" />)}
-          </div>
+          <LoadingSkeleton count={3} variant="block" className="p-6" />
         ) : filtered_applications.length === 0 ? (
-          <div className="p-12 text-center">
-            <FileText size={40} className="text-slate-400 mx-auto mb-4" />
-            <p className="text-blue-800 font-medium">Sin trámites encontrados</p>
-            <p className="text-slate-500 text-sm mt-1">
-              {search || status_filter ? 'Cambia los filtros para ver más resultados' : 'Inicia el primer trámite para un ciudadano'}
-            </p>
-            <Link to="/architect/procedures/new" className="btn-primary mt-4 inline-flex"
-              style={{ background: `linear-gradient(135deg, ${ARCHITECT_COLOR} 0%, #B45309 100%)`, border: 'none' }}>
-              Nuevo Trámite
-            </Link>
-          </div>
+          <EmptyState
+            icon={FileText}
+            title="Sin trámites encontrados"
+            description={
+              filters.search || filters.status
+                ? 'Cambia los filtros para ver más resultados'
+                : 'Inicia el primer trámite para un ciudadano'
+            }
+            action={
+              <Link to="/architect/procedures/new" className="btn-primary inline-flex">
+                Nuevo Trámite
+              </Link>
+            }
+          />
         ) : (
           <div className="divide-y divide-surface-border">
             {filtered_applications.map((sol) => (
               <Link
                 key={sol.id}
                 to={`/architect/procedures/${sol.id}`}
-                className="block p-5 hover:bg-surface-muted/30 transition-colors group"
+                className="group block p-5 hover:bg-neutral-100"
               >
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-start gap-4">
-                    <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
-                      style={{ background: 'rgba(217,119,6,0.1)', color: ARCHITECT_COLOR }}>
+                    <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-secondary-light/20 text-secondary-dark">
                       <FileText size={18} />
                     </div>
                     <div>
                       <div className="flex items-center gap-2 flex-wrap mb-1">
-                        <p className="text-blue-955 font-bold text-sm">{sol.procedure_type || 'Trámite'}</p>
-                        <span className={getStatusBadgeClass(sol.status)}>{getStatusLabel(sol.status)}</span>
+                        <p className="text-blue-955 font-bold text-sm">
+                          {sol.procedure_type || 'Trámite'}
+                        </p>
+                        <StatusBadge status={sol.status} />
                       </div>
                       {sol.citizen && (
                         <div className="flex items-center gap-1.5 text-xs text-slate-500 mb-0.5">
                           <User size={11} />
-                          <span>{sol.citizen.first_name} {sol.citizen.last_name}</span>
-                          {sol.citizen.national_id && <span className="text-slate-400">• CI: {sol.citizen.national_id}</span>}
+                          <span>
+                            {sol.citizen.first_name} {sol.citizen.last_name}
+                          </span>
+                          {sol.citizen.national_id && (
+                            <span className="text-slate-400">• CI: {sol.citizen.national_id}</span>
+                          )}
                         </div>
                       )}
                       <p className="text-xs text-slate-400">
-                        #{sol.id.slice(0, 8)} • {sol.property?.address || '—'} • {formatDateTime(sol.updated_at)}
+                        #{sol.id.slice(0, 8)} • {sol.property?.address || '—'} •{' '}
+                        {formatDateTime(sol.updated_at)}
                       </p>
                     </div>
                   </div>
-                  <ArrowRight size={16} className="text-slate-400 group-hover:translate-x-1 transition-transform mt-1" />
+                  <ArrowRight
+                    size={16}
+                    className="mt-1 text-slate-400 group-hover:text-primary-dark"
+                  />
                 </div>
                 <div className="px-2 sm:px-14">
                   <ApplicationTimeline current_status={sol.status} />
@@ -161,7 +168,7 @@ export function MyProcedures() {
             ))}
           </div>
         )}
-      </div>
+      </PanelCard>
     </div>
-  )
+  );
 }

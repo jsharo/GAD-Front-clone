@@ -1,46 +1,47 @@
-import React, { useState } from 'react'
-import { Database, ChevronDown, ChevronUp, Link as LinkIcon, Cpu } from 'lucide-react'
+import React, { useState } from 'react';
+import { Database, ChevronDown, ChevronUp, Link as LinkIcon, Cpu } from 'lucide-react';
 
 export interface AuditEvent {
-  id: string
-  action: string
-  performerName: string
-  role: string
-  timestamp: string
-  blockIndex: number
-  blockHash: string
-  previousHash: string
-  metadata?: Record<string, any>
+  id: string;
+  action: string;
+  performerName: string;
+  role: string;
+  timestamp: string;
+  blockIndex: number;
+  blockHash: string;
+  previousHash: string;
+  metadata?: Record<string, any>;
 }
 
 export interface BlockchainAuditTrailProps {
-  historyEvents: AuditEvent[]
+  historyEvents: AuditEvent[];
 }
 
 export function BlockchainAuditTrail({ historyEvents }: BlockchainAuditTrailProps) {
-  const [expandedEvents, setExpandedEvents] = useState<Record<string, boolean>>({})
+  const [expandedEvents, setExpandedEvents] = useState<Record<string, boolean>>({});
 
   const toggleEvent = (id: string) => {
     setExpandedEvents((prev) => ({
       ...prev,
       [id]: !prev[id],
-    }))
-  }
+    }));
+  };
 
-  const sortedEvents = [...historyEvents].sort((a, b) => b.blockIndex - a.blockIndex)
+  const sortedEvents = [...historyEvents].sort((a, b) => b.blockIndex - a.blockIndex);
 
   if (!sortedEvents || sortedEvents.length === 0) {
     return (
       <div className="text-center py-10 bg-slate-50 rounded-2xl border border-slate-200/50">
         <Database className="mx-auto text-slate-300 mb-3" size={40} />
-        <p className="text-slate-500 font-medium text-sm">No hay registros de transacciones blockchain aún.</p>
+        <p className="text-slate-500 font-medium text-sm">
+          No hay registros de transacciones blockchain aún.
+        </p>
       </div>
-    )
+    );
   }
 
   return (
     <div className="relative w-full max-w-4xl mx-auto space-y-6">
-      
       {/* Blockchain Header Badge */}
       <div className="flex items-center justify-between border-b border-slate-200 pb-4">
         <div className="flex items-center gap-2">
@@ -51,19 +52,20 @@ export function BlockchainAuditTrail({ historyEvents }: BlockchainAuditTrailProp
         </div>
         <div className="flex items-center gap-1.5 px-3 py-1 rounded-full border border-blue-100 bg-blue-500/5">
           <Cpu size={12} className="text-blue-600" />
-          <span className="text-blue-600 text-[10px] font-bold uppercase tracking-wider">Libro Mayor Activo</span>
+          <span className="text-blue-600 text-[10px] font-bold uppercase tracking-wider">
+            Libro Mayor Activo
+          </span>
         </div>
       </div>
 
       {/* Vertical Timeline container */}
       <div className="relative border-l border-dashed border-slate-300/80 ml-6 pl-8 space-y-6 py-2">
         {sortedEvents.map((event, index) => {
-          const isExpanded = !!expandedEvents[event.id]
-          const isFirst = index === 0
+          const isExpanded = !!expandedEvents[event.id];
+          const isFirst = index === 0;
 
           return (
             <div key={event.id} className="relative group text-left">
-              
               {/* Connector Dot */}
               <div
                 className={`absolute -left-[45px] top-1.5 w-8 h-8 rounded-full border-2 flex items-center justify-center text-xs font-bold font-mono transition-all z-10 ${
@@ -80,9 +82,7 @@ export function BlockchainAuditTrail({ historyEvents }: BlockchainAuditTrailProp
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
                   <div>
                     {/* Action Title */}
-                    <p className="font-bold text-slate-900 text-sm tracking-wide">
-                      {event.action}
-                    </p>
+                    <p className="font-bold text-slate-900 text-sm tracking-wide">{event.action}</p>
 
                     {/* Performer info */}
                     <div className="flex flex-wrap items-center gap-2 mt-1.5 text-xs">
@@ -118,13 +118,17 @@ export function BlockchainAuditTrail({ historyEvents }: BlockchainAuditTrailProp
                       {/* Block information */}
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-[10px] font-semibold text-slate-500 bg-slate-50 p-3 rounded-xl border border-slate-100">
                         <div className="truncate">
-                          <span className="font-bold text-slate-400 uppercase tracking-wider mr-1">Hash del Bloque:</span>
+                          <span className="font-bold text-slate-400 uppercase tracking-wider mr-1">
+                            Hash del Bloque:
+                          </span>
                           <span className="font-mono text-slate-700 bg-slate-100 px-1 py-0.5 rounded select-all">
                             {event.blockHash}
                           </span>
                         </div>
                         <div className="truncate">
-                          <span className="font-bold text-slate-400 uppercase tracking-wider mr-1">Hash Previo:</span>
+                          <span className="font-bold text-slate-400 uppercase tracking-wider mr-1">
+                            Hash Previo:
+                          </span>
                           <span className="font-mono text-slate-700 bg-slate-100 px-1 py-0.5 rounded select-all">
                             {event.previousHash}
                           </span>
@@ -164,9 +168,9 @@ export function BlockchainAuditTrail({ historyEvents }: BlockchainAuditTrailProp
                 </div>
               </div>
             </div>
-          )
+          );
         })}
       </div>
     </div>
-  )
+  );
 }

@@ -1,12 +1,19 @@
-import React, { useState, useRef, useEffect } from 'react'
-import { PenTool, ShieldCheck, RefreshCw, KeyRound, CheckCircle, FileSignature } from 'lucide-react'
+import React, { useState, useRef, useEffect } from 'react';
+import {
+  PenTool,
+  ShieldCheck,
+  RefreshCw,
+  KeyRound,
+  CheckCircle,
+  FileSignature,
+} from 'lucide-react';
 
 export interface DigitalSignatureSimulatorProps {
-  signerName: string
-  signerId: string
-  requirePin?: boolean
-  onSignComplete: (signatureHash: string) => void
-  title?: string
+  signerName: string;
+  signerId: string;
+  requirePin?: boolean;
+  onSignComplete: (signatureHash: string) => void;
+  title?: string;
 }
 
 export function DigitalSignatureSimulator({
@@ -14,128 +21,132 @@ export function DigitalSignatureSimulator({
   signerId,
   requirePin = true,
   onSignComplete,
-  title = 'Simulador de Firma Electrónica Avanzada'
+  title = 'Simulador de Firma Electrónica Avanzada',
 }: DigitalSignatureSimulatorProps) {
-  const canvasRef = useRef<HTMLCanvasElement>(null)
-  const [isDrawing, setIsDrawing] = useState(false)
-  const [pin, setPin] = useState('')
-  const [isSigning, setIsSigning] = useState(false)
-  const [signedHash, setSignedHash] = useState<string | null>(null)
-  const [error, setError] = useState<string | null>(null)
-  const [canvasHasContent, setCanvasHasContent] = useState(false)
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [isDrawing, setIsDrawing] = useState(false);
+  const [pin, setPin] = useState('');
+  const [isSigning, setIsSigning] = useState(false);
+  const [signedHash, setSignedHash] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [canvasHasContent, setCanvasHasContent] = useState(false);
 
   // Generate a mock SHA-256 fingerprint hash on sign-off
   const generateSHA256 = () => {
-    const chars = '0123456789abcdef'
-    let hash = 'sha256:f8ca9b2e'
+    const chars = '0123456789abcdef';
+    let hash = 'sha256:f8ca9b2e';
     for (let i = 0; i < 48; i++) {
-      hash += chars[Math.floor(Math.random() * 16)]
+      hash += chars[Math.floor(Math.random() * 16)];
     }
-    return hash
-  }
+    return hash;
+  };
 
   // Draw handlers for HTML5 Canvas
   useEffect(() => {
-    const canvas = canvasRef.current
-    if (!canvas) return
-    const ctx = canvas.getContext('2d')
-    if (!ctx) return
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
 
     // Set canvas resolution for crisp lines
-    ctx.strokeStyle = '#1D4ED8' // blue-700
-    ctx.lineWidth = 3
-    ctx.lineCap = 'round'
-    ctx.lineJoin = 'round'
-  }, [])
+    ctx.strokeStyle = '#1D4ED8'; // blue-700
+    ctx.lineWidth = 3;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+  }, []);
 
-  const getCoordinates = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
-    const canvas = canvasRef.current
-    if (!canvas) return { x: 0, y: 0 }
-    const rect = canvas.getBoundingClientRect()
+  const getCoordinates = (
+    e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>
+  ) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return { x: 0, y: 0 };
+    const rect = canvas.getBoundingClientRect();
 
     // Handle touch vs mouse
     if ('touches' in e) {
-      if (e.touches.length === 0) return { x: 0, y: 0 }
+      if (e.touches.length === 0) return { x: 0, y: 0 };
       return {
         x: e.touches[0].clientX - rect.left,
-        y: e.touches[0].clientY - rect.top
-      }
+        y: e.touches[0].clientY - rect.top,
+      };
     } else {
       return {
         x: e.clientX - rect.left,
-        y: e.clientY - rect.top
-      }
+        y: e.clientY - rect.top,
+      };
     }
-  }
+  };
 
-  const startDrawing = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
+  const startDrawing = (
+    e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>
+  ) => {
     if ('touches' in e) {
-      e.preventDefault()
+      e.preventDefault();
     }
-    const canvas = canvasRef.current
-    if (!canvas) return
-    const ctx = canvas.getContext('2d')
-    if (!ctx) return
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
 
-    const { x, y } = getCoordinates(e)
-    ctx.beginPath()
-    ctx.moveTo(x, y)
-    setIsDrawing(true)
-  }
+    const { x, y } = getCoordinates(e);
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    setIsDrawing(true);
+  };
 
   const draw = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
-    if (!isDrawing) return
+    if (!isDrawing) return;
     if ('touches' in e) {
-      e.preventDefault()
+      e.preventDefault();
     }
-    const canvas = canvasRef.current
-    if (!canvas) return
-    const ctx = canvas.getContext('2d')
-    if (!ctx) return
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
 
-    const { x, y } = getCoordinates(e)
-    ctx.lineTo(x, y)
-    ctx.stroke()
-    setCanvasHasContent(true)
-  }
+    const { x, y } = getCoordinates(e);
+    ctx.lineTo(x, y);
+    ctx.stroke();
+    setCanvasHasContent(true);
+  };
 
   const stopDrawing = () => {
-    setIsDrawing(false)
-  }
+    setIsDrawing(false);
+  };
 
   const clearCanvas = () => {
-    const canvas = canvasRef.current
-    if (!canvas) return
-    const ctx = canvas.getContext('2d')
-    if (!ctx) return
-    ctx.clearRect(0, 0, canvas.width, canvas.height)
-    setCanvasHasContent(false)
-    setError(null)
-  }
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    setCanvasHasContent(false);
+    setError(null);
+  };
 
   const handleAuthorize = async () => {
-    setError(null)
+    setError(null);
 
     if (requirePin && pin.length !== 4) {
-      setError('Por favor ingresa un código PIN de 4 dígitos.')
-      return
+      setError('Por favor ingresa un código PIN de 4 dígitos.');
+      return;
     }
 
     if (!canvasHasContent) {
-      setError('Debes dibujar tu firma en el recuadro para continuar.')
-      return
+      setError('Debes dibujar tu firma en el recuadro para continuar.');
+      return;
     }
 
-    setIsSigning(true)
-    
+    setIsSigning(true);
+
     // Simulate signature processing / cryptographic verification delay
     setTimeout(() => {
-      const hash = generateSHA256()
-      setSignedHash(hash)
-      setIsSigning(false)
-      onSignComplete(hash)
-    }, 1500)
-  }
+      const hash = generateSHA256();
+      setSignedHash(hash);
+      setIsSigning(false);
+      onSignComplete(hash);
+    }, 1500);
+  };
 
   return (
     <div className="w-full max-w-lg mx-auto bg-white/70 backdrop-blur-md border border-slate-200/60 rounded-3xl overflow-hidden shadow-lg p-6 space-y-6 text-left">
@@ -145,7 +156,9 @@ export function DigitalSignatureSimulator({
         </div>
         <div>
           <h4 className="font-heading font-black text-slate-800 text-sm tracking-wide">{title}</h4>
-          <p className="text-slate-400 text-[10px] uppercase font-bold tracking-wider mt-0.5">GAD Cañar Firma-Móvil</p>
+          <p className="text-slate-400 text-[10px] uppercase font-bold tracking-wider mt-0.5">
+            GAD Cañar Firma-Móvil
+          </p>
         </div>
       </div>
 
@@ -154,15 +167,21 @@ export function DigitalSignatureSimulator({
           {/* Signer details */}
           <div className="grid grid-cols-2 gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-200/50 text-xs">
             <div>
-              <p className="text-slate-400 font-bold uppercase tracking-wider text-[9px]">Firmante</p>
+              <p className="text-slate-400 font-bold uppercase tracking-wider text-[9px]">
+                Firmante
+              </p>
               <p className="text-slate-700 font-bold mt-0.5">{signerName}</p>
             </div>
             <div>
-              <p className="text-slate-400 font-bold uppercase tracking-wider text-[9px]">Identificación (Cédula)</p>
+              <p className="text-slate-400 font-bold uppercase tracking-wider text-[9px]">
+                Identificación (Cédula)
+              </p>
               <p className="text-slate-700 font-mono font-semibold mt-0.5">{signerId}</p>
             </div>
             <div className="col-span-2 border-t border-slate-200/50 pt-2">
-              <p className="text-slate-400 font-bold uppercase tracking-wider text-[9px]">Fecha y Hora</p>
+              <p className="text-slate-400 font-bold uppercase tracking-wider text-[9px]">
+                Fecha y Hora
+              </p>
               <p className="text-slate-600 font-medium mt-0.5">{new Date().toLocaleString()}</p>
             </div>
           </div>
@@ -255,8 +274,12 @@ export function DigitalSignatureSimulator({
             <CheckCircle size={36} className="animate-bounce" />
           </div>
           <div>
-            <h5 className="font-heading font-black text-slate-800 text-sm">Firma Autorizada Exitosamente</h5>
-            <p className="text-[10px] text-emerald-700 font-bold uppercase mt-0.5">Certificado de Firma Válido</p>
+            <h5 className="font-heading font-black text-slate-800 text-sm">
+              Firma Autorizada Exitosamente
+            </h5>
+            <p className="text-[10px] text-emerald-700 font-bold uppercase mt-0.5">
+              Certificado de Firma Válido
+            </p>
           </div>
           <div className="w-full text-left space-y-2 border-t border-emerald-200/50 pt-4 text-[10px] font-medium text-slate-600">
             <div>
@@ -273,5 +296,5 @@ export function DigitalSignatureSimulator({
         </div>
       )}
     </div>
-  )
+  );
 }

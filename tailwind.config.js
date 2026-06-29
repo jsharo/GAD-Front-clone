@@ -6,14 +6,14 @@ module.exports = {
       colors: {
         // Colores principales de la interfaz
         primary: {
-          default: '#3B82F6', // azul principal
-          light: '#60A5FA',
-          dark: '#1E40AF',
+          default: '#004183', // azul principal
+          light: '#0252a2',
+          dark: '#01386e',
         },
         secondary: {
-          default: '#F59E0B', // naranja secundario
-          light: '#FBBF24',
-          dark: '#B45309',
+          default: '#49c4e6', // naranja secundario
+          light: '#52d6fa',
+          dark: '#3ea4c1',
         },
 
         // Escala de blanco a negro
@@ -51,4 +51,4 @@ module.exports = {
     },
   },
   plugins: [],
-}
+};
