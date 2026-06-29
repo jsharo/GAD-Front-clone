@@ -25,9 +25,10 @@ api.interceptors.response.use(
       const refresh_token = localStorage.getItem('gad_refresh_token');
       if (refresh_token) {
         try {
-          const { data } = await axios.post('/api/v1/auth/refresh', {
+          const response = await axios.post(`${api.defaults.baseURL}/auth/refresh`, {
             refreshToken: refresh_token,
           });
+          const data = response.data.data;
           localStorage.setItem('gad_access_token', data.accessToken);
           localStorage.setItem('gad_refresh_token', data.refreshToken);
           original_request.headers.Authorization = `Bearer ${data.accessToken}`;

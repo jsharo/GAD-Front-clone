@@ -13,6 +13,7 @@ import { LandingPage } from '@/pages/landing.page';
 // Layouts
 import { UsersLayout } from '@/layouts/users.layout';
 import { PORTAL_CONFIGS } from '@/router/portal.config';
+import { ProtectedRoute, PublicOnlyRoute } from '@/router/protected.route';
 
 export function AppRouter() {
   return (
@@ -21,27 +22,31 @@ export function AppRouter() {
       <Route path="/" element={<LandingPage />} />
 
       {/* Auth Routes */}
-      <Route path="/auth" element={<AuthLayout />}>
-        <Route path="signin" element={<SignInPage />} />
-        <Route path="login" element={<Navigate to="/auth/signin" replace />} />
-        <Route path="signup" element={<SignUpPage />} />
-        <Route path="register" element={<Navigate to="/auth/signup" replace />} />
-        <Route path="signup/email-code" element={<EmailCodePage />} />
+      <Route element={<PublicOnlyRoute />}>
+        <Route path="/auth" element={<AuthLayout />}>
+          <Route path="signin" element={<SignInPage />} />
+          <Route path="login" element={<Navigate to="/auth/signin" replace />} />
+          <Route path="signup" element={<SignUpPage />} />
+          <Route path="register" element={<Navigate to="/auth/signup" replace />} />
+          <Route path="signup/email-code" element={<EmailCodePage />} />
+        </Route>
       </Route>
 
       {PORTAL_CONFIGS.map((portal) => (
-        <Route key={portal.role} path={portal.basePath} element={<UsersLayout />}>
-          {portal.childRoutes.map((childRoute) =>
-            childRoute.index ? (
-              <Route key={`${portal.role}-index`} index element={childRoute.element} />
-            ) : (
-              <Route
-                key={`${portal.role}-${childRoute.path}`}
-                path={childRoute.path}
-                element={childRoute.element}
-              />
-            )
-          )}
+        <Route key={portal.role} element={<ProtectedRoute allowed_roles={[portal.role]} />}>
+          <Route path={portal.basePath} element={<UsersLayout />}>
+            {portal.childRoutes.map((childRoute) =>
+              childRoute.index ? (
+                <Route key={`${portal.role}-index`} index element={childRoute.element} />
+              ) : (
+                <Route
+                  key={`${portal.role}-${childRoute.path}`}
+                  path={childRoute.path}
+                  element={childRoute.element}
+                />
+              )
+            )}
+          </Route>
         </Route>
       ))}
 

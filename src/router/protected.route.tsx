@@ -8,13 +8,14 @@ interface ProtectedRouteProps {
 
 export function ProtectedRoute({ allowed_roles }: ProtectedRouteProps) {
   const { user } = useAuthStore();
+  const token = localStorage.getItem('gad_access_token');
 
-  if (!user) {
+  if (!user || !token) {
     return <Navigate to="/auth/signin" replace />;
   }
 
   if (allowed_roles && !allowed_roles.includes(user.role)) {
-    return <Navigate to={ROLE_HOME[user.role]} replace />;
+    return <Navigate to={ROLE_HOME[user.role] || '/auth/signin'} replace />;
   }
 
   return <Outlet />;
@@ -24,7 +25,7 @@ export function PublicOnlyRoute() {
   const { user } = useAuthStore();
 
   if (user) {
-    return <Navigate to={ROLE_HOME[user.role]} replace />;
+    return <Navigate to={ROLE_HOME[user.role] || '/auth/signin'} replace />;
   }
 
   return <Outlet />;

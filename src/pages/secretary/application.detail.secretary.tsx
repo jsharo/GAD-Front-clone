@@ -16,6 +16,7 @@ import api from '@/lib/api';
 import { formatDateTime } from '@/lib/utils';
 import { getProcedureTypeLabel } from '@/lib/constants/procedure-types';
 import { AttachmentRow } from '@/components/logic/attachment.row';
+import { DocumentPanel } from '@/components/documents/DocumentPanel';
 import { LoadingSkeleton } from '@/components/ui/loading.skeleton';
 import { EmptyState } from '@/components/ui/empty.state';
 import { AlertBanner } from '@/components/ui/alert.banner';
@@ -327,24 +328,7 @@ export function ApplicationDetailSecretary() {
         )}
       </DetailSection>
 
-      <DetailSection
-        title={`Expediente Documental (${citizen_docs.length} archivos)`}
-        icon={FileText}
-        className="text-left"
-      >
-        {citizen_docs.length === 0 ? (
-          <div className="text-center py-8 text-slate-400">
-            <FileText size={32} className="mx-auto mb-2 opacity-30" />
-            <p className="text-sm">No hay documentos adjuntos</p>
-          </div>
-        ) : (
-          <div className="space-y-2">
-            {citizen_docs.map((a: any) => (
-              <AttachmentRow key={a.id} attachment={a} />
-            ))}
-          </div>
-        )}
-      </DetailSection>
+      {id && <DocumentPanel requestId={id} allowedUpload allowedIpfs />}
 
       {/* ── PANEL DE DICTAMEN (solo si no está resuelta) ── */}
       {!is_already_resolved ? (

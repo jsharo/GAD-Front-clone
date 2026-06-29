@@ -1,6 +1,7 @@
 import { useEffect, useState, useMemo } from 'react';
 import { Activity, ShieldCheck, ShieldAlert } from 'lucide-react';
 import { audit_api } from '@/lib/api.calls';
+import { verifyAuditChain } from '@/lib/api.calls';
 import { cn } from '@/lib/utils';
 import { BlockchainAuditTrail, type AuditEvent } from '@/components/logic/blockchain.audit-trail';
 import { PageHeader } from '@/components/ui/page.header';
@@ -49,6 +50,8 @@ export function AdminAudit() {
   const [integrity_status, set_integrity_status] = useState<{
     is_intact: boolean;
     breakage_info?: string;
+    checked_logs?: number;
+    legacy_logs?: number;
   } | null>(null);
 
   const fetchLogs = async () => {
@@ -58,14 +61,14 @@ export function AdminAudit() {
 
       const mapped = (data.data || []).map((l: any) => ({
         id: l.id,
-        action: l.accion,
-        hash: l.hash,
-        user_name: l.userName,
-        entity: l.entidad,
-        entity_id: l.entidadId,
-        timestamp: l.timestamp,
-        previous_hash: l.hashAnterior,
-        detail: l.detalle,
+        action: l.action,
+        hash: l.current_hash,
+        user_name: l.user_email,
+        entity: 'AuditLog',
+        entity_id: null,
+        timestamp: l.created_at,
+        previous_hash: l.previous_hash,
+        detail: l.details,
       }));
 
       set_logs(mapped);
@@ -84,10 +87,12 @@ export function AdminAudit() {
     set_is_verifying(true);
     set_integrity_status(null);
     try {
-      const { data } = await audit_api.verify();
+      const data = await verifyAuditChain();
       set_integrity_status({
-        is_intact: data.integra,
-        breakage_info: data.rotura,
+        is_intact: data.valid,
+        breakage_info: data.message,
+        checked_logs: data.checked_logs,
+        legacy_logs: data.legacy_logs,
       });
     } catch (e) {
       console.error('Error verifying integrity:', e);
@@ -105,8 +110,8 @@ export function AdminAudit() {
   return (
     <div className="animate-fade-in space-y-8">
       <PageHeader
-        title="Registro Notarial Digital"
-        description="Auditoría inmutable de eventos con encadenamiento criptográfico (Hash-chain)."
+        title="Integridad de Auditoría"
+        description="Verificación criptográfica de la cadena Hash Chain de auditoría."
         icon={Activity}
         actions={
           <button
@@ -140,7 +145,7 @@ export function AdminAudit() {
           variant={integrity_status.is_intact ? 'success' : 'error'}
           message={
             integrity_status.is_intact
-              ? 'Cadena Criptográfica Íntegra — Todos los hashes coinciden perfectamente. Ningún registro ha sido alterado.'
+              ? `${integrity_status.breakage_info} ${integrity_status.checked_logs ?? 0} registros verificados y ${integrity_status.legacy_logs ?? 0} registros legacy.`
               : `¡Alerta de Integridad Comprometida! ${integrity_status.breakage_info ?? ''}`
           }
         />

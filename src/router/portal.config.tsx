@@ -13,6 +13,8 @@ import {
   Stamp,
   Users,
   Wrench,
+  Landmark,
+  UserRound,
 } from 'lucide-react';
 
 import { ArchitectDashboard } from '@/pages/architect/architect.dashboard';
@@ -32,6 +34,7 @@ import { AdminUsers } from '@/pages/admin/admin.users';
 import { AdminApplications } from '@/pages/admin/admin.applications';
 import { AdminAudit } from '@/pages/admin/admin.audit';
 import { AdminApplicationDetail } from '@/pages/admin/admin.application.detail';
+import { ModulePlaceholder } from '@/pages/shared/module.placeholder';
 
 export interface PortalNavItem {
   to: string;
@@ -62,7 +65,7 @@ export interface PortalConfig {
 
 export const PORTAL_CONFIGS: PortalConfig[] = [
   {
-    role: 'ADMIN',
+    role: 'ADMINISTRATOR',
     basePath: '/admin',
     panelLabel: 'PANEL DE ADMINISTRACION',
     accentClassName: 'text-red-600',
@@ -86,7 +89,7 @@ export const PORTAL_CONFIGS: PortalConfig[] = [
     ],
   },
   {
-    role: 'ARCHITECT',
+    role: 'USER',
     basePath: '/architect',
     panelLabel: 'PORTAL PROFESIONAL',
     accentClassName: 'text-amber-600',
@@ -153,6 +156,32 @@ export const PORTAL_CONFIGS: PortalConfig[] = [
       { path: 'inbox/:id', element: <InspectionPage /> },
     ],
   },
+  {
+    role: 'FINANCIAL',
+    basePath: '/financial',
+    panelLabel: 'PORTAL FINANCIERO',
+    accentClassName: 'text-emerald-600',
+    accentBackground: '#047857',
+    accentBorderClassName: 'border-emerald-700',
+    badgeBgClassName: 'bg-emerald-500/5',
+    badgeIcon: Landmark,
+    badgeLabel: 'Financiero',
+    navItems: [{ to: '/financial', icon: Landmark, label: 'Inicio', end: true }],
+    childRoutes: [{ index: true, element: <ModulePlaceholder title="Portal Financiero" /> }],
+  },
+  {
+    role: 'CITIZEN',
+    basePath: '/citizen',
+    panelLabel: 'PORTAL CIUDADANO',
+    accentClassName: 'text-cyan-700',
+    accentBackground: '#0e7490',
+    accentBorderClassName: 'border-cyan-800',
+    badgeBgClassName: 'bg-cyan-500/5',
+    badgeIcon: UserRound,
+    badgeLabel: 'Ciudadano',
+    navItems: [{ to: '/citizen', icon: UserRound, label: 'Inicio', end: true }],
+    childRoutes: [{ index: true, element: <ModulePlaceholder title="Portal Ciudadano" /> }],
+  },
 ];
 
 export const PORTAL_CONFIG_BY_ROLE: Record<Role, PortalConfig> = PORTAL_CONFIGS.reduce(
@@ -179,5 +208,5 @@ export function resolvePortalRole(pathname: string, fallbackRole?: Role | null):
   const matchedPortal = PORTAL_CONFIGS.find(
     (portal) => pathname === portal.basePath || pathname.startsWith(`${portal.basePath}/`)
   );
-  return matchedPortal?.role ?? 'ARCHITECT';
+  return matchedPortal?.role ?? 'USER';
 }

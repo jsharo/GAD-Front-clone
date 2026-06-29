@@ -16,6 +16,7 @@ import { formatDateTime, cn } from '@/lib/utils';
 import { getProcedureTypeLabel } from '@/lib/constants/procedure-types';
 import { ApplicationTimeline } from '@/components/ui/application.timeline';
 import { AttachmentRow } from '@/components/logic/attachment.row';
+import { DocumentPanel } from '@/components/documents/DocumentPanel';
 import { LoadingSkeleton } from '@/components/ui/loading.skeleton';
 import { EmptyState } from '@/components/ui/empty.state';
 import { AlertBanner } from '@/components/ui/alert.banner';
@@ -360,46 +361,7 @@ export function ProcedureDetail() {
         </DetailSection>
       )}
 
-      <DetailSection
-        title={`Documentos (${application.attachments?.length ?? 0})`}
-        icon={FileText}
-        className="text-left"
-      >
-        <div className="flex items-center justify-end mb-4 -mt-10">
-          {is_draft && (
-            <label className="btn-secondary text-xs px-3 py-2 cursor-pointer">
-              <input
-                type="file"
-                accept=".pdf,.jpg,.jpeg,.png"
-                onChange={handleUploadAttachment}
-                className="sr-only"
-              />
-              {is_uploading_file ? (
-                <span>Subiendo...</span>
-              ) : (
-                <>
-                  <Upload size={14} /> Agregar Documento
-                </>
-              )}
-            </label>
-          )}
-        </div>
-
-        {application.attachments?.length === 0 ? (
-          <p className="text-slate-500 text-sm">No hay documentos adjuntos.</p>
-        ) : (
-          <div className="space-y-2">
-            {application.attachments?.map((anexo) => (
-              <AttachmentRow
-                key={anexo.id}
-                attachment={anexo}
-                showDownload={false}
-                onError={set_error}
-              />
-            ))}
-          </div>
-        )}
-      </DetailSection>
+      {id && <DocumentPanel requestId={id} allowedUpload />}
 
       {/* Acción: Enviar a revisión */}
       {is_draft && (

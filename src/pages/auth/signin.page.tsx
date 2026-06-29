@@ -8,6 +8,7 @@ import api from '@/lib/api';
 import { getApiError } from '@/lib/errors';
 import { AlertBanner } from '@/components/ui/alert.banner';
 import { mapUser, normalizeRole, useAuthStore } from '@/stores/auth.store';
+import { ROLE_HOME } from '@/router/portal.config';
 
 const SignInSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -56,7 +57,7 @@ export function SignInPage() {
         error: null,
       });
 
-      navigate('/architect', { replace: true });
+      navigate(ROLE_HOME[feRole], { replace: true });
     } catch (err) {
       set_error(getApiError(err, 'Error logging in'));
     } finally {

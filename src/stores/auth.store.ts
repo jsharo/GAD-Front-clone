@@ -2,25 +2,29 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import api from '@/lib/api';
 
-export type Role = 'ADMIN' | 'TECHNICIAN' | 'SECRETARY' | 'ARCHITECT';
+export type Role = 'ADMINISTRATOR' | 'SECRETARY' | 'TECHNICIAN' | 'FINANCIAL' | 'USER' | 'CITIZEN';
 
 const SUPPORTED_ROLE_MAP: Record<string, Role> = {
-  ADMIN: 'ADMIN',
-  USER: 'ARCHITECT',
+  ADMINISTRATOR: 'ADMINISTRATOR',
+  USER: 'USER',
   TECHNICIAN: 'TECHNICIAN',
   SECRETARY: 'SECRETARY',
+  FINANCIAL: 'FINANCIAL',
+  CITIZEN: 'CITIZEN',
 };
 
 export function normalizeRole(role: unknown): Role {
-  if (typeof role !== 'string') return 'ARCHITECT';
-  return SUPPORTED_ROLE_MAP[role] ?? 'ARCHITECT';
+  if (typeof role !== 'string') return 'USER';
+  return SUPPORTED_ROLE_MAP[role] ?? 'USER';
 }
 
 export const ROLE_MAP_TO_BE: Record<Role, string> = {
-  ADMIN: 'ADMIN',
-  TECHNICIAN: 'TECNICO',
-  SECRETARY: 'SECRETARIA',
-  ARCHITECT: 'ARQUITECTO',
+  ADMINISTRATOR: 'ADMINISTRATOR',
+  TECHNICIAN: 'TECHNICIAN',
+  SECRETARY: 'SECRETARY',
+  FINANCIAL: 'FINANCIAL',
+  USER: 'USER',
+  CITIZEN: 'CITIZEN',
 };
 
 export interface User {
@@ -102,7 +106,8 @@ export const useAuthStore = create<AuthState>()(
       login: async (email, password) => {
         set({ is_loading: true, error: null });
         try {
-          const { data } = await api.post('/auth/login', { email, password });
+          const response = await api.post('/auth/login', { email, password });
+          const data = response.data.data;
           localStorage.setItem('gad_access_token', data.accessToken);
           localStorage.setItem('gad_refresh_token', data.refreshToken);
           set({
@@ -212,6 +217,13 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name: 'gad-auth',
+      version: 2,
+      migrate: (persisted: any) => ({
+        ...persisted,
+        user: persisted?.user
+          ? { ...persisted.user, role: normalizeRole(persisted.user.role) }
+          : null,
+      }),
       partialize: (state) => ({
         user: state.user,
         access_token: state.access_token,
