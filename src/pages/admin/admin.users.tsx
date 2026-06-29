@@ -23,27 +23,31 @@ const EMPTY_FORM = {
 };
 
 const ROLE_LABELS: Record<Role, string> = {
-  ADMIN: 'Administrador',
+  ADMINISTRATOR: 'Administrador',
   TECHNICIAN: 'Técnico',
   SECRETARY: 'Secretaria',
-  ARCHITECT: 'Arquitecto',
+  FINANCIAL: 'Financiero',
+  USER: 'Profesional',
+  CITIZEN: 'Ciudadano',
 };
 
 const ROLE_OPTIONS: Array<{ value: Role; label: string }> = [
-  { value: 'ADMIN', label: 'Administrador (control total)' },
+  { value: 'ADMINISTRATOR', label: 'Administrador (control total)' },
   { value: 'SECRETARY', label: 'Secretaria (verificación documental)' },
   { value: 'TECHNICIAN', label: 'Técnico (revisión técnica)' },
-  { value: 'ARCHITECT', label: 'Arquitecto' },
+  { value: 'FINANCIAL', label: 'Financiero' },
+  { value: 'USER', label: 'Profesional' },
+  { value: 'CITIZEN', label: 'Ciudadano' },
 ];
 
 function roleBadge(role: Role) {
-  return role === 'ADMIN'
+  return role === 'ADMINISTRATOR'
     ? 'bg-red-100 text-red-700 border border-red-200'
     : role === 'TECHNICIAN'
       ? 'bg-blue-100 text-blue-700 border border-blue-200'
       : role === 'SECRETARY'
         ? 'bg-orange-100 text-orange-700 border border-orange-200'
-        : role === 'ARCHITECT'
+        : role === 'USER'
           ? 'bg-green-100 text-green-700 border border-green-200'
           : 'bg-amber-100 text-amber-700 border border-amber-200';
 }
@@ -279,7 +283,7 @@ export function AdminUsers() {
                     </td>
                     <td className="px-6 py-4">
                       <span className={cn('badge', roleBadge(u.role))}>
-                        {u.role === 'ADMIN' && <Shield size={12} />}
+                        {u.role === 'ADMINISTRATOR' && <Shield size={12} />}
                         {ROLE_LABELS[u.role]}
                       </span>
                       {u.role === 'TECHNICIAN' && (

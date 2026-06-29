@@ -34,7 +34,7 @@ export function BlockchainAuditTrail({ historyEvents }: BlockchainAuditTrailProp
       <div className="text-center py-10 bg-slate-50 rounded-2xl border border-slate-200/50">
         <Database className="mx-auto text-slate-300 mb-3" size={40} />
         <p className="text-slate-500 font-medium text-sm">
-          No hay registros de transacciones blockchain aún.
+          No hay registros de auditoría disponibles.
         </p>
       </div>
     );
@@ -47,13 +47,13 @@ export function BlockchainAuditTrail({ historyEvents }: BlockchainAuditTrailProp
         <div className="flex items-center gap-2">
           <Database className="text-blue-600" size={20} />
           <h4 className="font-heading font-black text-slate-800 text-sm tracking-wide">
-            Registro de Auditoría Blockchain (Simulado)
+            Hash Chain de Auditoría
           </h4>
         </div>
         <div className="flex items-center gap-1.5 px-3 py-1 rounded-full border border-blue-100 bg-blue-500/5">
           <Cpu size={12} className="text-blue-600" />
           <span className="text-blue-600 text-[10px] font-bold uppercase tracking-wider">
-            Libro Mayor Activo
+            Cadena Activa
           </span>
         </div>
       </div>

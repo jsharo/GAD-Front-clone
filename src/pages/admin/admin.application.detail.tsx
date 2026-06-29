@@ -6,6 +6,7 @@ import { formatDateTime, cn } from '@/lib/utils';
 import { getProcedureTypeLabel } from '@/lib/constants/procedure-types';
 import { ApplicationTimeline } from '@/components/ui/application.timeline';
 import { AttachmentRow } from '@/components/logic/attachment.row';
+import { DocumentPanel } from '@/components/documents/DocumentPanel';
 import { LoadingSkeleton } from '@/components/ui/loading.skeleton';
 import { EmptyState } from '@/components/ui/empty.state';
 import { AlertBanner } from '@/components/ui/alert.banner';
@@ -195,22 +196,7 @@ export function AdminApplicationDetail() {
         </DetailSection>
       )}
 
-      <DetailSection title={`Documentos (${application.attachments?.length ?? 0})`} icon={FileText}>
-        {application.attachments?.length === 0 ? (
-          <p className="text-slate-500 text-sm">No hay documentos adjuntos.</p>
-        ) : (
-          <div className="space-y-2">
-            {application.attachments?.map((anexo) => (
-              <AttachmentRow
-                key={anexo.id}
-                attachment={anexo}
-                showDownload={false}
-                onError={set_error}
-              />
-            ))}
-          </div>
-        )}
-      </DetailSection>
+      {id && <DocumentPanel requestId={id} allowedUpload allowedIpfs />}
     </div>
   );
 }

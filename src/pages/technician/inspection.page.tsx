@@ -7,6 +7,7 @@ import { getProcedureTypeLabel } from '@/lib/constants/procedure-types';
 import { fetchFileBlob, getFileUrl } from '@/lib/files';
 import { InspectionReporter } from '@/components/logic/inspection.reporter';
 import { AttachmentRow } from '@/components/logic/attachment.row';
+import { DocumentPanel } from '@/components/documents/DocumentPanel';
 import { ImageLightbox } from '@/components/logic/image.lightbox';
 import { LoadingSkeleton } from '@/components/ui/loading.skeleton';
 import { EmptyState } from '@/components/ui/empty.state';
@@ -269,20 +270,7 @@ export function InspectionPage() {
         )}
       </DetailSection>
 
-      <DetailSection
-        title={`Documentos del Ciudadano (${application.citizen_documents.length})`}
-        icon={FileText}
-      >
-        {application.citizen_documents.length === 0 ? (
-          <p className="text-sm text-slate-500">Sin documentos adjuntos.</p>
-        ) : (
-          <div className="space-y-2">
-            {application.citizen_documents.map((doc) => (
-              <AttachmentRow key={doc.id} attachment={doc} onError={set_error} />
-            ))}
-          </div>
-        )}
-      </DetailSection>
+      {id && <DocumentPanel requestId={id} allowedUpload />}
 
       {application.existing_photos.length > 0 && (
         <DetailSection
