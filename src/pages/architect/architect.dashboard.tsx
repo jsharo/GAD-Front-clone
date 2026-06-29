@@ -1,44 +1,57 @@
-import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import {
-  FileText, Clock, CheckCircle2, XCircle, PlusCircle, ArrowRight,
-  AlertCircle, HardHat, User, TrendingUp, ShieldAlert,
-} from 'lucide-react'
-import { useAuthStore } from '@/stores/auth.store'
-import api from '@/lib/api'
-import { ApplicationTimeline } from '@/components/application.timeline'
-
-const BLUE = '#2563EB'
-const GOLD = '#F5C100'
+  FileText,
+  Clock,
+  CheckCircle2,
+  XCircle,
+  PlusCircle,
+  ArrowRight,
+  AlertCircle,
+  HardHat,
+  User,
+  TrendingUp,
+  ShieldAlert,
+} from 'lucide-react';
+import { useAuthStore } from '@/stores/auth.store';
+import api from '@/lib/api';
+import { ApplicationTimeline } from '@/components/ui/application.timeline';
+import { CompleteProfileModal } from '@/components/logic/complete.profile.modal';
+import { PageHeader } from '@/components/ui/page.header';
+import { StatCard, KpiGrid } from '@/components/ui/stat.card';
+import { LoadingSkeleton } from '@/components/ui/loading.skeleton';
+import { EmptyState } from '@/components/ui/empty.state';
+import { DetailSection } from '@/components/ui/detail.section';
+import { PanelCard } from '@/components/ui/panel.card';
+import { InfoGrid } from '@/components/ui/info.grid';
 
 interface Application {
-  id: string
-  status: string
-  procedure_type: string
-  property?: { address: string } | null
-  citizen?: { first_name: string; last_name: string; national_id?: string } | null
-  created_at: string
+  id: string;
+  status: string;
+  procedure_type: string;
+  property?: { address: string } | null;
+  citizen?: { first_name: string; last_name: string; national_id?: string } | null;
+  created_at: string;
 }
 
 function PendienteHabilitacionBanner() {
   return (
-    <div className="rounded-2xl border p-6 mb-6 animate-fade-in"
-      style={{ background: 'rgba(245,193,0,0.06)', borderColor: 'rgba(245,193,0,0.3)' }}>
+    <div className="mb-6 rounded-2xl border border-warning-light bg-warning-light/10 p-6">
       <div className="flex items-start gap-4">
-        <div className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0"
-          style={{ background: 'rgba(245,193,0,0.15)', color: GOLD }}>
+        <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl bg-warning-light/20 text-warning-dark">
           <ShieldAlert size={24} />
         </div>
         <div>
-          <h2 className="font-heading font-bold text-blue-955 text-lg">Cuenta pendiente de habilitación</h2>
+          <h2 className="font-heading font-bold text-blue-955 text-lg">
+            Cuenta pendiente de habilitación
+          </h2>
           <p className="text-slate-600 mt-1 text-sm leading-relaxed">
-            Tu registro fue recibido correctamente. La Secretaría del GAD Municipal de Cañar validará
-            tu título profesional y número de registro SENESCYT antes de que puedas iniciar trámites.
-            Este proceso toma entre 1 y 2 días laborables.
+            Tu registro fue recibido correctamente. La Secretaría del GAD Municipal de Cañar
+            validará tu título profesional y número de registro SENESCYT antes de que puedas iniciar
+            trámites. Este proceso toma entre 1 y 2 días laborables.
           </p>
           <div className="flex flex-wrap gap-3 mt-4">
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold"
-              style={{ background: 'rgba(245,193,0,0.12)', color: '#B08A00', border: '1px solid rgba(245,193,0,0.3)' }}>
+            <div className="flex items-center gap-2 rounded-full border border-warning-light bg-warning-light/20 px-3 py-1.5 text-xs font-semibold text-warning-dark">
               <AlertCircle size={12} /> Revisión en proceso
             </div>
             <p className="text-slate-500 text-xs self-center">
@@ -48,175 +61,177 @@ function PendienteHabilitacionBanner() {
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 export function ArchitectDashboard() {
-  const { user } = useAuthStore()
-  const [applications, set_applications] = useState<Application[]>([])
-  const [is_loading, set_is_loading] = useState(true)
+  const { user } = useAuthStore();
+  const [applications, set_applications] = useState<Application[]>([]);
+  const [is_loading, set_is_loading] = useState(true);
 
-  const is_enabled = user?.is_enabled === true
+  const is_enabled = user?.is_enabled === true;
+  const needs_profile_completion = !user?.national_id || !user?.first_name?.trim();
 
   useEffect(() => {
-    api.get('/solicitudes/mis-solicitudes').then(({ data }) => {
-      const mapped = (data.data || []).map((s: any) => ({
-        id: s.id,
-        status: s.estado,
-        procedure_type: s.tipoTramite,
-        property: s.predio ? {
-          address: s.predio.direccion
-        } : null,
-        citizen: s.ciudadano ? {
-          first_name: s.ciudadano.nombre,
-          last_name: s.ciudadano.apellido,
-          national_id: s.ciudadano.cedula
-        } : null,
-        created_at: s.createdAt
-      }))
-      set_applications(mapped)
-    }).catch(() => {
-      set_applications([])
-    }).finally(() => set_is_loading(false))
-  }, [])
+    api
+      .get('/solicitudes/mis-solicitudes')
+      .then(({ data }) => {
+        const mapped = (data.data || []).map((s: any) => ({
+          id: s.id,
+          status: s.estado,
+          procedure_type: s.tipoTramite,
+          property: s.predio
+            ? {
+                address: s.predio.direccion,
+              }
+            : null,
+          citizen: s.ciudadano
+            ? {
+                first_name: s.ciudadano.nombre,
+                last_name: s.ciudadano.apellido,
+                national_id: s.ciudadano.cedula,
+              }
+            : null,
+          created_at: s.createdAt,
+        }));
+        set_applications(mapped);
+      })
+      .catch(() => {
+        set_applications([]);
+      })
+      .finally(() => set_is_loading(false));
+  }, []);
 
   const stats = [
     {
       label: 'Total Trámites',
       value: applications.length,
       icon: FileText,
-      color: BLUE,
-      bg: 'rgba(37,99,235,0.1)',
+      iconClass: 'text-primary-default',
+      iconWrapperClass: 'bg-primary-light/10',
     },
     {
       label: 'En Proceso',
-      value: applications.filter(s => !['APROBADO', 'RECHAZADO', 'BORRADOR'].includes(s.status)).length,
+      value: applications.filter((s) => !['APROBADO', 'RECHAZADO', 'BORRADOR'].includes(s.status))
+        .length,
       icon: Clock,
-      color: GOLD,
-      bg: 'rgba(245,193,0,0.1)',
+      iconClass: 'text-warning-dark',
+      iconWrapperClass: 'bg-warning-light/20',
     },
     {
       label: 'Aprobados',
-      value: applications.filter(s => s.status === 'APROBADO').length,
+      value: applications.filter((s) => s.status === 'APROBADO').length,
       icon: CheckCircle2,
-      color: '#22C55E',
-      bg: 'rgba(34,197,94,0.1)',
+      iconClass: 'text-success-dark',
+      iconWrapperClass: 'bg-success-light/20',
     },
     {
       label: 'Rechazados',
-      value: applications.filter(s => s.status === 'RECHAZADO').length,
+      value: applications.filter((s) => s.status === 'RECHAZADO').length,
       icon: XCircle,
-      color: '#EF4444',
-      bg: 'rgba(239,68,68,0.1)',
+      iconClass: 'text-error-dark',
+      iconWrapperClass: 'bg-error-light/20',
     },
-  ]
+  ];
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-6">
+      {!is_enabled && needs_profile_completion && <CompleteProfileModal allowClose={false} />}
 
-      {!is_enabled && <PendienteHabilitacionBanner />}
+      {!is_enabled && !needs_profile_completion && <PendienteHabilitacionBanner />}
 
-      {/* Header */}
-      <div className="flex items-start justify-between">
-        <div>
-          <h1 className="font-heading text-2xl font-bold text-blue-955">
-            Bienvenido, {user?.first_name || 'Arquitecto'} 👷
-          </h1>
-          <p className="text-blue-800 mt-1">
-            {is_enabled
-              ? 'Gestiona los trámites de tus clientes desde aquí.'
-              : 'Tu cuenta está siendo verificada por el GAD Municipal.'}
-          </p>
-        </div>
-        {is_enabled && (
-          <Link to="/architect/procedures/new" className="btn-primary">
-            <PlusCircle size={18} />
-            <span className="hidden sm:inline">Nuevo Trámite</span>
-          </Link>
-        )}
-      </div>
+      <PageHeader
+        title={`Bienvenido, ${user?.first_name || 'Arquitecto'} 👷`}
+        description={
+          is_enabled
+            ? 'Gestiona los trámites de tus clientes desde aquí.'
+            : 'Tu cuenta está siendo verificada por el GAD Municipal.'
+        }
+        actions={
+          is_enabled ? (
+            <Link to="/architect/procedures/new" className="btn-primary">
+              <PlusCircle size={18} />
+              <span className="hidden sm:inline">Nuevo Trámite</span>
+            </Link>
+          ) : undefined
+        }
+      />
 
-      {/* Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <KpiGrid>
         {stats.map((stat) => (
-          <div key={stat.label} className="stat-card">
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center"
-              style={{ background: stat.bg, color: stat.color }}>
-              <stat.icon size={20} />
-            </div>
-            <div>
-              <p className="text-2xl font-heading font-bold text-blue-955">{stat.value}</p>
-              <p className="text-xs text-slate-500">{stat.label}</p>
-            </div>
-          </div>
+          <StatCard
+            key={stat.label}
+            label={stat.label}
+            value={stat.value}
+            icon={stat.icon}
+            iconClassName={stat.iconClass}
+            iconWrapperClassName={stat.iconWrapperClass}
+          />
         ))}
-      </div>
+      </KpiGrid>
 
       {/* Información profesional */}
       {user?.title && (
-        <div className="glass-card p-5">
-          <h2 className="font-heading font-semibold text-blue-955 mb-4 flex items-center gap-2">
-            <HardHat size={16} style={{ color: BLUE }} />
-            Mi perfil profesional
-          </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            {[
+        <DetailSection title="Mi perfil profesional" icon={HardHat}>
+          <InfoGrid
+            columns={3}
+            items={[
               { label: 'Título', value: user.title },
               { label: 'N° Registro SENESCYT', value: user.registration_number },
-              { label: 'Estado', value: is_enabled ? '✅ Habilitado por el GAD' : '⏳ Pendiente de habilitación' },
-            ].map(({ label, value }) => (
-              <div key={label} className="p-3 rounded-xl bg-slate-50 border border-slate-200">
-                <p className="text-xs text-slate-500 font-bold uppercase mb-1">{label}</p>
-                <p className="text-sm font-medium text-blue-955">{value || '—'}</p>
-              </div>
-            ))}
-          </div>
-        </div>
+              {
+                label: 'Estado',
+                value: is_enabled ? '✅ Habilitado por el GAD' : '⏳ Pendiente de habilitación',
+              },
+            ]}
+          />
+        </DetailSection>
       )}
 
-      {/* Trámites recientes */}
-      <div className="glass-card">
-        <div className="flex items-center justify-between p-6 border-b border-surface-border">
-          <h2 className="font-heading font-semibold text-blue-955">Trámites Recientes</h2>
-          <Link to="/architect/procedures" className="text-sm flex items-center gap-1 transition-colors font-bold text-blue-600 hover:text-blue-500">
+      <PanelCard
+        variant="glass"
+        title="Trámites Recientes"
+        actions={
+          <Link
+            to="/architect/procedures"
+            className="text-sm flex items-center gap-1 font-bold text-primary-default hover:text-primary-dark"
+          >
             Ver todos <ArrowRight size={14} />
           </Link>
-        </div>
-
+        }
+      >
         {is_loading ? (
-          <div className="p-6 space-y-4">
-            {[1, 2, 3].map(i => (
-              <div key={i} className="h-24 rounded-xl shimmer" />
-            ))}
-          </div>
+          <LoadingSkeleton count={3} variant="block" className="p-6" />
         ) : applications.length === 0 ? (
-          <div className="p-12 text-center">
-            <TrendingUp size={40} className="text-slate-400 mx-auto mb-4" />
-            <p className="text-blue-800 font-medium">Sin trámites aún</p>
-            <p className="text-slate-500 text-sm mt-1">Inicia el primer trámite para un ciudadano</p>
-            {is_enabled && (
-              <Link to="/architect/procedures/new" className="btn-primary mt-4 inline-flex">
-                <PlusCircle size={16} />
-                Nuevo Trámite
-              </Link>
-            )}
-          </div>
+          <EmptyState
+            icon={TrendingUp}
+            title="Sin trámites aún"
+            description="Inicia el primer trámite para un ciudadano"
+            action={
+              is_enabled ? (
+                <Link to="/architect/procedures/new" className="btn-primary inline-flex">
+                  <PlusCircle size={16} />
+                  Nuevo Trámite
+                </Link>
+              ) : undefined
+            }
+          />
         ) : (
           <div className="divide-y divide-surface-border">
             {applications.slice(0, 5).map((sol) => (
               <Link
                 key={sol.id}
                 to={`/architect/procedures/${sol.id}`}
-                className="block p-5 hover:bg-surface-muted/30 transition-colors group"
+                className="group block p-5 hover:bg-neutral-100"
               >
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-xl flex items-center justify-center"
-                      style={{ background: 'rgba(37,99,235,0.1)', color: BLUE }}>
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary-light/10 text-primary-default">
                       <FileText size={18} />
                     </div>
                     <div>
-                      <p className="text-blue-955 font-bold text-sm">{sol.procedure_type || 'Trámite'}</p>
+                      <p className="text-blue-955 font-bold text-sm">
+                        {sol.procedure_type || 'Trámite'}
+                      </p>
                       <div className="flex items-center gap-2 mt-0.5">
                         <User size={11} className="text-slate-400" />
                         <p className="text-slate-500 text-xs">
@@ -227,7 +242,7 @@ export function ArchitectDashboard() {
                       </div>
                     </div>
                   </div>
-                  <ArrowRight size={16} className="text-slate-400 group-hover:translate-x-1 transition-transform" />
+                  <ArrowRight size={16} className="text-slate-400 group-hover:text-primary-dark" />
                 </div>
                 <div className="pt-1 px-2 sm:px-8">
                   <ApplicationTimeline current_status={sol.status} />
@@ -236,7 +251,7 @@ export function ArchitectDashboard() {
             ))}
           </div>
         )}
-      </div>
+      </PanelCard>
     </div>
-  )
+  );
 }

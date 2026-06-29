@@ -4,23 +4,10 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ============================================================
-   GAD MUNICIPAL DE CAÑAR — Sistema de Diseño Institucional
-   Paleta Oficial del Escudo
-   ============================================================ */
-
-:root {
-  --blue:    #2563EB;
-  --gold:    #F5C100;
-  --green:   #22C55E;
-  --red:     #EF4444;
-  --dark:    #F8FAFC;
-  --dark-card: #FFFFFF;
-  --dark-border: #E2E8F0;
-}
-
 @layer base {
-  *, *::before, *::after {
+  *,
+  *::before,
+  *::after {
     @apply box-border;
   }
 
@@ -29,38 +16,241 @@
   }
 
   body {
+    @apply min-h-screen bg-neutral-100 text-neutral-900;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply text-neutral-900;
+  }
+}
+
+@layer components {
+  .glass-card {
+    @apply rounded-2xl border border-neutral-200 bg-neutral-50;
+  }
+
+  .gold-card {
+    @apply rounded-2xl border border-secondary-light bg-neutral-50;
+  }
+
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl border border-primary-dark bg-primary-default px-6 py-3 text-sm font-bold text-neutral-50 disabled:cursor-not-allowed disabled:opacity-40 hover:bg-primary-dark;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl border border-secondary-default bg-transparent px-6 py-3 text-sm font-semibold text-secondary-dark disabled:cursor-not-allowed disabled:opacity-40 hover:bg-primary-dark hover:text-neutral-50 hover:border-primary-dark;
+  }
+
+  .btn-success {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl border border-success-dark bg-success-default px-6 py-3 text-sm font-bold text-neutral-50 disabled:cursor-not-allowed disabled:opacity-40 hover:bg-success-dark;
+  }
+
+  .btn-danger {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl border border-error-dark bg-error-default px-6 py-3 text-sm font-bold text-neutral-50 disabled:cursor-not-allowed disabled:opacity-40 hover:bg-error-dark;
+  }
+
+  .input-field {
+    @apply w-full rounded-xl border border-neutral-300 bg-neutral-50 px-4 py-3 text-sm text-neutral-900 outline-none placeholder:text-neutral-400 focus:border-primary-default focus:ring-2 focus:ring-primary-light;
+  }
+
+  .input-label {
+    @apply mb-2 block text-xs font-semibold uppercase tracking-wide text-primary-default;
+  }
+
+  .input-error {
+    @apply mt-1 flex items-center gap-1 text-xs text-error-dark;
+  }
+
+  .badge {
+    @apply inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-[11px] font-bold uppercase tracking-wide;
+  }
+
+  .badge-borrador,
+  .badge-draft {
+    @apply badge border-neutral-300 bg-neutral-200 text-neutral-700;
+  }
+
+  .badge-revision,
+  .badge-review,
+  .badge-pending-secretary,
+  .badge-pending-payment {
+    @apply badge border-warning-light bg-warning-light/20 text-warning-dark;
+  }
+
+  .badge-inspeccion,
+  .badge-inspection,
+  .badge-paid {
+    @apply badge border-primary-light bg-primary-light/10 text-primary-default;
+  }
+
+  .badge-aprobado,
+  .badge-approved {
+    @apply badge border-success-light bg-success-light/20 text-success-dark;
+  }
+
+  .badge-negado,
+  .badge-rejected,
+  .badge-observed {
+    @apply badge border-error-light bg-error-light/20 text-error-dark;
+  }
+
+  .sidebar-item {
+    @apply flex cursor-pointer items-center gap-3 rounded-xl border border-transparent px-4 py-3 text-sm font-medium text-neutral-700 hover:border-primary-dark hover:bg-primary-dark hover:text-neutral-50;
+  }
+
+  .sidebar-item.active {
+    @apply border-primary-dark bg-primary-default text-neutral-50;
+  }
+
+  .stat-card {
+    @apply flex flex-col gap-3 rounded-2xl border border-neutral-200 bg-neutral-50 p-5;
+  }
+
+  .shimmer {
+    @apply min-h-4 rounded-xl bg-neutral-200;
+  }
+
+  .shield-divider {
+    @apply ml-4 flex h-7 flex-col justify-center gap-[3px] border-l border-neutral-200 pl-3;
+  }
+
+  .shield-band {
+    @apply h-1 w-5 rounded-full bg-primary-default;
+  }
+
+  .color-indicator-red {
+    @apply border-l-4 border-error-default;
+  }
+
+  .color-indicator-gold {
+    @apply border-l-4 border-warning-default;
+  }
+
+  .color-indicator-green {
+    @apply border-l-4 border-success-default;
+  }
+
+  .color-indicator-blue {
+    @apply border-l-4 border-primary-default;
+  }
+}
+
+@layer utilities {
+  .text-gradient-gold,
+  .text-gradient-shield,
+  .text-gradient {
+    @apply text-primary-default;
+  }
+
+  .bg-glass-gold {
+    @apply rounded-2xl border border-secondary-light bg-secondary-light/10;
+  }
+
+  .animate-fade-in,
+  .animate-slide-up,
+  .animate-slide-in,
+  .animate-blob-1,
+  .animate-blob-2,
+  .animate-spin,
+  .animate-pulse,
+  .animate-bounce {
+    @apply animate-none opacity-100;
+  }
+
+  .transition-all,
+  .transition-colors,
+  .transition-transform,
+  .transition-shadow {
+    @apply transition-none;
+  }
+
+  .shadow-sm,
+  .shadow-md,
+  .shadow-lg,
+  .shadow-xl,
+  .shadow-2xl,
+  .shadow-inner,
+  .shadow-xs,
+  .shadow-glow-primary {
+    @apply shadow-none;
+  }
+
+  .backdrop-blur-xs,
+  .backdrop-blur-sm,
+  .backdrop-blur-md {
+    @apply backdrop-blur-none;
+  }
+}
+
+/* ============================================================
+   GAD MUNICIPAL DE CAÑAR — Sistema de Diseño Institucional
+   Paleta Oficial del Escudo
+   ============================================================ */
+
+:root {
+  --blue: #2563eb;
+  --gold: #f5c100;
+  --green: #22c55e;
+  --red: #ef4444;
+  --dark: #f8fafc;
+  --dark-card: #ffffff;
+  --dark-border: #e2e8f0;
+}
+
+@layer base {
+  *,
+  *::before,
+  *::after {
+    @apply box-border;
+  }
+
+  html {
+    @apply scroll-smooth;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  body {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  body {
     background-color: var(--dark);
-    color: #0F172A;
+    color: #0f172a;
     font-family: 'Inter', system-ui, sans-serif;
     min-height: 100vh;
   }
-  
-  body::before {
-    content: "";
-    background-image: url('/logo-gad.png');
-    background-repeat: no-repeat;
-    background-position: center center;
-    background-size: 40vh;
-    background-attachment: fixed;
-    opacity: 0.05;
-    position: fixed;
-    top: 0; left: 0; bottom: 0; right: 0;
-    z-index: -1;
-    pointer-events: none;
-  }
 
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
   }
 
-  /* Scrollbar personalizada */
-  ::-webkit-scrollbar { width: 5px; height: 5px; }
-  ::-webkit-scrollbar-track { background: transparent; }
+  /* Oculta la scrollbar sin deshabilitar el scroll */
+  ::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
   ::-webkit-scrollbar-thumb {
-    background: rgba(37, 99, 235, 0.4);
+    background: transparent;
     border-radius: 99px;
   }
-  ::-webkit-scrollbar-thumb:hover { background: rgba(37, 99, 235, 0.8); }
+  ::-webkit-scrollbar-thumb:hover {
+    background: transparent;
+  }
 
   /* Selección de texto */
   ::selection {
@@ -70,7 +260,6 @@
 }
 
 @layer components {
-
   /* ══════════════════════════════════════════
      CARDS — Glassmorphism
   ══════════════════════════════════════════ */
@@ -78,7 +267,9 @@
     background: var(--dark-card);
     border: 1px solid var(--dark-border);
     border-radius: 16px;
-    box-shadow: 0 4px 20px rgba(15, 23, 42, 0.05), 0 1px 3px rgba(0, 0, 0, 0.01);
+    box-shadow:
+      0 4px 20px rgba(15, 23, 42, 0.05),
+      0 1px 3px rgba(0, 0, 0, 0.01);
     backdrop-filter: blur(12px);
     transition: all 0.3s ease;
   }
@@ -92,7 +283,7 @@
   .gold-card {
     @apply glass-card;
     border-color: rgba(37, 99, 235, 0.4);
-    background: linear-gradient(145deg, rgba(37,99,235,0.02) 0%, rgba(255,255,255,0.95) 100%);
+    background: linear-gradient(145deg, rgba(37, 99, 235, 0.02) 0%, rgba(255, 255, 255, 0.95) 100%);
   }
 
   /* ══════════════════════════════════════════
@@ -107,22 +298,31 @@
     gap: 0.5rem;
     padding: 0.75rem 1.5rem;
     border-radius: 12px;
-    background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%);
-    color: #FFFFFF;
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+    color: #ffffff;
     font-weight: 700;
     font-size: 0.875rem;
     letter-spacing: 0.01em;
-    box-shadow: 0 0 20px rgba(37, 99, 235, 0.4), 0 4px 12px rgba(0,0,0,0.3);
+    box-shadow:
+      0 0 20px rgba(37, 99, 235, 0.4),
+      0 4px 12px rgba(0, 0, 0, 0.3);
     transition: all 0.2s ease;
     cursor: pointer;
     border: none;
   }
   .btn-primary:hover:not(:disabled) {
     transform: translateY(-1px) scale(1.01);
-    box-shadow: 0 0 30px rgba(37, 99, 235, 0.6), 0 8px 20px rgba(0,0,0,0.4);
+    box-shadow:
+      0 0 30px rgba(37, 99, 235, 0.6),
+      0 8px 20px rgba(0, 0, 0, 0.4);
   }
-  .btn-primary:active:not(:disabled) { transform: scale(0.98); }
-  .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+  .btn-primary:active:not(:disabled) {
+    transform: scale(0.98);
+  }
+  .btn-primary:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
 
   /* Secundario — Borde azulado */
   .btn-secondary {
@@ -133,7 +333,7 @@
     padding: 0.75rem 1.5rem;
     border-radius: 12px;
     background: transparent;
-    color: #2563EB;
+    color: #2563eb;
     font-weight: 600;
     font-size: 0.875rem;
     border: 1px solid rgba(37, 99, 235, 0.3);
@@ -143,10 +343,15 @@
   .btn-secondary:hover:not(:disabled) {
     background: rgba(37, 99, 235, 0.05);
     border-color: rgba(37, 99, 235, 0.7);
-    color: #1D4ED8;
+    color: #1d4ed8;
   }
-  .btn-secondary:active:not(:disabled) { transform: scale(0.98); }
-  .btn-secondary:disabled { opacity: 0.4; cursor: not-allowed; }
+  .btn-secondary:active:not(:disabled) {
+    transform: scale(0.98);
+  }
+  .btn-secondary:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
 
   /* Éxito — VERDE del escudo */
   .btn-success {
@@ -156,7 +361,7 @@
     gap: 0.5rem;
     padding: 0.75rem 1.5rem;
     border-radius: 12px;
-    background: linear-gradient(135deg, #22C55E 0%, #16A34A 100%);
+    background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
     color: #fff;
     font-weight: 700;
     font-size: 0.875rem;
@@ -165,8 +370,13 @@
     cursor: pointer;
     border: none;
   }
-  .btn-success:hover:not(:disabled) { transform: translateY(-1px) scale(1.01); }
-  .btn-success:disabled { opacity: 0.4; cursor: not-allowed; }
+  .btn-success:hover:not(:disabled) {
+    transform: translateY(-1px) scale(1.01);
+  }
+  .btn-success:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
 
   /* Peligro — NARANJA/FUEGO del escudo */
   .btn-danger {
@@ -176,7 +386,7 @@
     gap: 0.5rem;
     padding: 0.75rem 1.5rem;
     border-radius: 12px;
-    background: linear-gradient(135deg, #EA580C 0%, #C2410C 100%);
+    background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%);
     color: #fff;
     font-weight: 700;
     font-size: 0.875rem;
@@ -185,8 +395,13 @@
     cursor: pointer;
     border: none;
   }
-  .btn-danger:hover:not(:disabled) { transform: translateY(-1px) scale(1.01); }
-  .btn-danger:disabled { opacity: 0.4; cursor: not-allowed; }
+  .btn-danger:hover:not(:disabled) {
+    transform: translateY(-1px) scale(1.01);
+  }
+  .btn-danger:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
 
   /* ══════════════════════════════════════════
      INPUTS
@@ -195,19 +410,23 @@
     width: 100%;
     padding: 0.75rem 1rem;
     border-radius: 12px;
-    background: rgba(255,255,255,0.8);
+    background: rgba(255, 255, 255, 0.8);
     border: 1px solid rgba(37, 99, 235, 0.2);
-    color: #0F172A;
+    color: #0f172a;
     font-size: 0.875rem;
     font-weight: 400;
     transition: all 0.2s ease;
     outline: none;
     font-family: 'Inter', sans-serif;
   }
-  .input-field::placeholder { color: rgba(15, 23, 42, 0.4); }
+  .input-field::placeholder {
+    color: rgba(15, 23, 42, 0.4);
+  }
   .input-field:focus {
     border-color: rgba(37, 99, 235, 0.7);
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15), 0 0 20px rgba(37, 99, 235, 0.1);
+    box-shadow:
+      0 0 0 3px rgba(37, 99, 235, 0.15),
+      0 0 20px rgba(37, 99, 235, 0.1);
     background: rgba(37, 99, 235, 0.04);
   }
 
@@ -215,7 +434,7 @@
     display: block;
     font-size: 0.8125rem;
     font-weight: 600;
-    color: #1D4ED8;
+    color: #1d4ed8;
     margin-bottom: 0.5rem;
     letter-spacing: 0.03em;
     text-transform: uppercase;
@@ -225,7 +444,7 @@
     display: flex;
     align-items: center;
     gap: 0.25rem;
-    color: #F87171;
+    color: #f87171;
     font-size: 0.75rem;
     margin-top: 0.375rem;
   }
@@ -247,36 +466,36 @@
 
   .badge-borrador {
     @apply badge;
-    background: rgba(0,0,0,0.04);
-    color: #4B5563;
-    border: 1px solid rgba(0,0,0,0.1);
+    background: rgba(0, 0, 0, 0.04);
+    color: #4b5563;
+    border: 1px solid rgba(0, 0, 0, 0.1);
   }
 
   .badge-revision {
     @apply badge;
     background: rgba(245, 193, 0, 0.12);
-    color: #D97706;
+    color: #d97706;
     border: 1px solid rgba(245, 193, 0, 0.3);
   }
 
   .badge-inspeccion {
     @apply badge;
     background: rgba(37, 99, 235, 0.12);
-    color: #1D4ED8;
+    color: #1d4ed8;
     border: 1px solid rgba(37, 99, 235, 0.3);
   }
 
   .badge-aprobado {
     @apply badge;
     background: rgba(34, 197, 94, 0.12);
-    color: #15803D;
+    color: #15803d;
     border: 1px solid rgba(34, 197, 94, 0.3);
   }
 
   .badge-negado {
     @apply badge;
     background: rgba(234, 88, 12, 0.12);
-    color: #C2410C;
+    color: #c2410c;
     border: 1px solid rgba(234, 88, 12, 0.3);
   }
 
@@ -289,7 +508,7 @@
     gap: 0.75rem;
     padding: 0.75rem 1rem;
     border-radius: 10px;
-    color: #60A5FA;
+    color: #60a5fa;
     font-size: 0.875rem;
     font-weight: 500;
     transition: all 0.2s ease;
@@ -298,12 +517,12 @@
   }
   .sidebar-item:hover {
     background: rgba(37, 99, 235, 0.08);
-    color: #93C5FD;
+    color: #93c5fd;
     border-color: rgba(37, 99, 235, 0.2);
   }
   .sidebar-item.active {
     background: rgba(37, 99, 235, 0.15);
-    color: #BFDBFE;
+    color: #bfdbfe;
     border-color: rgba(37, 99, 235, 0.4);
     box-shadow: 0 0 20px rgba(37, 99, 235, 0.15);
   }
@@ -327,7 +546,7 @@
     left: 0;
     right: 0;
     height: 2px;
-    background: linear-gradient(90deg, transparent, rgba(37,99,235,0.6), transparent);
+    background: linear-gradient(90deg, transparent, rgba(37, 99, 235, 0.6), transparent);
   }
 
   /* ══════════════════════════════════════════
@@ -336,9 +555,9 @@
   .shimmer {
     background: linear-gradient(
       90deg,
-      rgba(37,99,235,0.03) 25%,
-      rgba(37,99,235,0.08) 50%,
-      rgba(37,99,235,0.03) 75%
+      rgba(37, 99, 235, 0.03) 25%,
+      rgba(37, 99, 235, 0.08) 50%,
+      rgba(37, 99, 235, 0.03) 75%
     );
     background-size: 1000px 100%;
     animation: shimmer 2s linear infinite;
@@ -351,40 +570,50 @@
   ══════════════════════════════════════════ */
   .shield-divider {
     height: 3px;
-    background: linear-gradient(90deg, #EF4444 0%, #F5C100 33%, #22C55E 66%, #2563EB 100%);
+    background: linear-gradient(90deg, #ef4444 0%, #f5c100 33%, #22c55e 66%, #2563eb 100%);
     border-radius: 99px;
   }
 
   .shield-band {
     height: 4px;
-    background: linear-gradient(90deg, #EF4444 25%, #F5C100 25% 50%, #22C55E 50% 75%, #2563EB 75%);
+    background: linear-gradient(90deg, #ef4444 25%, #f5c100 25% 50%, #22c55e 50% 75%, #2563eb 75%);
   }
 
   /* Indicador lateral de color */
-  .color-indicator-red    { border-left: 3px solid #EF4444; }
-  .color-indicator-gold   { border-left: 3px solid #F5C100; }
-  .color-indicator-green  { border-left: 3px solid #22C55E; }
-  .color-indicator-blue   { border-left: 3px solid #2563EB; }
+  .color-indicator-red {
+    border-left: 3px solid #ef4444;
+  }
+  .color-indicator-gold {
+    border-left: 3px solid #f5c100;
+  }
+  .color-indicator-green {
+    border-left: 3px solid #22c55e;
+  }
+  .color-indicator-blue {
+    border-left: 3px solid #2563eb;
+  }
 }
 
 @layer utilities {
   /* Degradados de texto */
   .text-gradient-gold {
-    background: linear-gradient(135deg, #2563EB 0%, #60A5FA 50%, #2563EB 100%);
+    background: linear-gradient(135deg, #2563eb 0%, #60a5fa 50%, #2563eb 100%);
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
   }
 
   .text-gradient-shield {
-    background: linear-gradient(135deg, #EF4444 0%, #F5C100 33%, #22C55E 66%, #2563EB 100%);
+    background: linear-gradient(135deg, #ef4444 0%, #f5c100 33%, #22c55e 66%, #2563eb 100%);
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
   }
 
   /* Legacy alias for existing components */
-  .text-gradient { @apply text-gradient-gold; }
+  .text-gradient {
+    @apply text-gradient-gold;
+  }
 
   /* Fondos glassmorphism */
   .bg-glass-gold {
@@ -393,22 +622,46 @@
   }
 
   /* Animaciones */
-  .animate-fade-in  { animation: fadeIn 0.5s ease-out both; }
-  .animate-slide-up { animation: slideUp 0.4s ease-out both; }
-  .animate-slide-in { animation: slideIn 0.3s ease-out both; }
+  .animate-fade-in {
+    animation: fadeIn 0.5s ease-out both;
+  }
+  .animate-slide-up {
+    animation: slideUp 0.4s ease-out both;
+  }
+  .animate-slide-in {
+    animation: slideIn 0.3s ease-out both;
+  }
 
   /* Ambient Floating Blobs */
   @keyframes blob-float-one {
-    0% { transform: translate(0px, 0px) scale(1); }
-    33% { transform: translate(40px, -60px) scale(1.15); }
-    66% { transform: translate(-30px, 30px) scale(0.9); }
-    100% { transform: translate(0px, 0px) scale(1); }
+    0% {
+      transform: translate(0px, 0px) scale(1);
+    }
+    33% {
+      transform: translate(40px, -60px) scale(1.15);
+    }
+    66% {
+      transform: translate(-30px, 30px) scale(0.9);
+    }
+    100% {
+      transform: translate(0px, 0px) scale(1);
+    }
   }
   @keyframes blob-float-two {
-    0% { transform: translate(0px, 0px) scale(1); }
-    50% { transform: translate(-50px, 50px) scale(1.1); }
-    100% { transform: translate(0px, 0px) scale(1); }
+    0% {
+      transform: translate(0px, 0px) scale(1);
+    }
+    50% {
+      transform: translate(-50px, 50px) scale(1.1);
+    }
+    100% {
+      transform: translate(0px, 0px) scale(1);
+    }
   }
-  .animate-blob-1 { animation: blob-float-one 16s infinite ease-in-out; }
-  .animate-blob-2 { animation: blob-float-two 20s infinite ease-in-out; }
+  .animate-blob-1 {
+    animation: blob-float-one 16s infinite ease-in-out;
+  }
+  .animate-blob-2 {
+    animation: blob-float-two 20s infinite ease-in-out;
+  }
 }

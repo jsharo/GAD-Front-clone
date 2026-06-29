@@ -1,175 +1,215 @@
-import { useEffect, useState } from 'react'
-import { FileCheck2, Clock, CheckCircle2, XCircle, Inbox, TrendingUp } from 'lucide-react'
-import { applications_api } from '@/lib/api.calls'
-import { Link } from 'react-router-dom'
-import { formatDateTime } from '@/lib/utils'
-
-const BRAND = '#D97706'
-
-const TIPO_LABEL: Record<string, string> = {
-  PERMISO_CONSTRUCCION: 'Permiso de Construcción',
-  LINEA_FABRICAS: 'Línea de Fábricas',
-  APROBACION_PLANOS: 'Aprobación de Planos',
-}
+import { useEffect, useState } from 'react';
+import { FileCheck2, Clock, CheckCircle2, XCircle, Inbox, TrendingUp } from 'lucide-react';
+import { applications_api } from '@/lib/api.calls';
+import { Link } from 'react-router-dom';
+import { formatDateTime } from '@/lib/utils';
+import { getProcedureTypeLabel } from '@/lib/constants/procedure-types';
+import { PageHeader } from '@/components/ui/page.header';
+import { StatCard, KpiGrid } from '@/components/ui/stat.card';
+import { LoadingSkeleton } from '@/components/ui/loading.skeleton';
+import { EmptyState } from '@/components/ui/empty.state';
+import { PanelCard } from '@/components/ui/panel.card';
 
 interface Application {
-  id: string
-  status: string
-  procedure_type: string
-  created_at: string
+  id: string;
+  status: string;
+  procedure_type: string;
+  created_at: string;
   citizen?: {
-    first_name: string
-    last_name: string
-  } | null
+    first_name: string;
+    last_name: string;
+  } | null;
 }
 
 export function SecretaryDashboard() {
-  const [applications, set_applications] = useState<Application[]>([])
-  const [is_loading, set_is_loading] = useState(true)
+  const [applications, set_applications] = useState<Application[]>([]);
+  const [is_loading, set_is_loading] = useState(true);
 
   useEffect(() => {
-    applications_api.list({ limit: 100 })
+    applications_api
+      .list({ limit: 100 })
       .then(({ data }) => {
         const mapped = (data.data || []).map((s: any) => ({
           id: s.id,
           status: s.estado,
           procedure_type: s.tipoTramite,
           created_at: s.createdAt,
-          citizen: s.ciudadano ? {
-            first_name: s.ciudadano.nombre,
-            last_name: s.ciudadano.apellido
-          } : null
-        }))
-        set_applications(mapped)
+          citizen: s.ciudadano
+            ? {
+                first_name: s.ciudadano.nombre,
+                last_name: s.ciudadano.apellido,
+              }
+            : null,
+        }));
+        set_applications(mapped);
       })
       .catch(() => set_applications([]))
-      .finally(() => set_is_loading(false))
-  }, [])
+      .finally(() => set_is_loading(false));
+  }, []);
 
-  const pending_applications = applications.filter(s => s.status === 'PENDIENTE_SECRETARIA')
-  const observed_applications = applications.filter(s => s.status === 'OBSERVADO')
-  const total = applications.length
+  const pending_applications = applications.filter((s) => s.status === 'PENDIENTE_SECRETARIA');
+  const observed_applications = applications.filter((s) => s.status === 'OBSERVADO');
+  const total = applications.length;
 
   const stats = [
-    { label: 'Pendientes de Revisión', value: pending_applications.length, icon: Clock, color: '#F59E0B', bg: 'rgba(245,158,11,0.1)' },
-    { label: 'En Proceso', value: applications.filter(s => ['EN_REVISION_TECNICA', 'INSPECCION'].includes(s.status)).length, icon: CheckCircle2, color: '#10B981', bg: 'rgba(16,185,129,0.1)' },
-    { label: 'Devueltas con Obs.', value: observed_applications.length, icon: XCircle, color: '#EF4444', bg: 'rgba(239,68,68,0.1)' },
-    { label: 'Total Histórico', value: total, icon: TrendingUp, color: BRAND, bg: `rgba(217,119,6,0.1)` },
-  ]
-  
+    {
+      label: 'Pendientes de Revisión',
+      value: pending_applications.length,
+      icon: Clock,
+      iconClass: 'text-warning-dark',
+      iconWrapperClass: 'bg-warning-light/20',
+    },
+    {
+      label: 'En Proceso',
+      value: applications.filter((s) => ['EN_REVISION_TECNICA', 'INSPECCION'].includes(s.status))
+        .length,
+      icon: CheckCircle2,
+      iconClass: 'text-success-dark',
+      iconWrapperClass: 'bg-success-light/20',
+    },
+    {
+      label: 'Devueltas con Obs.',
+      value: observed_applications.length,
+      icon: XCircle,
+      iconClass: 'text-error-dark',
+      iconWrapperClass: 'bg-error-light/20',
+    },
+    {
+      label: 'Total Histórico',
+      value: total,
+      icon: TrendingUp,
+      iconClass: 'text-secondary-dark',
+      iconWrapperClass: 'bg-secondary-light/20',
+    },
+  ];
+
   return (
-    <div className="space-y-8 animate-fade-in">
+    <div className="space-y-8">
+      <PageHeader
+        title="Panel de Secretaría"
+        description="Revisión documental — verificación de firma y completitud"
+      />
 
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-extrabold text-blue-955">Panel de Secretaría</h1>
-        <p style={{ color: '#64748b', fontSize: '0.9rem' }}>
-          Revisión documental — verificación de firma y completitud
-        </p>
-      </div>
-
-      {/* Estadísticas */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <KpiGrid>
         {stats.map((s) => (
-          <div key={s.label} className="rounded-2xl p-5 border"
-            style={{ background: 'white', borderColor: '#e2e8f0', boxShadow: '0 1px 8px rgba(0,0,0,0.06)' }}>
-            <div className="flex items-center justify-between mb-3">
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center"
-                style={{ background: s.bg }}>
-                <s.icon size={18} style={{ color: s.color }} />
-              </div>
-            </div>
-            <p className="text-3xl font-black" style={{ color: '#1e293b' }}>{s.value}</p>
-            <p className="text-xs mt-1" style={{ color: '#64748b' }}>{s.label}</p>
-          </div>
+          <StatCard
+            key={s.label}
+            label={s.label}
+            value={s.value}
+            icon={s.icon}
+            iconClassName={s.iconClass}
+            iconWrapperClassName={s.iconWrapperClass}
+          />
         ))}
-      </div>
+      </KpiGrid>
 
       {/* Flujo de etapas — orientación visual */}
-      <div className="rounded-2xl p-6 border" style={{ background: 'white', borderColor: '#e2e8f0' }}>
+      <div className="rounded-2xl border border-neutral-200 bg-neutral-50 p-6">
         <h2 className="font-bold text-blue-955 mb-4 text-left">Etapas del Proceso</h2>
         <div className="flex items-center gap-0 overflow-x-auto pb-2">
           {[
-            { label: 'Ciudadano\nSube docs', color: '#2563EB', active: false },
-            { label: 'Secretaría\nRevisa', color: BRAND, active: true },
-            { label: 'Técnico\nEvalúa', color: '#2E8B57', active: false },
-            { label: 'Financiero\nCobra', color: '#7C3AED', active: false },
-            { label: 'Aprobado', color: '#10B981', active: false },
+            {
+              label: 'Ciudadano\nSube docs',
+              active: false,
+              activeClass: 'bg-primary-default text-neutral-50',
+              textClass: 'text-primary-default',
+            },
+            {
+              label: 'Secretaría\nRevisa',
+              active: true,
+              activeClass: 'bg-secondary-default text-neutral-50',
+              textClass: 'text-secondary-dark',
+            },
+            {
+              label: 'Técnico\nEvalúa',
+              active: false,
+              activeClass: 'bg-success-default text-neutral-50',
+              textClass: 'text-success-dark',
+            },
+            {
+              label: 'Aprobado',
+              active: false,
+              activeClass: 'bg-success-default text-neutral-50',
+              textClass: 'text-success-dark',
+            },
           ].map((step, i, arr) => (
             <div key={step.label} className="flex items-center flex-shrink-0">
               <div className="flex flex-col items-center">
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-bold transition-all ${step.active ? 'ring-4' : ''}`}
-                  style={{
-                    background: step.active ? step.color : '#e2e8f0',
-                    color: step.active ? 'white' : '#94a3b8',
-                    '--tw-ring-color': step.active ? `${step.color}40` : 'transparent',
-                    boxShadow: step.active ? `0 0 20px ${step.color}50` : 'none',
-                  } as React.CSSProperties}>
+                <div
+                  className={`flex h-10 w-10 items-center justify-center rounded-full text-sm font-bold ${step.active ? step.activeClass : 'bg-neutral-200 text-neutral-400'}`}
+                >
                   {i + 1}
                 </div>
-                <p className="text-center mt-2 text-xs font-semibold whitespace-pre-line leading-tight"
-                  style={{ color: step.active ? step.color : '#94a3b8', maxWidth: 72 }}>
+                <p
+                  className={`mt-2 max-w-[72px] whitespace-pre-line text-center text-xs font-semibold leading-tight ${step.active ? step.textClass : 'text-neutral-400'}`}
+                >
                   {step.label}
                 </p>
               </div>
               {i < arr.length - 1 && (
-                <div className="w-8 sm:w-16 h-0.5 mx-1 flex-shrink-0" style={{ background: '#e2e8f0' }} />
+                <div className="mx-1 h-0.5 w-8 flex-shrink-0 bg-neutral-200 sm:w-16" />
               )}
             </div>
           ))}
         </div>
       </div>
 
-      {/* Solicitudes recientes */}
-      <div className="rounded-2xl border overflow-hidden" style={{ background: 'white', borderColor: '#e2e8f0' }}>
-        <div className="px-6 py-4 border-b flex items-center gap-3" style={{ borderColor: '#f1f5f9' }}>
-          <Inbox size={18} style={{ color: BRAND }} />
-          <h2 className="font-bold text-blue-955">Solicitudes Pendientes de Revisión</h2>
-        </div>
-        <div className="divide-y" style={{ borderColor: '#f8fafc' }}>
+      <PanelCard
+        title="Solicitudes Pendientes de Revisión"
+        icon={Inbox}
+        iconClassName="text-secondary-dark"
+        footer={
+          <Link
+            to="/secretary/inbox"
+            className="text-sm font-semibold text-secondary-dark hover:text-primary-dark"
+          >
+            Ver bandeja completa →
+          </Link>
+        }
+      >
+        <div className="divide-y divide-neutral-200">
           {is_loading ? (
-            <div className="p-6 space-y-4">
-              <div className="h-12 rounded-xl shimmer" />
-              <div className="h-12 rounded-xl shimmer" />
-            </div>
+            <LoadingSkeleton count={2} variant="row" className="p-6" />
           ) : pending_applications.length === 0 ? (
-            <div className="p-8 text-center text-slate-500">
-              No hay solicitudes pendientes de revisión
-            </div>
+            <EmptyState
+              icon={Inbox}
+              title="No hay solicitudes pendientes de revisión"
+              className="py-8"
+            />
           ) : (
             pending_applications.slice(0, 5).map((sol) => (
-              <Link to={`/secretary/inbox/${sol.id}`} key={sol.id} className="px-6 py-4 flex items-center justify-between hover:bg-slate-50 transition-colors cursor-pointer block">
+              <Link
+                to={`/secretary/inbox/${sol.id}`}
+                key={sol.id}
+                className="block cursor-pointer px-6 py-4 hover:bg-neutral-100"
+              >
                 <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-xl flex items-center justify-center text-left"
-                    style={{ background: `${BRAND}12`, border: `1px solid ${BRAND}20` }}>
-                    <FileCheck2 size={16} style={{ color: BRAND }} />
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-secondary-light bg-secondary-light/20 text-left text-secondary-dark">
+                    <FileCheck2 size={16} className="text-secondary-dark" />
                   </div>
                   <div className="text-left">
-                    <p className="font-semibold text-blue-955 text-sm">{sol.citizen?.first_name} {sol.citizen?.last_name}</p>
-                    <p style={{ color: '#64748b', fontSize: '0.75rem' }}>#{sol.id.slice(0,8)} · {TIPO_LABEL[sol.procedure_type] || 'Trámite'}</p>
+                    <p className="font-semibold text-blue-955 text-sm">
+                      {sol.citizen?.first_name} {sol.citizen?.last_name}
+                    </p>
+                    <p className="text-[0.75rem] text-slate-500">
+                      #{sol.id.slice(0, 8)} ·{' '}
+                      {getProcedureTypeLabel(sol.procedure_type) || 'Trámite'}
+                    </p>
                   </div>
                 </div>
                 <div className="flex items-center gap-4">
-                  <span className="text-xs px-3 py-1 rounded-full font-semibold"
-                    style={{
-                      background: 'rgba(245,158,11,0.1)',
-                      color: '#D97706',
-                    }}>
+                  <span className="rounded-full bg-warning-light/20 px-3 py-1 text-xs font-semibold text-warning-dark">
                     {sol.status.replace('_', ' ')}
                   </span>
-                  <span style={{ color: '#94a3b8', fontSize: '0.7rem' }}>{formatDateTime(sol.created_at)}</span>
+                  <span className="text-[0.7rem] text-slate-400">
+                    {formatDateTime(sol.created_at)}
+                  </span>
                 </div>
               </Link>
             ))
           )}
         </div>
-        <div className="px-6 py-3 text-center border-t" style={{ borderColor: '#f1f5f9' }}>
-          <Link to="/secretary/inbox" className="text-sm font-semibold" style={{ color: BRAND }}>
-            Ver bandeja completa →
-          </Link>
-        </div>
-      </div>
-
+      </PanelCard>
     </div>
-  )
+  );
 }
