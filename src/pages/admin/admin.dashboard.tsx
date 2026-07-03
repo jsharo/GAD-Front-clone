@@ -1,23 +1,29 @@
 import { useEffect, useState } from 'react';
 import { Users, FileText, CheckCircle2, Activity, Shield, AlertTriangle } from 'lucide-react';
-import { users_api } from '@/lib/api.calls';
+import api from '@/lib/api';
 import { PageHeader } from '@/components/ui/page.header';
 import { StatCard, KpiGrid } from '@/components/ui/stat.card';
 import { DetailSection } from '@/components/ui/detail.section';
 
-interface Stats {
-  usuarios: { total: number; tecnicos: number; ciudadanos: number };
-  solicitudes: Record<string, number>;
+interface UserDashboardStats {
+  totalUsers: number;
+  activeTechnicians: number;
+}
+
+async function fetchUserDashboardStats(): Promise<UserDashboardStats | null> {
+  const response = await api.get<{ success: boolean; data: UserDashboardStats }>(
+    '/users/dashboard/stats'
+  );
+  return response.data.data ?? null;
 }
 
 export function AdminDashboard() {
-  const [stats, set_stats] = useState<Stats | null>(null);
+  const [user_stats, set_user_stats] = useState<UserDashboardStats | null>(null);
   const [is_loading, set_is_loading] = useState(true);
 
   useEffect(() => {
-    users_api
-      .dashboardStats()
-      .then(({ data }) => set_stats(data))
+    fetchUserDashboardStats()
+      .then(set_user_stats)
       .catch(() => {})
       .finally(() => set_is_loading(false));
   }, []);
@@ -25,28 +31,28 @@ export function AdminDashboard() {
   const kpis = [
     {
       label: 'Total Usuarios',
-      value: stats?.usuarios.total ?? '—',
+      value: user_stats?.totalUsers ?? '—',
       icon: Users,
       color: 'text-primary-default',
       bg: 'bg-primary-light/10',
     },
     {
       label: 'Técnicos Activos',
-      value: stats?.usuarios.tecnicos ?? '—',
+      value: user_stats?.activeTechnicians ?? '—',
       icon: Shield,
       color: 'text-secondary-dark',
       bg: 'bg-secondary-light/20',
     },
     {
       label: 'Sol. Aprobadas',
-      value: stats?.solicitudes['APROBADO'] ?? '—',
+      value: '—',
       icon: CheckCircle2,
       color: 'text-success-dark',
       bg: 'bg-success-light/20',
     },
     {
       label: 'Sol. Pendientes',
-      value: (stats?.solicitudes['EN_REVISION'] ?? 0) + (stats?.solicitudes['INSPECCION'] ?? 0),
+      value: '—',
       icon: Activity,
       color: 'text-warning-dark',
       bg: 'bg-warning-light/20',
@@ -92,8 +98,8 @@ export function AdminDashboard() {
             { key: 'APROBADO', label: 'Completado / Aprobado', color: 'bg-success-dark' },
             { key: 'NEGADO', label: 'Negado', color: 'bg-error-dark' },
           ].map(({ key, label, color }) => {
-            const total = Object.values(stats?.solicitudes ?? {}).reduce((a, b) => a + b, 0) || 1;
-            const count = stats?.solicitudes[key] ?? 0;
+            const total = 1;
+            const count = 0;
             const filled_segments = Math.max(0, Math.min(10, Math.round((count / total) * 10)));
             return (
               <div key={key} className="mb-3">

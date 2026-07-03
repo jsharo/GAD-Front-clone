@@ -1,8 +1,7 @@
 import { useEffect, useMemo, useState, useCallback } from 'react';
 import { Edit3, Plus, Shield, Users } from 'lucide-react';
-import { users_api } from '@/lib/api.calls';
+import api from '@/lib/api';
 import { formatDateTime, cn } from '@/lib/utils';
-import { mapUser, type User as AuthUser, type Role, ROLE_MAP_TO_BE } from '@/stores/auth.store';
 import { BaseModal } from '@/components/logic/base.modal';
 import { useToastStore } from '@/stores/toast.store';
 import { PageHeader } from '@/components/ui/page.header';
@@ -11,18 +10,46 @@ import { LoadingSkeleton } from '@/components/ui/loading.skeleton';
 import { EmptyState } from '@/components/ui/empty.state';
 import { SearchInput } from '@/components/ui/search.input';
 
-const EMPTY_FORM = {
-  first_name: '',
-  last_name: '',
+type UserRole = 'ADMINISTRATOR' | 'SECRETARY' | 'TECHNICIAN' | 'FINANCIAL' | 'USER' | 'CITIZEN';
+
+type UserStatus = 'ACTIVE' | 'INACTIVE';
+
+interface AdminUser {
+  id: string;
+  email: string;
+  name: string | null;
+  lastname: string | null;
+  cedula: string | null;
+  direction: string | null;
+  status: UserStatus;
+  role: UserRole | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface UserFormState {
+  name: string;
+  lastname: string;
+  email: string;
+  cedula: string;
+  direction: string;
+  password: string;
+  role: UserRole;
+  status: UserStatus;
+}
+
+const EMPTY_FORM: UserFormState = {
+  name: '',
+  lastname: '',
   email: '',
-  national_id: '',
-  phone: '',
+  cedula: '',
+  direction: '',
   password: '',
-  role: 'TECHNICIAN' as Role,
-  is_active: true,
+  role: 'TECHNICIAN',
+  status: 'ACTIVE',
 };
 
-const ROLE_LABELS: Record<Role, string> = {
+const ROLE_LABELS: Record<UserRole, string> = {
   ADMINISTRATOR: 'Administrador',
   TECHNICIAN: 'Técnico',
   SECRETARY: 'Secretaria',
@@ -31,7 +58,7 @@ const ROLE_LABELS: Record<Role, string> = {
   CITIZEN: 'Ciudadano',
 };
 
-const ROLE_OPTIONS: Array<{ value: Role; label: string }> = [
+const ROLE_OPTIONS: Array<{ value: UserRole; label: string }> = [
   { value: 'ADMINISTRATOR', label: 'Administrador (control total)' },
   { value: 'SECRETARY', label: 'Secretaria (verificación documental)' },
   { value: 'TECHNICIAN', label: 'Técnico (revisión técnica)' },
@@ -40,7 +67,64 @@ const ROLE_OPTIONS: Array<{ value: Role; label: string }> = [
   { value: 'CITIZEN', label: 'Ciudadano' },
 ];
 
-function roleBadge(role: Role) {
+function normalizeRole(role: unknown): UserRole {
+  if (typeof role === 'string' && role in ROLE_LABELS) {
+    return role as UserRole;
+  }
+  return 'USER';
+}
+
+function mapAdminUser(raw: AdminUser): AdminUser {
+  return {
+    ...raw,
+    role: normalizeRole(raw.role),
+    status: raw.status === 'INACTIVE' ? 'INACTIVE' : 'ACTIVE',
+  };
+}
+
+async function listUsers(params?: { role?: string; limit?: number }): Promise<AdminUser[]> {
+  const response = await api.get<{ success: boolean; data: AdminUser[] }>('/users', { params });
+  return (response.data.data ?? []).map(mapAdminUser);
+}
+
+async function createInstitutionalUser(payload: {
+  email: string;
+  password: string;
+  name: string;
+  lastname: string;
+  roleName: UserRole;
+  cedula?: string;
+  direction?: string;
+}) {
+  await api.post('/users/institutional', payload);
+}
+
+async function updateUserProfile(
+  id: string,
+  payload: {
+    name: string;
+    lastname: string;
+    cedula?: string;
+    direction?: string;
+    password?: string;
+  }
+): Promise<AdminUser> {
+  const response = await api.patch<{ success: boolean; data: AdminUser }>(`/users/${id}`, payload);
+  return mapAdminUser(response.data.data);
+}
+
+async function updateUserStatus(id: string, status: UserStatus): Promise<AdminUser> {
+  const response = await api.patch<{ success: boolean; data: AdminUser }>(`/users/${id}/status`, {
+    status,
+  });
+  return mapAdminUser(response.data.data);
+}
+
+async function assignUserRole(userId: string, roleName: UserRole) {
+  await api.post('/roles/assign', { userId, roleName });
+}
+
+function roleBadge(role: UserRole) {
   return role === 'ADMINISTRATOR'
     ? 'bg-red-100 text-red-700 border border-red-200'
     : role === 'TECHNICIAN'
@@ -54,25 +138,23 @@ function roleBadge(role: Role) {
 
 export function AdminUsers() {
   const addToast = useToastStore((state) => state.addToast);
-  const [users, set_users] = useState<AuthUser[]>([]);
+  const [users, set_users] = useState<AdminUser[]>([]);
   const [is_loading, set_is_loading] = useState(true);
   const [role_filter, set_role_filter] = useState<string>('');
   const [search, set_search] = useState('');
   const [show_create_modal, set_show_create_modal] = useState(false);
-  const [editing_user, set_editing_user] = useState<AuthUser | null>(null);
-  const [form_data, set_form_data] = useState(EMPTY_FORM);
+  const [editing_user, set_editing_user] = useState<AdminUser | null>(null);
+  const [form_data, set_form_data] = useState<UserFormState>(EMPTY_FORM);
   const [is_saving, set_is_saving] = useState(false);
   const [error, set_error] = useState<string | null>(null);
 
   const fetchUsers = useCallback(async () => {
     try {
-      const backend_role = role_filter
-        ? ROLE_MAP_TO_BE[role_filter as Role] || role_filter
-        : undefined;
-      const params = backend_role ? { role: backend_role, limit: 100 } : { limit: 100 };
-      const { data } = await users_api.list(params);
-      const mapped = (data.data ?? []).map((u: any) => mapUser(u)).filter(Boolean) as AuthUser[];
-      set_users(mapped);
+      const params: { role?: string; limit: number } = { limit: 100 };
+      if (role_filter) {
+        params.role = role_filter;
+      }
+      set_users(await listUsers(params));
     } catch (e) {
       console.error('Error fetching users:', e);
     } finally {
@@ -89,11 +171,11 @@ export function AdminUsers() {
     const q = search.trim().toLowerCase();
     if (!q) return users;
     return users.filter(
-      (u) =>
-        `${u.first_name} ${u.last_name}`.toLowerCase().includes(q) ||
-        u.email.toLowerCase().includes(q) ||
-        (u.national_id ?? '').includes(q) ||
-        (u.phone ?? '').includes(q)
+      (user) =>
+        `${user.name ?? ''} ${user.lastname ?? ''}`.toLowerCase().includes(q) ||
+        user.email.toLowerCase().includes(q) ||
+        (user.cedula ?? '').includes(q) ||
+        (user.direction ?? '').toLowerCase().includes(q)
     );
   }, [search, users]);
 
@@ -108,18 +190,18 @@ export function AdminUsers() {
     set_show_create_modal(true);
   };
 
-  const openEdit = (user: AuthUser) => {
+  const openEdit = (user: AdminUser) => {
     set_error(null);
     set_editing_user(user);
     set_form_data({
-      first_name: user.first_name ?? '',
-      last_name: user.last_name ?? '',
+      name: user.name ?? '',
+      lastname: user.lastname ?? '',
       email: user.email ?? '',
-      national_id: user.national_id ?? '',
-      phone: user.phone ?? '',
+      cedula: user.cedula ?? '',
+      direction: user.direction ?? '',
       password: '',
-      role: user.role,
-      is_active: user.is_active,
+      role: normalizeRole(user.role),
+      status: user.status,
     });
   };
 
@@ -129,14 +211,11 @@ export function AdminUsers() {
     resetForm();
   };
 
-  const getPayload = () => ({
-    nombre: form_data.first_name.trim(),
-    apellido: form_data.last_name.trim(),
-    email: form_data.email.trim(),
-    cedula: form_data.national_id.trim() || undefined,
-    telefono: form_data.phone.trim() || null,
-    role: ROLE_MAP_TO_BE[form_data.role] || form_data.role,
-    activo: form_data.is_active,
+  const buildProfilePayload = () => ({
+    name: form_data.name.trim(),
+    lastname: form_data.lastname.trim(),
+    cedula: form_data.cedula.trim() || undefined,
+    direction: form_data.direction.trim() || undefined,
     ...(form_data.password ? { password: form_data.password } : {}),
   });
 
@@ -146,17 +225,31 @@ export function AdminUsers() {
     set_error(null);
     try {
       if (editing_user) {
-        const { data } = await users_api.update(editing_user.id, getPayload());
-        const updated = mapUser(data);
-        if (updated) {
-          set_users((prev) => prev.map((u) => (u.id === editing_user.id ? updated : u)));
+        await updateUserProfile(editing_user.id, buildProfilePayload());
+
+        if (form_data.status !== editing_user.status) {
+          await updateUserStatus(editing_user.id, form_data.status);
         }
+
+        if (form_data.role !== normalizeRole(editing_user.role)) {
+          await assignUserRole(editing_user.id, form_data.role);
+        }
+
+        await fetchUsers();
       } else {
         if (!form_data.password) {
           set_error('La contraseña temporal es obligatoria');
           return;
         }
-        await users_api.createStaff(getPayload());
+        await createInstitutionalUser({
+          email: form_data.email.trim(),
+          password: form_data.password,
+          name: form_data.name.trim(),
+          lastname: form_data.lastname.trim(),
+          roleName: form_data.role,
+          cedula: form_data.cedula.trim() || undefined,
+          direction: form_data.direction.trim() || undefined,
+        });
         await fetchUsers();
       }
       closeModal();
@@ -166,8 +259,12 @@ export function AdminUsers() {
           ? 'Usuario actualizado correctamente'
           : 'Usuario creado correctamente',
       });
-    } catch (e: any) {
-      const message = e.response?.data?.message || 'Error al guardar usuario';
+    } catch (err: unknown) {
+      const axiosError = err as { response?: { data?: { message?: string | string[] } } };
+      const rawMessage = axiosError.response?.data?.message;
+      const message = Array.isArray(rawMessage)
+        ? rawMessage.join(', ')
+        : rawMessage || 'Error al guardar usuario';
       set_error(message);
       addToast({ type: 'error', message });
     } finally {
@@ -175,19 +272,18 @@ export function AdminUsers() {
     }
   };
 
-  const handleToggleActive = async (user: AuthUser) => {
+  const handleToggleActive = async (user: AdminUser) => {
+    const nextStatus: UserStatus = user.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE';
     try {
-      const { data } = await users_api.update(user.id, { activo: !user.is_active });
-      const updated = mapUser(data);
-      if (updated) {
-        set_users((prev) => prev.map((u) => (u.id === user.id ? updated : u)));
-      }
+      const updated = await updateUserStatus(user.id, nextStatus);
+      set_users((prev) => prev.map((entry) => (entry.id === user.id ? updated : entry)));
       addToast({
         type: 'success',
-        message: user.is_active ? 'Usuario desactivado' : 'Usuario activado',
+        message: user.status === 'ACTIVE' ? 'Usuario desactivado' : 'Usuario activado',
       });
-    } catch (e: any) {
-      const message = e.response?.data?.message || 'Error al cambiar estado';
+    } catch (err: unknown) {
+      const axiosError = err as { response?: { data?: { message?: string } } };
+      const message = axiosError.response?.data?.message || 'Error al cambiar estado';
       set_error(message);
       addToast({ type: 'error', message });
     }
@@ -213,7 +309,7 @@ export function AdminUsers() {
         <div className="flex flex-col md:flex-row gap-4 mb-6">
           <SearchInput
             containerClassName="flex-1"
-            placeholder="Buscar por nombre, email, cédula o teléfono..."
+            placeholder="Buscar por nombre, email, cédula o contacto..."
             value={search}
             onChange={(e) => set_search(e.target.value)}
           />
@@ -237,7 +333,7 @@ export function AdminUsers() {
               <tr>
                 <th className="px-6 py-4 font-semibold">Usuario</th>
                 <th className="px-6 py-4 font-semibold">Rol / Permisos</th>
-                <th className="px-6 py-4 font-semibold">Cédula / Tel</th>
+                <th className="px-6 py-4 font-semibold">Cédula / Contacto</th>
                 <th className="px-6 py-4 font-semibold">Registro</th>
                 <th className="px-6 py-4 font-semibold">Estado</th>
                 <th className="px-6 py-4 font-semibold text-right">Acciones</th>
@@ -262,71 +358,75 @@ export function AdminUsers() {
                   </td>
                 </tr>
               ) : (
-                filteredUsers.map((u) => (
-                  <tr
-                    key={u.id}
-                    className="border-b border-surface-border hover:bg-surface-muted/50 transition-colors"
-                  >
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-primary-50 flex items-center justify-center text-primary-600 font-bold">
-                          {u.first_name?.charAt(0) || '?'}
-                          {u.last_name?.charAt(0) || ''}
+                filteredUsers.map((user) => {
+                  const role = normalizeRole(user.role);
+                  const isActive = user.status === 'ACTIVE';
+
+                  return (
+                    <tr
+                      key={user.id}
+                      className="border-b border-surface-border hover:bg-surface-muted/50 transition-colors"
+                    >
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-full bg-primary-50 flex items-center justify-center text-primary-600 font-bold">
+                            {user.name?.charAt(0) || '?'}
+                            {user.lastname?.charAt(0) || ''}
+                          </div>
+                          <div>
+                            <p className="font-semibold text-blue-950">
+                              {user.name || 'Sin nombre'} {user.lastname}
+                            </p>
+                            <p className="text-xs text-slate-500">{user.email}</p>
+                          </div>
                         </div>
-                        <div>
-                          <p className="font-semibold text-blue-950">
-                            {u.first_name || 'Sin nombre'} {u.last_name}
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className={cn('badge', roleBadge(role))}>
+                          {role === 'ADMINISTRATOR' && <Shield size={12} />}
+                          {ROLE_LABELS[role]}
+                        </span>
+                        {role === 'TECHNICIAN' && (
+                          <p className="text-xs text-slate-500 mt-1">
+                            Zona asignada por Secretaría
                           </p>
-                          <p className="text-xs text-slate-500">{u.email}</p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className={cn('badge', roleBadge(u.role))}>
-                        {u.role === 'ADMINISTRATOR' && <Shield size={12} />}
-                        {ROLE_LABELS[u.role]}
-                      </span>
-                      {u.role === 'TECHNICIAN' && (
-                        <p className="text-xs text-slate-500 mt-1">
-                          Zona:{' '}
-                          {u.zone === 'RURAL' ? 'Rural' : u.zone === 'URBAN' ? 'Urbano' : 'Todas'}
-                        </p>
-                      )}
-                    </td>
-                    <td className="px-6 py-4 text-slate-600">
-                      <p>{u.national_id || '—'}</p>
-                      <p className="text-xs">{u.phone || '—'}</p>
-                    </td>
-                    <td className="px-6 py-4 text-slate-600 text-xs">
-                      {formatDateTime(u.created_at)}
-                    </td>
-                    <td className="px-6 py-4">
-                      <button
-                        onClick={() => handleToggleActive(u)}
-                        className={cn(
-                          'relative inline-flex h-6 w-11 items-center rounded-full transition-colors',
-                          u.is_active ? 'bg-success' : 'bg-slate-300'
                         )}
-                        title={u.is_active ? 'Desactivar usuario' : 'Activar usuario'}
-                      >
-                        <span
+                      </td>
+                      <td className="px-6 py-4 text-slate-600">
+                        <p>{user.cedula || '—'}</p>
+                        <p className="text-xs">{user.direction || '—'}</p>
+                      </td>
+                      <td className="px-6 py-4 text-slate-600 text-xs">
+                        {formatDateTime(user.createdAt)}
+                      </td>
+                      <td className="px-6 py-4">
+                        <button
+                          onClick={() => handleToggleActive(user)}
                           className={cn(
-                            'inline-block h-4 w-4 transform rounded-full bg-white transition-transform',
-                            u.is_active ? 'translate-x-6' : 'translate-x-1'
+                            'relative inline-flex h-6 w-11 items-center rounded-full transition-colors',
+                            isActive ? 'bg-success' : 'bg-slate-300'
                           )}
-                        />
-                      </button>
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <button
-                        onClick={() => openEdit(u)}
-                        className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-blue-700 transition-colors"
-                      >
-                        <Edit3 size={14} /> Editar
-                      </button>
-                    </td>
-                  </tr>
-                ))
+                          title={isActive ? 'Desactivar usuario' : 'Activar usuario'}
+                        >
+                          <span
+                            className={cn(
+                              'inline-block h-4 w-4 transform rounded-full bg-white transition-transform',
+                              isActive ? 'translate-x-6' : 'translate-x-1'
+                            )}
+                          />
+                        </button>
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <button
+                          onClick={() => openEdit(user)}
+                          className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-blue-700 transition-colors"
+                        >
+                          <Edit3 size={14} /> Editar
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>
@@ -357,7 +457,7 @@ export function AdminUsers() {
                 required
                 className="input-field"
                 value={form_data.role}
-                onChange={(e) => set_form_data({ ...form_data, role: e.target.value as Role })}
+                onChange={(e) => set_form_data({ ...form_data, role: e.target.value as UserRole })}
               >
                 {ROLE_OPTIONS.map((role) => (
                   <option key={role.value} value={role.value}>
@@ -370,21 +470,20 @@ export function AdminUsers() {
               <label className="input-label">Estado de cuenta</label>
               <select
                 className="input-field"
-                value={form_data.is_active ? 'true' : 'false'}
+                value={form_data.status}
                 onChange={(e) =>
-                  set_form_data({ ...form_data, is_active: e.target.value === 'true' })
+                  set_form_data({ ...form_data, status: e.target.value as UserStatus })
                 }
               >
-                <option value="true">Activo</option>
-                <option value="false">Inactivo</option>
+                <option value="ACTIVE">Activo</option>
+                <option value="INACTIVE">Inactivo</option>
               </select>
             </div>
           </div>
 
-          {form_data.role === 'TECHNICIAN' && editing_user?.zone && (
+          {form_data.role === 'TECHNICIAN' && editing_user && (
             <div className="p-3 rounded-xl bg-orange-50 border border-orange-200 text-orange-700 text-sm">
-              Zona actual: <strong>{editing_user.zone === 'RURAL' ? 'Rural' : 'Urbano'}</strong>. La
-              asignación de zona la gestiona Secretaría.
+              La asignación de zona del técnico la gestiona Secretaría.
             </div>
           )}
 
@@ -395,8 +494,8 @@ export function AdminUsers() {
                 required
                 type="text"
                 className="input-field"
-                value={form_data.first_name}
-                onChange={(e) => set_form_data({ ...form_data, first_name: e.target.value })}
+                value={form_data.name}
+                onChange={(e) => set_form_data({ ...form_data, name: e.target.value })}
               />
             </div>
             <div>
@@ -405,8 +504,8 @@ export function AdminUsers() {
                 required
                 type="text"
                 className="input-field"
-                value={form_data.last_name}
-                onChange={(e) => set_form_data({ ...form_data, last_name: e.target.value })}
+                value={form_data.lastname}
+                onChange={(e) => set_form_data({ ...form_data, lastname: e.target.value })}
               />
             </div>
           </div>
@@ -419,6 +518,7 @@ export function AdminUsers() {
                 type="email"
                 className="input-field"
                 value={form_data.email}
+                disabled={!!editing_user}
                 onChange={(e) => set_form_data({ ...form_data, email: e.target.value })}
               />
             </div>
@@ -428,20 +528,20 @@ export function AdminUsers() {
                 type="text"
                 className="input-field"
                 maxLength={10}
-                value={form_data.national_id}
-                onChange={(e) => set_form_data({ ...form_data, national_id: e.target.value })}
+                value={form_data.cedula}
+                onChange={(e) => set_form_data({ ...form_data, cedula: e.target.value })}
               />
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="input-label">Teléfono</label>
+              <label className="input-label">Dirección / contacto</label>
               <input
                 type="text"
                 className="input-field"
-                value={form_data.phone}
-                onChange={(e) => set_form_data({ ...form_data, phone: e.target.value })}
+                value={form_data.direction}
+                onChange={(e) => set_form_data({ ...form_data, direction: e.target.value })}
               />
             </div>
             <div>
