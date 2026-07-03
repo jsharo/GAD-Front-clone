@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Términos, Condiciones y Políticas de Uso - GAD Municipal</title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap"
+    rel="stylesheet">
+  <style>
+    /* Estilos del Documento */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: #f8f9fa;
+      color: #2c3e50;
+      line-height: 1.6;
+      padding: 3rem 1.5rem;
+    }
+
+    .main-container {
+      background-color: #ffffff;
+      max-width: 210mm;
+      /* Ancho estándar A4 */
+      margin: 0 auto;
+      padding: 1.8cm;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04), 0 1px 8px rgba(0, 0, 0, 0.02);
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Barra decorativa superior */
+    .main-container::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 5px;
+      background: linear-gradient(90deg, #16a085 0%, #2c3e50 100%);
+    }
+
+    .header-container {
+      text-align: center;
+      margin-bottom: 2.5rem;
+      border-bottom: 1px solid #eef2f5;
+      padding-bottom: 1.5rem;
+    }
+
+    .institute-title {
+      font-size: 1.5rem;
+      color: #2c3e50;
+      font-weight: 800;
+      margin-bottom: 0.25rem;
+      letter-spacing: -0.02em;
+    }
+
+    .doc-subtitle {
+      font-size: 0.95rem;
+      color: #7f8c8d;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .section-title {
+      font-size: 1.15rem;
+      color: #2c3e50;
+      margin-top: 2rem;
+      margin-bottom: 1rem;
+      font-weight: 700;
+      border-bottom: 2px solid #e8f8f5;
+      padding-bottom: 0.4rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .role-badge {
+      font-size: 0.75rem;
+      font-weight: 700;
+      background-color: #e8f8f5;
+      color: #16a085;
+      padding: 3px 10px;
+      border-radius: 20px;
+    }
+
+    .terms-block {
+      margin-bottom: 1.5rem;
+      background-color: #fcfcfd;
+      border: 1px solid #f1f3f5;
+      border-radius: 8px;
+      padding: 1.2rem;
+    }
+
+    .term-heading {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #1e293b;
+      margin-bottom: 0.5rem;
+    }
+
+    .term-text {
+      font-size: 0.88rem;
+      color: #4a5568;
+      text-align: justify;
+      margin-bottom: 0.8rem;
+    }
+
+    /* Leyes asociadas */
+    .law-container {
+      background-color: #edf2f7;
+      border-left: 4px solid #4a5568;
+      padding: 0.75rem 1rem;
+      border-radius: 0 6px 6px 0;
+      font-size: 0.82rem;
+      margin-top: 0.5rem;
+    }
+
+    .law-title {
+      font-weight: 700;
+      color: #2d3748;
+      margin-bottom: 0.2rem;
+    }
+
+    .law-detail {
+      color: #4a5568;
+      font-style: italic;
+    }
+
+    .law-badge {
+      background-color: #e2e8f0;
+      color: #4a5568;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 0.72rem;
+      display: inline-block;
+      margin-right: 0.4rem;
+    }
+
+    .footer-note {
+      font-size: 0.8rem;
+      color: #7f8c8d;
+      text-align: center;
+      margin-top: 3rem;
+      border-top: 1px solid #eef2f5;
+      padding-top: 1rem;
+    }
+
+    /* Estilos Impresión */
+    @media print {
+      @page {
+        size: A4;
+        margin: 1.5cm;
+      }
+
+      body {
+        background-color: #ffffff;
+        padding: 0;
+        margin: 0;
+      }
+
+      .main-container {
+        box-shadow: none;
+        padding: 0;
+        margin: 0;
+        max-width: 100%;
+      }
+
+      .main-container::before {
+        display: none;
+      }
+
+      .terms-block {
+        page-break-inside: avoid;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="main-container">
+
+    <!-- Encabezado del Documento -->
+    <div class="header-container">
+      <h1 class="institute-title">SISTEMA MUNICIPAL DE TRÁMITES EN LÍNEA</h1>
+      <div class="doc-subtitle">Términos, Condiciones y Políticas de Aceptación de Datos</div>
+    </div>
+
+    <!-- SECCIÓN USUARIOS -->
+    <div class="section-title">
+      <span>1. Términos y Condiciones para Usuarios</span>
+      <span class="role-badge">Usuario</span>
+    </div>
+
+    <div class="terms-block">
+      <div class="term-heading">1.1 Registro Único y Registro Base de Firma Electrónica</div>
+      <p class="term-text">
+        El usuario se compromete de manera obligatoria a registrar su firma electrónica por primera vez (registro base
+        de identidad digital) a través de los mecanismos seguros del sistema. Esta firma patrón se registrará mediante
+        el cifrado de su clave pública y metadatos asociados. El usuario asume toda la responsabilidad civil y penal
+        derivada del uso posterior de esta firma base, la cual servirá como patrón matemático de contraste absoluto e
+        inmutable para verificar la identidad digital en cualquier trámite municipal cargado de forma posterior.
+      </p>
+      <div class="law-container">
+        <div class="law-title">
+          <span class="law-badge">LCE Art. 14</span> Ley de Comercio Electrónico, Firmas Electrónicas y Mensajes de
+          Datos
+        </div>
+        <div class="law-detail">
+          <strong>Información Clave:</strong> Concede validez jurídica equivalente a la firma manuscrita y establece la
+          obligatoriedad de que sea controlada y de propiedad exclusiva de su titular.
+        </div>
+      </div>
+    </div>
+
+    <div class="terms-block">
+      <div class="term-heading">1.2 Consentimiento Expreso para el Tratamiento y Almacenamiento de Datos</div>
+      <p class="term-text">
+        Al hacer clic en el botón de aceptación estático en el frontend de React, el usuario otorga su consentimiento
+        inequívoco, explícito, informado y libre al Gobierno Autónomo Descentralizado (GAD) Municipal para recopilar,
+        cifrar, registrar y procesar sus datos de contacto, georreferenciación catastral y hashes de firma electrónica.
+        Este tratamiento se restringe estrictamente a la gestión, inspección técnica y aprobación de los trámites de
+        Línea de Fábrica, Aprobación de Planos y Permisos de Construcción.
+      </p>
+      <div class="law-container">
+        <div class="law-title">
+          <span class="law-badge">LOPDP Art. 12</span> Ley Orgánica de Protección de Datos Personales
+        </div>
+        <div class="law-detail">
+          <strong>Información Clave:</strong> Estipula las condiciones de validez del consentimiento, obligando a que
+          este sea otorgado de forma libre, específica, informada y a través de una declaración o acción afirmativa
+          clara.
+        </div>
+      </div>
+    </div>
+
+    <div class="terms-block">
+      <div class="term-heading">1.3 Suspensión Preventiva y Notificaciones por Inconsistencias</div>
+      <p class="term-text">
+        El usuario declara conocer y aceptar que el sistema ejecuta un algoritmo de contraste estricto entre el hash del
+        certificado de firma electrónica cargado en cada trámite y el hash del registro base. En caso de detectarse
+        cualquier discrepancia o no coincidencia (incluso de un solo bit), el sistema suspenderá automáticamente el
+        flujo del trámite, bloqueará el envío de datos a revisión técnica y notificará inmediatamente de forma
+        automatizada al rol de Secretaría para el inicio de una auditoría documental.
+      </p>
+      <div class="law-container">
+        <div class="law-title">
+          <span class="law-badge">LCE Art. 15</span> Ley de Comercio Electrónico, Firmas Electrónicas y Mensajes de
+          Datos
+        </div>
+        <div class="law-detail">
+          <strong>Información Clave:</strong> Asigna al titular de la firma la responsabilidad de custodia y de
+          notificar de inmediato cualquier alteración o pérdida de control sobre la misma para suspender preventivamente
+          sus efectos jurídicos.
+        </div>
+      </div>
+    </div>
+
+
+    <!-- SECCIÓN ARQUITECTOS -->
+    <div class="section-title">
+      <span>2. Términos y Condiciones para Arquitectos y Profesionales</span>
+      <span class="role-badge">Arquitecto</span>
+    </div>
+
+    <div class="terms-block">
+      <div class="term-heading">2.1 Responsabilidad de Diseños, Cálculos Estructurales y Planos Técnicos</div>
+      <p class="term-text">
+        Los arquitectos y profesionales técnicos registrados en el sistema asumen plena y exclusiva responsabilidad
+        civil, administrativa y penal sobre los planos arquitectónicos, cálculos de edificabilidad e informes
+        presentados para el trámite de Aprobación de Planos. El uso de firmas electrónicas profesionales en el sistema
+        implica la declaración jurada de cumplimiento de las ordenanzas de ordenamiento territorial y edificabilidad del
+        cantón.
+      </p>
+      <div class="law-container">
+        <div class="law-title">
+          <span class="law-badge">LCE Art. 16</span> Ley de Comercio Electrónico, Firmas Electrónicas y Mensajes de
+          Datos
+        </div>
+        <div class="law-detail">
+          <strong>Información Clave:</strong> Detalla las condiciones técnicas que aseguran que una firma es segura,
+          tales como la capacidad de detectar cualquier alteración posterior del mensaje de datos o de la propia firma.
+        </div>
+      </div>
+    </div>
+
+    <div class="terms-block">
+      <div class="term-heading">2.2 Validación de Cédulas Profesionales e Identidad Digital</div>
+      <p class="term-text">
+        Los arquitectos deben registrar su firma técnica y habilitación profesional. El sistema contrastará
+        automáticamente en cada carga de planos si el hash de firma coincide con la firma base profesional registrada.
+        En caso de inconsistencias, el trámite cambiará inmediatamente al estado de alerta `PENDING_SECRETARY` con
+        bloqueo de asignación y bandera de "Observado", requiriendo validación física ante la Dirección de Urbanismo.
+      </p>
+      <div class="law-container">
+        <div class="law-title">
+          <span class="law-badge">COOTAD Art. 55</span> Código Orgánico de Organización Territorial (COOTAD)
+        </div>
+        <div class="law-detail">
+          <strong>Información Clave:</strong> Concede a los municipios la competencia exclusiva de planificar el
+          desarrollo cantonal y ejercer el control sobre el uso y ocupación del suelo en el cantón.
+        </div>
+      </div>
+    </div>
+
+
+    <!-- SECCIÓN FUNCIONARIOS -->
+    <div class="section-title">
+      <span>3. Términos y Condiciones para Funcionarios Municipales</span>
+      <span class="role-badge">Funcionario</span>
+    </div>
+
+    <div class="terms-block">
+      <div class="term-heading">3.1 Deber de Confidencialidad y Sigilo de Expedientes Digitales</div>
+      <p class="term-text">
+        Los funcionarios con acceso a los roles de Secretaría y Técnico Evaluador están obligados a guardar estricto
+        secreto profesional respecto a los datos personales, planos catastrales y archivos protegidos a los que tengan
+        acceso en el desempeño de sus labores en el sistema. Queda prohibida la descarga, reproducción o uso no
+        autorizado de bases de datos o información técnica para fines ajenos a la evaluación municipal.
+      </p>
+      <div class="law-container">
+        <div class="law-title">
+          <span class="law-badge">LOPDP Art. 10</span> Ley Orgánica de Protección de Datos Personales
+        </div>
+        <div class="law-detail">
+          <strong>Información Clave:</strong> Obliga a implementar medidas organizativas y técnicas adecuadas para
+          resguardar la seguridad y confidencialidad de los datos personales, evitando su tratamiento no autorizado o
+          ilícito.
+        </div>
+      </div>
+    </div>
+
+    <div class="terms-block">
+      <div class="term-heading">3.2 Registro de Bitácora Inmutable de Auditoría en la Transición de Estados</div>
+      <p class="term-text">
+        Todo funcionario que transicione un trámite a través de la máquina de estados del sistema (`PENDING_SECRETARY`,
+        `OBSERVED`, `PENDING_TECHNICIAN`, `INSPECTION`, `PENDING_PAYMENT`, `PAID`, `APPROVED`) asume responsabilidad
+        administrativa directa sobre dicha acción. Cada cambio de estado genera una entrada inmutable de registro que
+        captura de forma automática el ID del funcionario, timestamp del servidor, estado origen, estado destino y la
+        firma digital del funcionario.
+      </p>
+      <div class="law-container">
+        <div class="law-title">
+          <span class="law-badge">LOSEP Art. 22</span> Ley Orgánica del Servicio Público (LOSEP)
+        </div>
+        <div class="law-detail">
+          <strong>Información Clave:</strong> Determina los deberes de las servidoras y servidores públicos,
+          estableciendo la responsabilidad personal, civil y penal por las acciones u omisiones cometidas en el
+          ejercicio de sus cargos.
+        </div>
+      </div>
+    </div>
+
+
+    <!-- POLÍTICAS DE USO DEL SISTEMA -->
+    <div class="section-title">
+      <span>4. Políticas de Uso Correcto del Sistema</span>
+      <span class="role-badge">Uso</span>
+    </div>
+
+    <div class="terms-block">
+      <div class="term-heading">4.1 Restricciones de Acceso y Uso de la Plataforma</div>
+      <p class="term-text">
+        Queda terminantemente prohibido a cualquier usuario (usuario, arquitecto o funcionario) intentar corromper,
+        adulterar o saltarse la lógica de transición de estados del backend Nest.js o realizar inyecciones maliciosas de
+        código. Asimismo, constituye una violación grave intentar registrar archivos de firmas corruptos, falsos o
+        suplantar la identidad de terceros. El sistema monitorea de forma automática los intentos fallidos de validación
+        de firmas y bloquea las cuentas que muestren patrones de ataque.
+      </p>
+      <div class="law-container">
+        <div class="law-title">
+          <span class="law-badge">COIP Art. 230</span> Código Orgánico Integral Penal (COIP)
+        </div>
+        <div class="law-detail">
+          <strong>Información Clave:</strong> Tipifica y sanciona con pena privativa de libertad el acceso no consentido
+          a sistemas informáticos, telemáticos o de telecomunicaciones con el fin de modificar, dañar o alterar datos.
+        </div>
+      </div>
+    </div>
+
+    <div class="terms-block">
+      <div class="term-heading">4.2 Seguridad de las Credenciales y Contraseñas de Certificados</div>
+      <p class="term-text">
+        El usuario es el único y exclusivo responsable del resguardo de su contraseña de acceso al sistema y de la
+        contraseña de protección de sus archivos de firma electrónica `.p12`. El GAD Municipal no almacena contraseñas
+        de certificados digitales en el backend, por lo que cualquier pérdida, robo o uso indebido de los mismos es de
+        exclusiva responsabilidad del usuario.
+      </p>
+      <div class="law-container">
+        <div class="law-title">
+          <span class="law-badge">COIP Art. 229</span> Código Orgánico Integral Penal (COIP)
+        </div>
+        <div class="law-detail">
+          <strong>Información Clave:</strong> Sanciona la revelación o difusión no consentida de bases de datos o
+          información reservada a la que se tenga acceso por razón del cargo o profesión.
+        </div>
+      </div>
+    </div>
+
+
+    <!-- CONDICIONES DE MANEJO DE DATOS -->
+    <div class="section-title">
+      <span>5. Condiciones de Manejo de Datos y Medidas de Seguridad</span>
+      <span class="role-badge">Seguridad</span>
+    </div>
+
+    <div class="terms-block">
+      <div class="term-heading">5.1 Medidas Técnicas de Criptografía y Protección de Base de Datos</div>
+      <p class="term-text">
+        El GAD Municipal garantiza la seguridad del sistema implementando encriptación de datos en tránsito vía SSL/TLS
+        y encriptación de datos sensibles en reposo en la base de datos PostgreSQL utilizando algoritmos de hashing
+        seguro de una sola vía para firmas electrónicas. Las consultas y la persistencia de datos son gestionadas
+        mediante el ORM Prisma para mitigar ataques de inyección SQL. Todo acceso de lectura y escritura es auditado
+        detalladamente.
+      </p>
+      <div class="law-container">
+        <div class="law-title">
+          <span class="law-badge">LOPDP Art. 10</span> Ley Orgánica de Protección de Datos Personales
+        </div>
+        <div class="law-detail">
+          <strong>Información Clave:</strong> Obliga a implementar medidas de seguridad organizativas y técnicas idóneas
+          para evitar accesos indebidos, fugas de información o alteración de datos sensibles en custodia municipal.
+        </div>
+      </div>
+    </div>
+
+    <div class="terms-block">
+      <div class="term-heading">5.2 Ejercicio de los Derechos ARCO por el Usuario</div>
+      <p class="term-text">
+        De conformidad con la ley, el usuario tiene derecho a ejercer sus derechos de Acceso, Rectificación, Cancelación
+        y Oposición (ARCO) sobre sus datos de usuario almacenados en el sistema. Las solicitudes de rectificación de
+        datos personales o actualización de la firma electrónica base deben tramitarse mediante solicitud formal en el
+        módulo del usuario, la cual será validada físicamente por el rol de Secretaría antes de aplicarse en la base de
+        datos.
+      </p>
+      <div class="law-container">
+        <div class="law-title">
+          <span class="law-badge">LOPDP Art. 13 y 14</span> Ley Orgánica de Protección de Datos Personales
+        </div>
+        <div class="law-detail">
+          <strong>Información Clave:</strong> Regula el derecho de los usuarios a obtener información clara y gratuita
+          sobre el uso de sus datos, así como el acceso total a sus registros guardados en bases públicas.
+        </div>
+      </div>
+    </div>
+
+    <div class="terms-block">
+      <div class="term-heading">5.3 Plazo de Retención de Datos y Depuración de Historiales</div>
+      <p class="term-text">
+        Los datos de los trámites y las firmas electrónicas asociadas se conservarán en el sistema durante el tiempo que
+        dure la tramitación administrativa del expediente municipal. Una vez aprobado o rechazado definitivamente, los
+        registros de trazabilidad y documentos de soporte serán transferidos y custodiados en el archivo histórico
+        digital del GAD Municipal de conformidad con la Ley de Archivos y regulaciones cantonales vigentes.
+      </p>
+      <div class="law-container">
+        <div class="law-title">
+          <span class="law-badge">LOPDP Art. 21</span> Ley Orgánica de Protección de Datos Personales
+        </div>
+        <div class="law-detail">
+          <strong>Información Clave:</strong> Exige la eliminación o anonimización de los datos personales una vez
+          cumplida la finalidad para la cual fueron recopilados, salvo excepciones de archivo histórico o interés
+          público.
+        </div>
+      </div>
+    </div>
+
+    <!-- Pie de Página Legal -->
+    <div class="footer-note">
+      GAD Municipal de Cuenca &copy; 2026. Documento adecuado a la Legislación Ecuatoriana de Comercio Electrónico y
+      Protección de Datos.
+    </div>
+
+  </div>
+
+</body>
+
+</html>
