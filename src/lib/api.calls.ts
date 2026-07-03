@@ -50,6 +50,9 @@ function toLegacyRequestShape(request: any) {
     ciudadano: request.citizen
       ? { ...request.citizen, nombre: request.citizen.name, apellido: request.citizen.lastname }
       : null,
+    usuario: request.citizen
+      ? { ...request.citizen, nombre: request.citizen.name, apellido: request.citizen.lastname }
+      : null,
     arquitecto: request.architect
       ? {
           ...request.architect,
@@ -172,7 +175,24 @@ export const auth_api = {
 export const applications_api = {
   // TODO legacy: migrate remaining screens to /requests backend contract
   create: (data: object) => api.post('/solicitudes', data),
-  list: (params?: object) => api.get('/solicitudes', { params }),
+  list: async (params?: object) => {
+    const legacy_params = (params ?? {}) as Record<string, string | number>;
+    const response = await api.get<ApiEnvelope<any[]>>('/requests', {
+      params: legacy_params.estado ? { status: legacy_params.estado } : undefined,
+    });
+    const request_type = legacy_params.tipoTramite;
+    const requests = request_type
+      ? response.data.data.filter((request) => request.request_type === request_type)
+      : response.data.data;
+
+    return {
+      ...response,
+      data: {
+        ...response.data,
+        data: requests.map(toLegacyRequestShape),
+      },
+    };
+  },
   myApplications: (params?: object) => api.get('/solicitudes/mis-solicitudes', { params }),
   stats: () => api.get('/solicitudes/stats'),
   getById: async (id: string) => {
