@@ -20,7 +20,16 @@ api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const original_request = error.config;
-    if (error.response?.status === 401 && !original_request._retry) {
+    const request_url = String(original_request?.url ?? '');
+    const is_authentication_request =
+      request_url.includes('/auth/login') || request_url.includes('/auth/refresh');
+
+    if (
+      error.response?.status === 401 &&
+      original_request &&
+      !original_request._retry &&
+      !is_authentication_request
+    ) {
       original_request._retry = true;
       const refresh_token = localStorage.getItem('gad_refresh_token');
       if (refresh_token) {

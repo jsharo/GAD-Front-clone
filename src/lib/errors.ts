@@ -5,11 +5,21 @@ export function getApiError(err: unknown, fallback: string): string {
         response?: { status?: number; data?: { message?: string | string[] } };
       }
     ).response;
-    if (response?.status === 401) return 'La sesión expiró. Inicie sesión nuevamente.';
-    if (response?.status === 403) return 'No tiene permisos para realizar esta acción.';
-    if (response?.status === 404) return 'El expediente o documento no fue encontrado.';
     const data = response?.data;
     const msg = data?.message;
+    const message = Array.isArray(msg) ? msg.join(', ') : msg;
+
+    if (response?.status === 401) {
+      if (message === 'Email not verified') {
+        return 'Debes verificar tu correo antes de iniciar sesión.';
+      }
+      if (message === 'Invalid email or password') {
+        return 'Credenciales incorrectas.';
+      }
+      return 'La sesión expiró. Inicie sesión nuevamente.';
+    }
+    if (response?.status === 403) return 'No tiene permisos para realizar esta acción.';
+    if (response?.status === 404) return 'El expediente o documento no fue encontrado.';
     if (Array.isArray(msg)) return msg.join(', ');
     if (typeof msg === 'string') return msg;
   }
