@@ -7,9 +7,20 @@ export interface BaseModalProps {
   title?: string;
   children: React.ReactNode;
   size?: 'sm' | 'md' | 'lg' | 'xl';
+  hideBrandBar?: boolean;
+  /** Respeta el header fijo (h-20) arriba y margen inferior al posicionar el modal. */
+  respectHeader?: boolean;
 }
 
-export function BaseModal({ isOpen, onClose, title, children, size = 'md' }: BaseModalProps) {
+export function BaseModal({
+  isOpen,
+  onClose,
+  title,
+  children,
+  size = 'md',
+  hideBrandBar = false,
+  respectHeader = false,
+}: BaseModalProps) {
   const modalRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -42,39 +53,51 @@ export function BaseModal({ isOpen, onClose, title, children, size = 'md' }: Bas
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/45 backdrop-blur-xs animate-fade-in">
-      {/* Backdrop clickable overlay */}
-      <div className="absolute inset-0 cursor-default" onClick={onClose} />
-
-      {/* Modal Container */}
+    <div className="fixed inset-0 z-[100] animate-fade-in">
+      {/* Backdrop: cubre toda la pantalla, incluido el header */}
       <div
-        ref={modalRef}
-        className={`relative w-full ${sizeClasses[size]} glass-card bg-white/95 border border-slate-200/50 shadow-2xl rounded-3xl overflow-hidden z-10 transition-all duration-300 animate-slide-up`}
-        onClick={(e) => e.stopPropagation()}
+        className="absolute inset-0 bg-slate-950/45 backdrop-blur-xs cursor-default"
+        onClick={onClose}
+      />
+
+      {/* Capa de posicionamiento del modal */}
+      <div
+        className={`relative z-10 flex h-full w-full justify-center px-4 ${
+          respectHeader ? 'pt-20 pb-6 items-center' : 'py-4 items-center'
+        }`}
       >
-        {/* Top brand line representing GAD Cañar flags */}
-        <div className="h-1.5 w-full bg-gradient-to-r from-red-500 via-[#F5C100] to-green-500" />
-
-        {/* Modal Header */}
-        <div className="flex items-center justify-between p-5 border-b border-slate-100">
-          {title ? (
-            <h3 className="font-heading font-black text-slate-900 text-lg tracking-wide">
-              {title}
-            </h3>
-          ) : (
-            <div />
+        <div
+          ref={modalRef}
+          className={`relative flex w-full flex-col ${sizeClasses[size]} overflow-hidden bg-white border border-slate-200/50 shadow-2xl rounded-3xl transition-all duration-300 animate-slide-up ${
+            respectHeader ? 'max-h-[calc(100vh-5rem-1.5rem)]' : 'max-h-[75vh]'
+          }`}
+          onClick={(e) => e.stopPropagation()}
+        >
+          {!hideBrandBar && (
+            <div className="h-1.5 w-full shrink-0 bg-gradient-to-r from-red-500 via-[#F5C100] to-green-500" />
           )}
-          <button
-            onClick={onClose}
-            className="p-2 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition-all active:scale-95 cursor-pointer"
-            aria-label="Close modal"
-          >
-            <X size={18} />
-          </button>
-        </div>
 
-        {/* Modal Body */}
-        <div className="p-6 overflow-y-auto max-h-[75vh]">{children}</div>
+          {/* Modal Header */}
+          <div className="flex shrink-0 items-center justify-between p-5 border-b border-slate-100 bg-white">
+            {title ? (
+              <h3 className="font-heading font-black text-slate-900 text-lg tracking-wide">
+                {title}
+              </h3>
+            ) : (
+              <div />
+            )}
+            <button
+              onClick={onClose}
+              className="p-2 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition-all active:scale-95 cursor-pointer"
+              aria-label="Close modal"
+            >
+              <X size={18} />
+            </button>
+          </div>
+
+          {/* Modal Body */}
+          <div className="min-h-0 flex-1 overflow-y-auto bg-white p-6">{children}</div>
+        </div>
       </div>
     </div>
   );
