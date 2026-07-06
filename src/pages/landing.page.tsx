@@ -375,7 +375,7 @@ export function LandingPage() {
                 <form onSubmit={handleTrack} className="space-y-3">
                   <div className="relative">
                     <input
-                      id="trackInput"
+                      id="tracking-input"
                       type="text"
                       className="w-full pl-4 pr-12 py-3.5 bg-neutral-50 border border-neutral-200 text-neutral-800 placeholder-neutral-400 focus:border-primary-default focus:ring-2 focus:ring-primary-light text-xs rounded-2xl outline-none"
                       placeholder="Cédula del propietario o correo del expediente"
