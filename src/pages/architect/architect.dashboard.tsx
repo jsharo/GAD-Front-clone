@@ -34,7 +34,7 @@ interface Application {
   created_at: string;
 }
 
-function PendienteHabilitacionBanner() {
+function PendingEnablementBanner() {
   return (
     <div className="mb-6 rounded-2xl border border-warning-light bg-warning-light/10 p-6">
       <div className="flex items-start gap-4">
@@ -138,7 +138,7 @@ export function ArchitectDashboard() {
     <div className="space-y-6">
       {!is_enabled && needs_profile_completion && <CompleteProfileModal allowClose={false} />}
 
-      {!is_enabled && !needs_profile_completion && <PendienteHabilitacionBanner />}
+      {!is_enabled && !needs_profile_completion && <PendingEnablementBanner />}
 
       <PageHeader
         title={`Bienvenido, ${user?.first_name || 'Arquitecto'} 👷`}
