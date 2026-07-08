@@ -233,17 +233,27 @@ export const applications_api = {
 
 // ---- Attachments ----
 export const attachments_api = {
-  // TODO legacy: migrate to /requests backend contract
-  upload: (application_id: string, file: File) => {
+  upload: (
+    application_id: string,
+    file: File,
+    folder: AttachmentFolder = 'OTROS',
+    name = file.name
+  ) => {
     const form_data = new FormData();
     form_data.append('file', file);
-    return api.post(`/solicitudes/${application_id}/anexos`, form_data, {
+    form_data.append('folder', folder);
+    form_data.append('name', name);
+    return api.post(`/requests/${application_id}/attachments`, form_data, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
   },
-  list: (application_id: string) => api.get(`/solicitudes/${application_id}/anexos`),
-  delete: (id: string) => api.delete(`/solicitudes/anexos/${id}`),
-  getUrl: (key: string) => `/api/v1/files/${encodeURIComponent(key)}`,
+  list: (application_id: string) => api.get(`/requests/${application_id}/attachments`),
+  delete: (application_id: string, attachment_id: string) =>
+    api.delete(`/requests/${application_id}/attachments/${attachment_id}`),
+  getUrl: (application_id: string, attachment_id: string) =>
+    `/requests/${encodeURIComponent(application_id)}/attachments/${encodeURIComponent(
+      attachment_id
+    )}/download`,
 };
 
 // ---- Notifications ----
