@@ -14,7 +14,7 @@ import {
   ShieldAlert,
 } from 'lucide-react';
 import { useAuthStore } from '@/stores/auth.store';
-import api from '@/lib/api';
+import { applications_api } from '@/lib/api.calls';
 import { ApplicationTimeline } from '@/components/ui/application.timeline';
 import { CompleteProfileModal } from '@/components/logic/complete.profile.modal';
 import { PageHeader } from '@/components/ui/page.header';
@@ -73,8 +73,8 @@ export function ArchitectDashboard() {
   const needs_profile_completion = !user?.national_id || !user?.first_name?.trim();
 
   useEffect(() => {
-    api
-      .get('/solicitudes/mis-solicitudes')
+    applications_api
+      .myApplications()
       .then(({ data }) => {
         const mapped = (data.data || []).map((s: any) => ({
           id: s.id,

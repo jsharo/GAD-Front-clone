@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { FileText, ArrowRight, User } from 'lucide-react';
-import api from '@/lib/api';
+import { applications_api } from '@/lib/api.calls';
 import { formatDateTime } from '@/lib/utils';
 import { ApplicationTimeline } from '@/components/ui/application.timeline';
 import { ApplicationFilterBar } from '@/components/logic/application.filter-bar';
@@ -39,11 +39,11 @@ export function MyProcedures() {
 
   useEffect(() => {
     set_is_loading(true);
-    const params = new URLSearchParams();
-    if (filters.status) params.set('estado', filters.status);
-    if (filters.procedureType) params.set('tipoTramite', filters.procedureType);
-    api
-      .get(`/solicitudes/mis-solicitudes?${params}`)
+    const params: Record<string, string> = {};
+    if (filters.status) params.estado = filters.status;
+    if (filters.procedureType) params.tipoTramite = filters.procedureType;
+    applications_api
+      .myApplications(params)
       .then(({ data }) => {
         const mapped = (data.data || []).map((s: any) => ({
           id: s.id,
