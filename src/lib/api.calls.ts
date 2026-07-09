@@ -221,7 +221,14 @@ export const applications_api = {
   send: (id: string) => api.post(`/solicitudes/${id}/enviar`),
   updateStatus: (id: string, data: object) => api.patch(`/solicitudes/${id}/estado`, data),
   schedule: (id: string, data: object) => api.post(`/solicitudes/${id}/agenda`, data),
-  resolve: (id: string, data: object) => api.post(`/solicitudes/${id}/resolver`, data),
+  resolve: (
+    id: string,
+    data: { resolucion?: string; observaciones?: string; motivoRechazo?: string }
+  ) =>
+    api.post(`/requests/${id}/resolve`, {
+      approved: data.resolucion !== 'NEGADO',
+      comments: data.observaciones || data.motivoRechazo || '',
+    }),
   charge: (id: string, data: { amount: number; concept: string; notes?: string }) =>
     api.post(`/solicitudes/${id}/cobrar`, {
       monto: data.amount,
@@ -242,9 +249,9 @@ export const applications_api = {
    */
   uploadReport: (id: string, comments: string, photos: File[]) => {
     const form_data = new FormData();
-    form_data.append('comentarios', comments);
-    photos.forEach((f) => form_data.append('fotos', f));
-    return api.post(`/solicitudes/${id}/reporte-inspeccion`, form_data, {
+    form_data.append('comments', comments);
+    photos.forEach((f) => form_data.append('photos', f));
+    return api.post(`/requests/${id}/inspection-report`, form_data, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
   },
