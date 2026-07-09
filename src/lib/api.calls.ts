@@ -43,6 +43,7 @@ function toLegacyRequestShape(request: any) {
   return {
     ...request,
     createdAt: request.created_at,
+    updatedAt: request.updated_at,
     estado: request.status,
     tipoTramite: request.request_type,
     motivoRechazo: request.status === 'REJECTED' ? request.resolution?.comments : null,
@@ -193,7 +194,25 @@ export const applications_api = {
       },
     };
   },
-  myApplications: (params?: object) => api.get('/solicitudes/mis-solicitudes', { params }),
+  myApplications: async (params?: object) => {
+    const legacy_params = (params ?? {}) as Record<string, string | number>;
+    const response = await api.get<ApiEnvelope<any[]>>('/requests/my-filings');
+    const requests = response.data.data.filter((request) => {
+      if (legacy_params.estado && request.status !== legacy_params.estado) return false;
+      if (legacy_params.tipoTramite && request.request_type !== legacy_params.tipoTramite) {
+        return false;
+      }
+      return true;
+    });
+
+    return {
+      ...response,
+      data: {
+        ...response.data,
+        data: requests.map(toLegacyRequestShape),
+      },
+    };
+  },
   stats: () => api.get('/solicitudes/stats'),
   getById: async (id: string) => {
     const response = await api.get<ApiEnvelope<any>>(`/requests/${id}`);
