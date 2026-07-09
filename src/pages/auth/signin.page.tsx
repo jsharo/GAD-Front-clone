@@ -37,22 +37,15 @@ export function SignInPage() {
       const { data: body } = await api.post<{
         success: boolean;
         data: {
-          accessToken: string;
-          refreshToken: string;
           user: { id: string; email: string; role: string };
         };
       }>('/auth/login', { email: data.email, password: data.password });
 
-      const { accessToken, refreshToken, user } = body.data;
+      const { user } = body.data;
       const feRole = normalizeRole(user.role);
-
-      localStorage.setItem('gad_access_token', accessToken);
-      localStorage.setItem('gad_refresh_token', refreshToken);
 
       useAuthStore.setState({
         user: mapUser({ ...user, role: feRole }),
-        access_token: accessToken,
-        refresh_token: refreshToken,
         is_loading: false,
         error: null,
       });

@@ -45,8 +45,6 @@ export interface User {
 
 interface AuthState {
   user: User | null;
-  access_token: string | null;
-  refresh_token: string | null;
   is_loading: boolean;
   error: string | null;
 
@@ -98,8 +96,6 @@ export const useAuthStore = create<AuthState>()(
   persist(
     (set) => ({
       user: null,
-      access_token: null,
-      refresh_token: null,
       is_loading: false,
       error: null,
 
@@ -108,12 +104,8 @@ export const useAuthStore = create<AuthState>()(
         try {
           const response = await api.post('/auth/login', { email, password });
           const data = response.data.data;
-          localStorage.setItem('gad_access_token', data.accessToken);
-          localStorage.setItem('gad_refresh_token', data.refreshToken);
           set({
             user: mapUser(data.user),
-            access_token: data.accessToken,
-            refresh_token: data.refreshToken,
             is_loading: false,
           });
         } catch (err: unknown) {
@@ -138,12 +130,8 @@ export const useAuthStore = create<AuthState>()(
             telefono: data.phone,
           };
           const { data: res } = await api.post('/auth/register', payload);
-          localStorage.setItem('gad_access_token', res.accessToken);
-          localStorage.setItem('gad_refresh_token', res.refreshToken);
           set({
             user: mapUser(res.user),
-            access_token: res.accessToken,
-            refresh_token: res.refreshToken,
             is_loading: false,
           });
         } catch (err: unknown) {
@@ -160,12 +148,8 @@ export const useAuthStore = create<AuthState>()(
         set({ is_loading: true, error: null });
         try {
           const { data: res } = await api.post('/auth/registro-rapido', { email });
-          localStorage.setItem('gad_access_token', res.accessToken);
-          localStorage.setItem('gad_refresh_token', res.refreshToken);
           set({
             user: mapUser(res.user),
-            access_token: res.accessToken,
-            refresh_token: res.refreshToken,
             is_loading: false,
           });
         } catch (err: unknown) {
@@ -189,12 +173,8 @@ export const useAuthStore = create<AuthState>()(
             telefono: data.phone,
           };
           const { data: res } = await api.post('/auth/completar-perfil', payload);
-          localStorage.setItem('gad_access_token', res.accessToken);
-          localStorage.setItem('gad_refresh_token', res.refreshToken);
           set({
             user: mapUser(res.user),
-            access_token: res.accessToken,
-            refresh_token: res.refreshToken,
             is_loading: false,
           });
         } catch (err: unknown) {
@@ -208,9 +188,8 @@ export const useAuthStore = create<AuthState>()(
       },
 
       logout: () => {
-        localStorage.removeItem('gad_access_token');
-        localStorage.removeItem('gad_refresh_token');
-        set({ user: null, access_token: null, refresh_token: null, error: null });
+        api.post('/auth/logout').catch(() => null);
+        set({ user: null, error: null });
       },
 
       clearError: () => set({ error: null }),
@@ -226,8 +205,6 @@ export const useAuthStore = create<AuthState>()(
       }),
       partialize: (state) => ({
         user: state.user,
-        access_token: state.access_token,
-        refresh_token: state.refresh_token,
       }),
     }
   )

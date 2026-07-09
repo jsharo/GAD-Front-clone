@@ -8,9 +8,8 @@ interface ProtectedRouteProps {
 
 export function ProtectedRoute({ allowed_roles }: ProtectedRouteProps) {
   const { user } = useAuthStore();
-  const token = localStorage.getItem('gad_access_token');
 
-  if (!user || !token) {
+  if (!user) {
     return <Navigate to="/auth/signin" replace />;
   }
 
