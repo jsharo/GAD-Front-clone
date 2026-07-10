@@ -169,7 +169,7 @@ export const auth_api = {
   requestTrackedAccess: (email: string) => api.post('/auth/registro-rapido', { email }),
   completeProfile: (data: object) => api.post('/auth/completar-perfil', data),
   me: () => api.get('/auth/me'),
-  refresh: (refresh_token: string) => api.post('/auth/refresh', { refreshToken: refresh_token }),
+  refresh: () => api.post('/auth/refresh'),
 };
 
 // ---- Applications ----
