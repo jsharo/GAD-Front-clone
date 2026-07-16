@@ -13,7 +13,80 @@ export interface RequestAttachment {
   ipfs_status: string | null;
   ipfs_uploaded_at: string | null;
   ipfs_provider: string | null;
+  signature_status?: SignatureVerificationStatus | 'PENDING';
+  signature_verified_at?: string | null;
+  signature_verifier?: string | null;
   created_at: string;
+}
+
+export type SignatureVerificationStatus =
+  | 'MATCH'
+  | 'MATCH_WITH_WARNINGS'
+  | 'MISMATCH'
+  | 'UNSIGNED'
+  | 'INVALID'
+  | 'INDETERMINATE'
+  | 'ERROR';
+
+export type SignatureIdentityStatus = 'MATCH' | 'MISMATCH' | 'INDETERMINATE';
+
+export type SignatureTrustStatus =
+  | 'TRUSTED'
+  | 'UNTRUSTED'
+  | 'REVOKED'
+  | 'EXPIRED'
+  | 'NOT_CONFIGURED'
+  | 'UNKNOWN';
+
+export interface ExpectedSigner {
+  id: string | null;
+  role: 'PROFESSIONAL' | 'CITIZEN' | 'UNKNOWN';
+  full_name: string;
+  national_id: string | null;
+}
+
+export interface VerifiedPdfSignature {
+  index: number;
+  field_name: string | null;
+  common_name: string | null;
+  given_name: string | null;
+  surname: string | null;
+  national_id: string | null;
+  issuer_common_name: string | null;
+  signing_time: string | null;
+  integrity_valid: boolean;
+  identity_status: SignatureIdentityStatus;
+  identity_message: string;
+  trust_status: SignatureTrustStatus;
+  certificate_fingerprint_sha256: string;
+}
+
+export interface AttachmentSignatureReport {
+  attachment_id: string;
+  attachment_name: string;
+  document_hash: string;
+  stored_hash: string | null;
+  storage_integrity_valid: boolean;
+  verified_at: string;
+  verifier: string;
+  status: SignatureVerificationStatus;
+  signature_count: number;
+  has_valid_expected_signature: boolean;
+  trust_configured: boolean;
+  signatures: VerifiedPdfSignature[];
+  warnings: string[];
+}
+
+export interface RequestSignatureSummary {
+  status: SignatureVerificationStatus;
+  has_valid_expected_signature: boolean;
+  requires_acknowledgement: boolean;
+  expected_signer: ExpectedSigner;
+  pdf_count: number;
+  signature_count: number;
+  verified_at: string;
+  attachments: AttachmentSignatureReport[];
+  warnings: string[];
 }
 
 export interface AttachmentIntegrityResult {
@@ -32,6 +105,20 @@ export interface AttachmentIpfsResult {
   uploaded: boolean;
   ipfs_status: string;
   message: string;
+}
+
+export interface SecretaryReviewInput {
+  approved: boolean;
+  acknowledge_signature_warning?: boolean;
+  remarks?: string;
+}
+
+export interface SecretaryReviewResult {
+  id: string;
+  status: string;
+  signature_validated: boolean;
+  signature_status: SignatureVerificationStatus;
+  approved: boolean;
 }
 
 interface ApiEnvelope<T> {
@@ -82,6 +169,7 @@ function toLegacyRequestShape(request: any) {
     dictamenSecretaria: request.secretary_decision
       ? {
           aprobada: request.secretary_decision.approved,
+          firmaValidada: request.secretary_decision.signature_validated,
           observaciones: request.secretary_decision.remarks,
           creadoEn: request.secretary_decision.created_at,
         }
@@ -116,6 +204,14 @@ export async function getRequestById(requestId: string) {
   return response.data.data;
 }
 
+export async function submitSecretaryReview(requestId: string, review: SecretaryReviewInput) {
+  const response = await api.post<ApiEnvelope<SecretaryReviewResult>>(
+    `/requests/${requestId}/secretary-review`,
+    review
+  );
+  return response.data.data;
+}
+
 export async function getRequestAttachments(requestId: string) {
   const response = await api.get<ApiEnvelope<RequestAttachment[]>>(
     `/requests/${requestId}/attachments`
@@ -142,6 +238,26 @@ export async function verifyRequestAttachment(requestId: string, attachmentId: s
     `/requests/${requestId}/attachments/${attachmentId}/verify`
   );
   return response.data;
+}
+
+export async function getRequestSignatureVerification(requestId: string, refresh = false) {
+  const response = await api.get<ApiEnvelope<RequestSignatureSummary>>(
+    `/requests/${requestId}/signature-verification`,
+    { params: refresh ? { refresh: true } : undefined }
+  );
+  return response.data.data;
+}
+
+export async function getAttachmentSignatureVerification(
+  requestId: string,
+  attachmentId: string,
+  refresh = false
+) {
+  const response = await api.get<ApiEnvelope<AttachmentSignatureReport>>(
+    `/requests/${requestId}/attachments/${attachmentId}/signatures`,
+    { params: refresh ? { refresh: true } : undefined }
+  );
+  return response.data.data;
 }
 
 export async function sendAttachmentToIpfs(requestId: string, attachmentId: string) {

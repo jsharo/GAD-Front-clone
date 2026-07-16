@@ -22,12 +22,14 @@ interface DocumentPanelProps {
   requestId: string;
   allowedUpload?: boolean;
   allowedIpfs?: boolean;
+  onAttachmentsChanged?: () => void;
 }
 
 export function DocumentPanel({
   requestId,
   allowedUpload = false,
   allowedIpfs = false,
+  onAttachmentsChanged,
 }: DocumentPanelProps) {
   const [attachments, setAttachments] = useState<RequestAttachment[]>([]);
   const [loading, setLoading] = useState(true);
@@ -60,6 +62,7 @@ export function DocumentPanel({
       await uploadRequestAttachment(requestId, data);
       form.reset();
       await loadAttachments();
+      onAttachmentsChanged?.();
     } catch (err) {
       setError(getApiError(err, 'No se pudo subir el documento.'));
     } finally {

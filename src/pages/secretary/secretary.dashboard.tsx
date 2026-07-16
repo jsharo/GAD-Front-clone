@@ -47,8 +47,8 @@ export function SecretaryDashboard() {
       .finally(() => set_is_loading(false));
   }, []);
 
-  const pending_applications = applications.filter((s) => s.status === 'PENDIENTE_SECRETARIA');
-  const observed_applications = applications.filter((s) => s.status === 'OBSERVADO');
+  const pending_applications = applications.filter((s) => s.status === 'PENDING_SECRETARY');
+  const observed_applications = applications.filter((s) => s.status === 'OBSERVED');
   const total = applications.length;
 
   const stats = [
@@ -61,7 +61,7 @@ export function SecretaryDashboard() {
     },
     {
       label: 'En Proceso',
-      value: applications.filter((s) => ['EN_REVISION_TECNICA', 'INSPECCION'].includes(s.status))
+      value: applications.filter((s) => ['PENDING_TECHNICIAN', 'INSPECTION'].includes(s.status))
         .length,
       icon: CheckCircle2,
       iconClass: 'text-success-dark',

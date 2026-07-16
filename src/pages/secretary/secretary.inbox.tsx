@@ -14,8 +14,8 @@ import { ProcedureTypeBadge } from '@/components/ui/procedure-type.badge';
 
 const SECRETARY_STATUS_OPTIONS = [
   { value: '', label: 'Todos (activos)' },
-  { value: 'PENDIENTE_SECRETARIA', label: 'Pendientes' },
-  { value: 'OBSERVADO', label: 'Observados' },
+  { value: 'PENDING_SECRETARY', label: 'Pendientes' },
+  { value: 'OBSERVED', label: 'Observados' },
 ];
 
 interface Application {
@@ -92,7 +92,7 @@ export function SecretaryInbox() {
   }, [loadInbox]);
 
   const filtered_applications = applications.filter((s) => {
-    if (!filters.status && !['PENDIENTE_SECRETARIA', 'OBSERVADO'].includes(s.status)) {
+    if (!filters.status && !['PENDING_SECRETARY', 'OBSERVED'].includes(s.status)) {
       return false;
     }
 
@@ -122,8 +122,8 @@ export function SecretaryInbox() {
     return true;
   });
 
-  const pending_count = applications.filter((s) => s.status === 'PENDIENTE_SECRETARIA').length;
-  const observed_count = applications.filter((s) => s.status === 'OBSERVADO').length;
+  const pending_count = applications.filter((s) => s.status === 'PENDING_SECRETARY').length;
+  const observed_count = applications.filter((s) => s.status === 'OBSERVED').length;
 
   return (
     <div className="space-y-6">
