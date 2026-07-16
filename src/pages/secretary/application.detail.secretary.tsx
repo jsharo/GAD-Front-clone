@@ -2,7 +2,6 @@ import { useEffect, useState, useCallback } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import {
   ArrowLeft,
-  FileText,
   User,
   MapPin,
   CheckCircle2,
@@ -10,13 +9,17 @@ import {
   AlertCircle,
   Clock,
   FileCheck2,
+  Loader2,
 } from 'lucide-react';
-import { applications_api } from '@/lib/api.calls';
-import api from '@/lib/api';
+import {
+  applications_api,
+  submitSecretaryReview,
+  type RequestSignatureSummary,
+} from '@/lib/api.calls';
 import { formatDateTime } from '@/lib/utils';
 import { getProcedureTypeLabel } from '@/lib/constants/procedure-types';
-import { AttachmentRow } from '@/components/logic/attachment.row';
 import { DocumentPanel } from '@/components/documents/DocumentPanel';
+import { SignatureVerificationPanel } from '@/components/documents/SignatureVerificationPanel';
 import { LoadingSkeleton } from '@/components/ui/loading.skeleton';
 import { EmptyState } from '@/components/ui/empty.state';
 import { AlertBanner } from '@/components/ui/alert.banner';
@@ -42,6 +45,7 @@ interface ApplicationDetail {
   observations: string | null;
   secretary_decision: {
     is_approved: boolean;
+    signature_validated: boolean;
     observations: string | null;
     created_at: string;
   } | null;
@@ -117,6 +121,10 @@ export function ApplicationDetailSecretary() {
     predioIdentificado: false,
     validarTitulo: false,
   });
+  const [signature_summary, set_signature_summary] = useState<RequestSignatureSummary | null>(null);
+  const [signature_loading, set_signature_loading] = useState(true);
+  const [signature_refresh_key, set_signature_refresh_key] = useState(0);
+  const [confirm_unvalidated_signature, set_confirm_unvalidated_signature] = useState(false);
 
   // Formulario de dictamen
   const [decision, set_decision] = useState<'aprobar' | 'devolver' | null>(null);
@@ -135,6 +143,7 @@ export function ApplicationDetailSecretary() {
       secretary_decision: s.dictamenSecretaria
         ? {
             is_approved: s.dictamenSecretaria.aprobada,
+            signature_validated: Boolean(s.dictamenSecretaria.firmaValidada),
             observations: s.dictamenSecretaria.observaciones,
             created_at: s.dictamenSecretaria.creadoEn,
           }
@@ -198,20 +207,27 @@ export function ApplicationDetailSecretary() {
     set_checks((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
-  const all_checked = Object.values(checks).every(Boolean);
-
-  const handleSubmitDecision = async () => {
-    if (!id || !decision) return;
-    if (decision === 'devolver' && !observations.trim()) {
-      set_error('Escribe las observaciones para devolver la solicitud');
-      return;
+  const handleSignatureChange = useCallback((summary: RequestSignatureSummary | null) => {
+    set_signature_summary(summary);
+    if (summary && !summary.requires_acknowledgement) {
+      set_confirm_unvalidated_signature(false);
     }
+  }, []);
+
+  const all_checked = Object.values(checks).every(Boolean);
+  const signature_validated = Boolean(signature_summary?.has_valid_expected_signature);
+  const signature_requires_acknowledgement = signature_summary?.requires_acknowledgement ?? true;
+
+  const submitDecision = async (acknowledge_signature_warning = false) => {
+    if (!id || !decision) return;
+
     set_is_submitting(true);
     set_error(null);
     try {
-      await api.post(`/api/v1/solicitudes/${id}/dictamen-secretaria`, {
-        aprobada: decision === 'aprobar',
-        observaciones: observations.trim() || undefined,
+      await submitSecretaryReview(id, {
+        approved: decision === 'aprobar',
+        acknowledge_signature_warning,
+        remarks: observations.trim() || undefined,
       });
       navigate('/secretary/inbox');
     } catch (e: any) {
@@ -219,6 +235,26 @@ export function ApplicationDetailSecretary() {
     } finally {
       set_is_submitting(false);
     }
+  };
+
+  const handleSubmitDecision = async () => {
+    if (!id || !decision) return;
+    if (decision === 'devolver' && !observations.trim()) {
+      set_error('Escribe las observaciones para devolver la solicitud');
+      return;
+    }
+
+    if (decision === 'aprobar' && signature_loading) {
+      set_error('Espera a que termine la verificación automática de firmas');
+      return;
+    }
+
+    if (decision === 'aprobar' && signature_requires_acknowledgement) {
+      set_confirm_unvalidated_signature(true);
+      return;
+    }
+
+    await submitDecision(false);
   };
 
   if (is_loading) {
@@ -241,12 +277,11 @@ export function ApplicationDetailSecretary() {
   }
 
   const tipo_label = getProcedureTypeLabel(application.procedure_type);
-  const citizen_docs = (application.attachments ?? []).filter(
-    (a: any) => a.mime_type !== 'INSPECCION_FOTO'
-  );
   const is_already_resolved =
     application.secretary_decision != null ||
-    !['PENDIENTE_SECRETARIA', 'OBSERVADO'].includes(application.status);
+    !['PENDING_SECRETARY', 'OBSERVED'].includes(application.status);
+  const expected_signer = application.architect ?? application.citizen;
+  const expected_signer_role = application.architect ? 'Profesional responsable' : 'Solicitante';
 
   return (
     <div className="animate-fade-in space-y-5 max-w-3xl mx-auto pb-10">
@@ -328,7 +363,22 @@ export function ApplicationDetailSecretary() {
         )}
       </DetailSection>
 
-      {id && <DocumentPanel requestId={id} allowedUpload allowedIpfs />}
+      {id && (
+        <>
+          <DocumentPanel
+            requestId={id}
+            allowedUpload
+            allowedIpfs
+            onAttachmentsChanged={() => set_signature_refresh_key((current) => current + 1)}
+          />
+          <SignatureVerificationPanel
+            requestId={id}
+            refreshKey={signature_refresh_key}
+            onLoadingChange={set_signature_loading}
+            onChange={handleSignatureChange}
+          />
+        </>
+      )}
 
       {/* ── PANEL DE DICTAMEN (solo si no está resuelta) ── */}
       {!is_already_resolved ? (
@@ -373,6 +423,46 @@ export function ApplicationDetailSecretary() {
             </div>
           </div>
 
+          <div className="border-t border-slate-200 pt-5">
+            <p className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3">
+              Firma digital del responsable
+            </p>
+            {expected_signer && (
+              <p className="mb-3 text-xs text-slate-500">
+                {expected_signer_role}: {expected_signer.first_name} {expected_signer.last_name}
+                {expected_signer.national_id ? ` · Cédula ${expected_signer.national_id}` : ''}
+              </p>
+            )}
+            {signature_loading ? (
+              <div className="flex items-center gap-2 rounded-lg border border-blue-200 bg-blue-50 p-3 text-xs text-blue-800">
+                <Loader2 size={15} className="animate-spin" /> Verificando firmas y certificados...
+              </div>
+            ) : (
+              <div
+                className={
+                  !signature_requires_acknowledgement
+                    ? 'flex items-start gap-2 rounded-lg border border-green-200 bg-green-50 p-3 text-xs leading-relaxed text-green-800'
+                    : signature_validated
+                      ? 'flex items-start gap-2 rounded-lg border border-amber-300 bg-amber-50 p-3 text-xs leading-relaxed text-amber-900'
+                      : 'flex items-start gap-2 rounded-lg border border-red-300 bg-red-50 p-3 text-xs leading-relaxed text-red-800'
+                }
+              >
+                {!signature_requires_acknowledgement ? (
+                  <CheckCircle2 size={15} className="mt-0.5 flex-shrink-0" />
+                ) : (
+                  <AlertCircle size={15} className="mt-0.5 flex-shrink-0" />
+                )}
+                <p>
+                  {!signature_requires_acknowledgement
+                    ? 'Firma, identidad y confianza verificadas automáticamente.'
+                    : signature_validated
+                      ? `La identidad y la integridad coinciden, pero existen advertencias. Estado: ${signature_summary?.status || 'ERROR'}.`
+                      : `No existe una coincidencia automática válida. Estado: ${signature_summary?.status || 'ERROR'}. Revisa el detalle antes de decidir.`}
+                </p>
+              </div>
+            )}
+          </div>
+
           {/* Decisión */}
           <div>
             <p className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3">
@@ -381,7 +471,10 @@ export function ApplicationDetailSecretary() {
             <div className="grid grid-cols-2 gap-3">
               <button
                 type="button"
-                onClick={() => set_decision('aprobar')}
+                onClick={() => {
+                  set_decision('aprobar');
+                  set_confirm_unvalidated_signature(false);
+                }}
                 className={
                   decision === 'aprobar'
                     ? 'flex items-center gap-2 rounded-xl border-2 border-success-default bg-success-light/10 p-4 text-sm font-semibold text-success-dark'
@@ -396,7 +489,10 @@ export function ApplicationDetailSecretary() {
               </button>
               <button
                 type="button"
-                onClick={() => set_decision('devolver')}
+                onClick={() => {
+                  set_decision('devolver');
+                  set_confirm_unvalidated_signature(false);
+                }}
                 className={
                   decision === 'devolver'
                     ? 'flex items-center gap-2 rounded-xl border-2 border-error-default bg-error-light/10 p-4 text-sm font-semibold text-error-default'
@@ -430,7 +526,6 @@ export function ApplicationDetailSecretary() {
             />
           </div>
 
-          {/* Aviso de verificación */}
           {!all_checked && (
             <div className="flex items-start gap-3 rounded-xl border border-warning-light bg-warning-light/20 p-3">
               <AlertCircle size={16} className="text-amber-600 flex-shrink-0 mt-0.5" />
@@ -441,13 +536,69 @@ export function ApplicationDetailSecretary() {
             </div>
           )}
 
+          {decision === 'aprobar' && all_checked && signature_requires_acknowledgement && (
+            <div className="flex items-start gap-3 rounded-xl border border-amber-300 bg-amber-50 p-3">
+              <AlertCircle size={16} className="mt-0.5 flex-shrink-0 text-amber-700" />
+              <p className="text-xs leading-relaxed text-amber-800">
+                La verificación contiene diferencias, incertidumbres o alertas de confianza. El
+                expediente puede avanzar solo con confirmación explícita y trazabilidad.
+              </p>
+            </div>
+          )}
+
+          {confirm_unvalidated_signature && (
+            <div
+              role="alert"
+              className="space-y-3 rounded-xl border border-amber-400 bg-amber-50 p-4"
+            >
+              <div className="flex items-start gap-3">
+                <AlertCircle size={18} className="mt-0.5 flex-shrink-0 text-amber-700" />
+                <div>
+                  <p className="text-sm font-bold text-amber-900">
+                    Confirmar aprobación con alerta de identidad
+                  </p>
+                  <p className="mt-1 text-xs leading-relaxed text-amber-800">
+                    Confirma que deseas enviar el expediente al técnico después de revisar las
+                    diferencias, incertidumbres o alertas de confianza mostradas por el verificador.
+                  </p>
+                </div>
+              </div>
+              <div className="flex flex-wrap justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => set_confirm_unvalidated_signature(false)}
+                  className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  onClick={() => void submitDecision(true)}
+                  disabled={is_submitting}
+                  className="rounded-lg bg-amber-700 px-3 py-2 text-xs font-bold text-white hover:bg-amber-800 disabled:opacity-60"
+                >
+                  {is_submitting ? 'Guardando...' : 'Continuar con alerta'}
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Botón de confirmar */}
           <button
             type="button"
             onClick={handleSubmitDecision}
-            disabled={is_submitting || !decision || (decision === 'aprobar' && !all_checked)}
+            disabled={
+              is_submitting ||
+              signature_loading ||
+              !decision ||
+              confirm_unvalidated_signature ||
+              (decision === 'aprobar' && !all_checked)
+            }
             className={
-              !decision || (decision === 'aprobar' && !all_checked)
+              !decision ||
+              signature_loading ||
+              confirm_unvalidated_signature ||
+              (decision === 'aprobar' && !all_checked)
                 ? 'flex w-full items-center justify-center gap-2 rounded-xl bg-slate-200 py-3.5 font-bold text-slate-400'
                 : decision === 'aprobar'
                   ? 'flex w-full items-center justify-center gap-2 rounded-xl bg-success-default py-3.5 font-bold text-white hover:bg-success-dark'
@@ -495,6 +646,18 @@ export function ApplicationDetailSecretary() {
                 </p>
               )}
             </div>
+          </div>
+          <div
+            className={
+              application.secretary_decision?.signature_validated
+                ? 'rounded-xl border border-success-light bg-success-light/10 p-3 text-sm font-medium text-success-dark'
+                : 'rounded-xl border border-amber-300 bg-amber-50 p-3 text-sm font-medium text-amber-800'
+            }
+          >
+            Firma del responsable:{' '}
+            {application.secretary_decision?.signature_validated
+              ? 'identidad e integridad verificadas automáticamente'
+              : 'sin coincidencia automática; alerta registrada'}
           </div>
           {application.secretary_decision?.observations && (
             <p className="text-sm text-slate-600 bg-slate-50 rounded-xl p-3 border border-slate-200 mt-2">
