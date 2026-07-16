@@ -11,7 +11,7 @@ import { AttachmentRow } from '@/components/logic/attachment.row';
 import { AlertBanner } from '@/components/ui/alert.banner';
 import { DetailSection } from '@/components/ui/detail.section';
 
-const FOLDERS: Array<{ value: AttachmentFolder; label: string }> = [
+const attachment_folders: Array<{ value: AttachmentFolder; label: string }> = [
   { value: 'PLANOS', label: 'Planos' },
   { value: 'DOCUMENTOS_LEGALES', label: 'Documentos legales' },
   { value: 'INFORMES', label: 'Informes' },
@@ -19,17 +19,19 @@ const FOLDERS: Array<{ value: AttachmentFolder; label: string }> = [
 ];
 
 interface DocumentPanelProps {
-  requestId: string;
-  allowedUpload?: boolean;
-  allowedIpfs?: boolean;
-  onAttachmentsChanged?: () => void;
+  request_id: string;
+  allowed_upload?: boolean;
+  allowed_ipfs?: boolean;
+  on_attachments_changed?: () => void;
+  embedded?: boolean;
 }
 
 export function DocumentPanel({
-  requestId,
-  allowedUpload = false,
-  allowedIpfs = false,
-  onAttachmentsChanged,
+  request_id,
+  allowed_upload = false,
+  allowed_ipfs = false,
+  on_attachments_changed,
+  embedded = false,
 }: DocumentPanelProps) {
   const [attachments, setAttachments] = useState<RequestAttachment[]>([]);
   const [loading, setLoading] = useState(true);
@@ -39,13 +41,13 @@ export function DocumentPanel({
   const loadAttachments = useCallback(async () => {
     setLoading(true);
     try {
-      setAttachments(await getRequestAttachments(requestId));
+      setAttachments(await getRequestAttachments(request_id));
     } catch (err) {
       setError(getApiError(err, 'No se pudieron cargar los documentos.'));
     } finally {
       setLoading(false);
     }
-  }, [requestId]);
+  }, [request_id]);
 
   useEffect(() => {
     void loadAttachments();
@@ -54,15 +56,15 @@ export function DocumentPanel({
   const handleUpload = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const form = event.currentTarget;
-    const data = new FormData(form);
-    if (!(data.get('file') instanceof File) || !(data.get('file') as File).size) return;
+    const form_data = new FormData(form);
+    if (!(form_data.get('file') instanceof File) || !(form_data.get('file') as File).size) return;
     setUploading(true);
     setError(null);
     try {
-      await uploadRequestAttachment(requestId, data);
+      await uploadRequestAttachment(request_id, form_data);
       form.reset();
       await loadAttachments();
-      onAttachmentsChanged?.();
+      on_attachments_changed?.();
     } catch (err) {
       setError(getApiError(err, 'No se pudo subir el documento.'));
     } finally {
@@ -70,20 +72,20 @@ export function DocumentPanel({
     }
   };
 
-  return (
-    <DetailSection title={`Documentos (${attachments.length})`} icon={FileText}>
+  const content = (
+    <>
       {error && <AlertBanner message={error} onDismiss={() => setError(null)} className="mb-4" />}
-      {allowedUpload && (
+      {allowed_upload && (
         <form
           onSubmit={handleUpload}
-          className="mb-4 grid gap-3 rounded-xl border border-slate-200 bg-slate-50 p-3 sm:grid-cols-[1fr_180px_auto]"
+          className="mb-4 grid gap-3 rounded-lg border border-slate-200 bg-slate-50 p-3 sm:grid-cols-[1fr_180px_auto]"
         >
           <div className="grid gap-2 sm:grid-cols-2">
             <input required name="file" type="file" className="input-field text-xs" />
             <input name="name" placeholder="Nombre opcional" className="input-field text-xs" />
           </div>
           <select required name="folder" defaultValue="OTROS" className="input-field text-xs">
-            {FOLDERS.map((folder) => (
+            {attachment_folders.map((folder) => (
               <option key={folder.value} value={folder.value}>
                 {folder.label}
               </option>
@@ -106,14 +108,22 @@ export function DocumentPanel({
           {attachments.map((attachment) => (
             <AttachmentRow
               key={attachment.id}
-              requestId={requestId}
+              requestId={request_id}
               attachment={attachment}
-              allowedIpfs={allowedIpfs}
+              allowedIpfs={allowed_ipfs}
               onError={setError}
             />
           ))}
         </div>
       )}
+    </>
+  );
+
+  if (embedded) return content;
+
+  return (
+    <DetailSection title={`Documentos (${attachments.length})`} icon={FileText}>
+      {content}
     </DetailSection>
   );
 }

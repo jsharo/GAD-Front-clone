@@ -1,12 +1,11 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
-import { FileText, Calendar, User, MapPin, XCircle, AlertCircle } from 'lucide-react';
+import { Calendar, User, MapPin, XCircle, AlertCircle } from 'lucide-react';
 import { applications_api } from '@/lib/api.calls';
 import { formatDateTime, cn } from '@/lib/utils';
 import { getProcedureTypeLabel } from '@/lib/constants/procedure-types';
 import { ApplicationTimeline } from '@/components/ui/application.timeline';
-import { AttachmentRow } from '@/components/logic/attachment.row';
-import { DocumentPanel } from '@/components/documents/DocumentPanel';
+import { DocumentPanel } from '@/components/documents/document.panel';
 import { LoadingSkeleton } from '@/components/ui/loading.skeleton';
 import { EmptyState } from '@/components/ui/empty.state';
 import { AlertBanner } from '@/components/ui/alert.banner';
@@ -196,7 +195,7 @@ export function AdminApplicationDetail() {
         </DetailSection>
       )}
 
-      {id && <DocumentPanel requestId={id} allowedUpload allowedIpfs />}
+      {id && <DocumentPanel request_id={id} allowed_upload allowed_ipfs />}
     </div>
   );
 }

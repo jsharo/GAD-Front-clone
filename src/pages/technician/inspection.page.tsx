@@ -1,13 +1,12 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { FileText, User, MapPin, CheckCircle2, XCircle, AlertCircle, ZoomIn } from 'lucide-react';
+import { User, MapPin, CheckCircle2, XCircle, AlertCircle, ZoomIn } from 'lucide-react';
 import { applications_api } from '@/lib/api.calls';
 import { formatDateTime, cn } from '@/lib/utils';
 import { getProcedureTypeLabel } from '@/lib/constants/procedure-types';
 import { fetchFileBlob, getFileUrl } from '@/lib/files';
 import { InspectionReporter } from '@/components/logic/inspection.reporter';
-import { AttachmentRow } from '@/components/logic/attachment.row';
-import { DocumentPanel } from '@/components/documents/DocumentPanel';
+import { DocumentPanel } from '@/components/documents/document.panel';
 import { ImageLightbox } from '@/components/logic/image.lightbox';
 import { LoadingSkeleton } from '@/components/ui/loading.skeleton';
 import { EmptyState } from '@/components/ui/empty.state';
@@ -270,7 +269,7 @@ export function InspectionPage() {
         )}
       </DetailSection>
 
-      {id && <DocumentPanel requestId={id} allowedUpload />}
+      {id && <DocumentPanel request_id={id} allowed_upload />}
 
       {application.existing_photos.length > 0 && (
         <DetailSection

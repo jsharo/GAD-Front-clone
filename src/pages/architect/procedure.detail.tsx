@@ -1,22 +1,11 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
-import {
-  FileText,
-  Calendar,
-  User,
-  MapPin,
-  XCircle,
-  Upload,
-  Send,
-  AlertCircle,
-  DollarSign,
-} from 'lucide-react';
-import { applications_api, attachments_api } from '@/lib/api.calls';
+import { Calendar, User, MapPin, XCircle, Send, AlertCircle, DollarSign } from 'lucide-react';
+import { applications_api } from '@/lib/api.calls';
 import { formatDateTime, cn } from '@/lib/utils';
 import { getProcedureTypeLabel } from '@/lib/constants/procedure-types';
 import { ApplicationTimeline } from '@/components/ui/application.timeline';
-import { AttachmentRow } from '@/components/logic/attachment.row';
-import { DocumentPanel } from '@/components/documents/DocumentPanel';
+import { DocumentPanel } from '@/components/documents/document.panel';
 import { LoadingSkeleton } from '@/components/ui/loading.skeleton';
 import { EmptyState } from '@/components/ui/empty.state';
 import { AlertBanner } from '@/components/ui/alert.banner';
@@ -82,7 +71,6 @@ export function ProcedureDetail() {
   const [is_loading, set_is_loading] = useState(true);
   const [error, set_error] = useState<string | null>(null);
   const [is_submitting, set_is_submitting] = useState(false);
-  const [is_uploading_file, set_is_uploading_file] = useState(false);
 
   const mapApplicationObj = (s: any): ApplicationDetail | null => {
     if (!s) return null;
@@ -161,20 +149,6 @@ export function ProcedureDetail() {
   useEffect(() => {
     loadApplication();
   }, [loadApplication]);
-
-  const handleUploadAttachment = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !id) return;
-    set_is_uploading_file(true);
-    try {
-      await attachments_api.upload(id, file);
-      await loadApplication();
-    } catch (e: any) {
-      set_error(e.response?.data?.message || 'Error al subir archivo');
-    } finally {
-      set_is_uploading_file(false);
-    }
-  };
 
   const handleSubmitApplication = async () => {
     if (!id) return;
@@ -361,7 +335,7 @@ export function ProcedureDetail() {
         </DetailSection>
       )}
 
-      {id && <DocumentPanel requestId={id} allowedUpload />}
+      {id && <DocumentPanel request_id={id} allowed_upload />}
 
       {/* Acción: Enviar a revisión */}
       {is_draft && (
