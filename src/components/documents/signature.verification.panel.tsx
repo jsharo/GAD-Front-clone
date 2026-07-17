@@ -9,22 +9,22 @@ import {
   ShieldCheck,
 } from 'lucide-react';
 import {
-  getRequestSignatureVerification,
+  GetRequestSignatureVerification,
   type RequestSignatureSummary,
   type SignatureIdentityStatus,
   type SignatureTrustStatus,
   type SignatureVerificationStatus,
 } from '@/lib/api.calls';
-import { getApiError } from '@/lib/errors';
-import { formatDateTime } from '@/lib/utils';
+import { GetApiError } from '@/lib/errors';
+import { FormatDateTime } from '@/lib/utils';
 import { AlertBanner } from '@/components/ui/alert.banner';
 import { DetailSection } from '@/components/ui/detail.section';
 
 interface SignatureVerificationPanelProps {
-  requestId: string;
-  refreshKey?: number;
-  onChange?: (summary: RequestSignatureSummary | null) => void;
-  onLoadingChange?: (loading: boolean) => void;
+  request_id: string;
+  refresh_key?: number;
+  OnChange?: (summary: RequestSignatureSummary | null) => void;
+  OnLoadingChange?: (loading: boolean) => void;
 }
 
 const STATUS_LABELS: Record<SignatureVerificationStatus, string> = {
@@ -47,19 +47,19 @@ const STATUS_STYLES: Record<SignatureVerificationStatus, string> = {
   ERROR: 'border-red-300 bg-red-50 text-red-800',
 };
 
-function identityLabel(status: SignatureIdentityStatus) {
+function IdentityLabel(status: SignatureIdentityStatus) {
   if (status === 'MATCH') return 'Cédula coincide';
   if (status === 'MISMATCH') return 'Cédula no coincide';
   return 'Identidad no concluyente';
 }
 
-function identityStyle(status: SignatureIdentityStatus) {
+function IdentityStyle(status: SignatureIdentityStatus) {
   if (status === 'MATCH') return 'bg-green-50 text-green-700';
   if (status === 'MISMATCH') return 'bg-red-50 text-red-700';
   return 'bg-amber-50 text-amber-800';
 }
 
-function trustLabel(status: SignatureTrustStatus) {
+function TrustLabel(status: SignatureTrustStatus) {
   const labels: Record<SignatureTrustStatus, string> = {
     TRUSTED: 'Cadena confiable',
     UNTRUSTED: 'Cadena no confiable',
@@ -72,39 +72,39 @@ function trustLabel(status: SignatureTrustStatus) {
 }
 
 export function SignatureVerificationPanel({
-  requestId,
-  refreshKey = 0,
-  onChange,
-  onLoadingChange,
+  request_id,
+  refresh_key = 0,
+  OnChange,
+  OnLoadingChange,
 }: SignatureVerificationPanelProps) {
-  const [summary, setSummary] = useState<RequestSignatureSummary | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [summary, set_summary] = useState<RequestSignatureSummary | null>(null);
+  const [loading, set_loading] = useState(true);
+  const [error, set_error] = useState<string | null>(null);
 
-  const load = useCallback(
+  const Load = useCallback(
     async (refresh = false) => {
-      setLoading(true);
-      onLoadingChange?.(true);
-      setError(null);
+      set_loading(true);
+      OnLoadingChange?.(true);
+      set_error(null);
       try {
-        const result = await getRequestSignatureVerification(requestId, refresh);
-        setSummary(result);
-        onChange?.(result);
+        const result = await GetRequestSignatureVerification(request_id, refresh);
+        set_summary(result);
+        OnChange?.(result);
       } catch (err) {
-        setSummary(null);
-        onChange?.(null);
-        setError(getApiError(err, 'No se pudo ejecutar el verificador de firmas.'));
+        set_summary(null);
+        OnChange?.(null);
+        set_error(GetApiError(err, 'No se pudo ejecutar el verificador de firmas.'));
       } finally {
-        setLoading(false);
-        onLoadingChange?.(false);
+        set_loading(false);
+        OnLoadingChange?.(false);
       }
     },
-    [onChange, onLoadingChange, requestId]
+    [OnChange, OnLoadingChange, request_id]
   );
 
   useEffect(() => {
-    void load(refreshKey > 0);
-  }, [load, refreshKey]);
+    void Load(refresh_key > 0);
+  }, [Load, refresh_key]);
 
   return (
     <DetailSection title="Verificación automática de firmas" icon={FileSignature}>
@@ -116,7 +116,7 @@ export function SignatureVerificationPanel({
           type="button"
           title="Volver a verificar firmas"
           aria-label="Volver a verificar firmas"
-          onClick={() => void load(true)}
+          onClick={() => void Load(true)}
           disabled={loading}
           className="flex h-9 w-9 flex-none items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 disabled:opacity-50"
         >
@@ -124,7 +124,7 @@ export function SignatureVerificationPanel({
         </button>
       </div>
 
-      {error && <AlertBanner message={error} onDismiss={() => setError(null)} />}
+      {error && <AlertBanner message={error} OnDismiss={() => set_error(null)} />}
 
       {loading && (
         <div className="flex min-h-24 items-center justify-center gap-2 text-sm text-slate-500">
@@ -189,9 +189,9 @@ export function SignatureVerificationPanel({
                           {signature.common_name || `Firma ${signature.index}`}
                         </p>
                         <span
-                          className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${identityStyle(signature.identity_status)}`}
+                          className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${IdentityStyle(signature.identity_status)}`}
                         >
-                          {identityLabel(signature.identity_status)}
+                          {IdentityLabel(signature.identity_status)}
                         </span>
                       </div>
                       <div className="mt-1 grid gap-1 text-xs text-slate-500 sm:grid-cols-2">
@@ -199,11 +199,11 @@ export function SignatureVerificationPanel({
                         <p>
                           {signature.integrity_valid ? 'Integridad válida' : 'Integridad inválida'}
                         </p>
-                        <p>{trustLabel(signature.trust_status)}</p>
+                        <p>{TrustLabel(signature.trust_status)}</p>
                         <p>
                           Firma:{' '}
                           {signature.signing_time
-                            ? formatDateTime(signature.signing_time)
+                            ? FormatDateTime(signature.signing_time)
                             : 'Fecha no disponible'}
                         </p>
                       </div>

@@ -1,5 +1,5 @@
 import type { LucideIcon } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { Cn } from '@/lib/utils';
 
 interface PageHeaderProps {
   title: string;
@@ -18,14 +18,14 @@ export function PageHeader({
 }: PageHeaderProps) {
   return (
     <div
-      className={cn(
+      className={Cn(
         'flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4',
         className
       )}
     >
       <div>
         <h1
-          className={cn(
+          className={Cn(
             'font-heading text-2xl font-bold text-blue-950',
             Icon && 'flex items-center gap-3'
           )}

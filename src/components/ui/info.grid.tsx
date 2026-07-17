@@ -1,4 +1,4 @@
-import { cn } from '@/lib/utils';
+import { Cn } from '@/lib/utils';
 
 export interface InfoGridItem {
   label: string;
@@ -14,7 +14,7 @@ interface InfoGridProps {
 export function InfoGrid({ items, columns = 2, className }: InfoGridProps) {
   return (
     <div
-      className={cn(
+      className={Cn(
         'grid gap-3 text-sm',
         columns === 3 ? 'grid-cols-1 sm:grid-cols-3' : 'grid-cols-2',
         className

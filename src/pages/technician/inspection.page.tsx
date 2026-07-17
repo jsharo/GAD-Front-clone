@@ -1,13 +1,13 @@
-import { useEffect, useState, useCallback } from 'react';
+﻿import { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { FileText, User, MapPin, CheckCircle2, XCircle, AlertCircle, ZoomIn } from 'lucide-react';
 import { applications_api } from '@/lib/api.calls';
-import { formatDateTime, cn } from '@/lib/utils';
-import { getProcedureTypeLabel } from '@/lib/constants/procedure-types';
-import { fetchFileBlob, getFileUrl } from '@/lib/files';
+import { FormatDateTime, Cn } from '@/lib/utils';
+import { GetProcedureTypeLabel } from '@/lib/constants/procedure.types';
+import { FetchFileBlob, GetFileUrl } from '@/lib/files';
 import { InspectionReporter } from '@/components/logic/inspection.reporter';
 import { AttachmentRow } from '@/components/logic/attachment.row';
-import { DocumentPanel } from '@/components/documents/DocumentPanel';
+import { DocumentPanel } from '@/components/documents/document.panel';
 import { ImageLightbox } from '@/components/logic/image.lightbox';
 import { LoadingSkeleton } from '@/components/ui/loading.skeleton';
 import { EmptyState } from '@/components/ui/empty.state';
@@ -15,7 +15,7 @@ import { AlertBanner } from '@/components/ui/alert.banner';
 import { DetailSection } from '@/components/ui/detail.section';
 import { InfoGrid } from '@/components/ui/info.grid';
 import { ZoneBadge } from '@/components/ui/zone.badge';
-import { DetailPageHeader } from '@/components/ui/detail-page.header';
+import { DetailPageHeader } from '@/components/ui/detail.page.header';
 import { useToastStore } from '@/stores/toast.store';
 
 interface InspectionApplication {
@@ -55,50 +55,52 @@ interface InspectionApplication {
   }>;
 }
 
-const mapInspectionApplication = (data: any): InspectionApplication => {
+const MapInspectionApplication = (data: any): InspectionApplication => {
   const citizen_docs =
-    data.documentosCiudadano ?? data.anexos?.filter((a: any) => a.tipo !== 'INSPECCION_FOTO') ?? [];
+    data.citizen_documents ??
+    (data.attachments || []).filter((a: any) => a.type !== 'INSPECTION_PHOTO');
   const inspection_pics =
-    data.fotosInspeccion ?? data.anexos?.filter((a: any) => a.tipo === 'INSPECCION_FOTO') ?? [];
+    data.inspection_photos ??
+    (data.attachments || []).filter((a: any) => a.type === 'INSPECTION_PHOTO');
 
   return {
     id: data.id,
-    procedure_type: data.tipoTramite || '',
-    status: data.estado || '',
-    created_at: data.createdAt || '',
-    report_comments: data.reporteComentarios || null,
-    report_date: data.reporteFecha || null,
-    observations: data.observaciones || null,
-    rejection_reason: data.motivoRechazo || null,
-    citizen: data.ciudadano
+    procedure_type: data.procedure_type || '',
+    status: data.status || '',
+    created_at: data.created_at || '',
+    report_comments: data.report_comments || data.schedule?.notes || null,
+    report_date: data.report_date || data.schedule?.date || null,
+    observations: data.observations || null,
+    rejection_reason: data.rejection_reason || null,
+    citizen: data.citizen
       ? {
-          first_name: data.ciudadano.nombre || '',
-          last_name: data.ciudadano.apellido || '',
-          national_id: data.ciudadano.cedula || '',
-          email: data.ciudadano.email || '',
-          phone: data.ciudadano.telefono || null,
+          first_name: data.citizen.first_name || '',
+          last_name: data.citizen.last_name || '',
+          national_id: data.citizen.national_id || '',
+          email: data.citizen.email || '',
+          phone: data.citizen.phone || null,
         }
       : null,
-    property: data.predio
+    property: data.property
       ? {
-          location: data.predio.ubicacion || '',
-          address: data.predio.direccion || '',
-          area: data.predio.area || null,
-          description: data.predio.descripcion || null,
+          location: data.property.location || '',
+          address: data.property.address || '',
+          area: data.property.area || null,
+          description: data.property.description || null,
         }
       : null,
-    citizen_documents: citizen_docs.map((a: any) => ({
-      id: a.id,
-      key: a.key,
-      name: a.nombre || a.name || '',
-      size: a.tamano || a.size || 0,
-      hash: a.hash || '',
+    citizen_documents: citizen_docs.map((attachment: any) => ({
+      id: attachment.id,
+      key: attachment.key,
+      name: attachment.name || '',
+      size: attachment.size || 0,
+      hash: attachment.hash || '',
     })),
-    existing_photos: inspection_pics.map((a: any) => ({
-      id: a.id,
-      key: a.key,
-      name: a.nombre || a.name || '',
-      size: a.tamano || a.size || 0,
+    existing_photos: inspection_pics.map((attachment: any) => ({
+      id: attachment.id,
+      key: attachment.key,
+      name: attachment.name || '',
+      size: attachment.size || 0,
     })),
   };
 };
@@ -106,7 +108,7 @@ const mapInspectionApplication = (data: any): InspectionApplication => {
 export function InspectionPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const addToast = useToastStore((state) => state.addToast);
+  const AddToast = useToastStore((state) => state.AddToast);
 
   const [application, set_application] = useState<InspectionApplication | null>(null);
   const [is_loading, set_is_loading] = useState(true);
@@ -114,12 +116,12 @@ export function InspectionPage() {
   const [is_submitting, set_is_submitting] = useState(false);
   const [lightbox_src, set_lightbox_src] = useState<string | null>(null);
 
-  const loadApplication = useCallback(async () => {
+  const LoadApplication = useCallback(async () => {
     if (!id) return;
     set_is_loading(true);
     try {
-      const { data } = await applications_api.getById(id);
-      set_application(mapInspectionApplication(data));
+      const { data } = await applications_api.GetById(id);
+      set_application(MapInspectionApplication(data));
     } catch {
       set_error('No se pudo cargar la solicitud');
     } finally {
@@ -128,21 +130,21 @@ export function InspectionPage() {
   }, [id]);
 
   useEffect(() => {
-    loadApplication();
-  }, [loadApplication]);
+    LoadApplication();
+  }, [LoadApplication]);
 
-  const handleSubmitReport = async (reportData: {
+  const HandleSubmitReport = async (report_data: {
     status: 'APPROVED' | 'REJECTED';
-    dimensionsVerified: number;
-    frontSetback: boolean;
-    backSetback: boolean;
-    leftSetback: boolean;
-    rightSetback: boolean;
+    dimensions_verified: number;
+    front_setback: boolean;
+    back_setback: boolean;
+    left_setback: boolean;
+    right_setback: boolean;
     observations: string;
-    gpsLatitude?: string;
-    gpsLongitude?: string;
+    gps_latitude?: string;
+    gps_longitude?: string;
     attachments: string[];
-    signatureHash: string;
+    signature_hash: string;
     files?: File[];
   }) => {
     if (!id || !application) return;
@@ -150,31 +152,33 @@ export function InspectionPage() {
     set_is_submitting(true);
     set_error(null);
 
-    const reportText = [
-      `Área verificada: ${reportData.dimensionsVerified} m²`,
-      `Retiros — Frontal: ${reportData.frontSetback ? 'OK' : 'NO'}, Posterior: ${reportData.backSetback ? 'OK' : 'NO'}, Lat. Izq: ${reportData.leftSetback ? 'OK' : 'NO'}, Lat. Der: ${reportData.rightSetback ? 'OK' : 'NO'}`,
-      reportData.gpsLatitude ? `GPS: ${reportData.gpsLatitude}, ${reportData.gpsLongitude}` : null,
-      `Firma digital: ${reportData.signatureHash}`,
-      reportData.observations,
+    const report_text = [
+      `Área verificada: ${report_data.dimensions_verified} m²`,
+      `Retiros — Frontal: ${report_data.front_setback ? 'OK' : 'NO'}, Posterior: ${report_data.back_setback ? 'OK' : 'NO'}, Lat. Izq: ${report_data.left_setback ? 'OK' : 'NO'}, Lat. Der: ${report_data.right_setback ? 'OK' : 'NO'}`,
+      report_data.gps_latitude
+        ? `GPS: ${report_data.gps_latitude}, ${report_data.gps_longitude}`
+        : null,
+      `Firma digital: ${report_data.signature_hash}`,
+      report_data.observations,
     ]
       .filter(Boolean)
       .join('\n');
 
     try {
       if (!application.report_comments) {
-        await applications_api.uploadReport(id, reportText, reportData.files ?? []);
+        await applications_api.UploadReport(id, report_text, report_data.files ?? []);
       }
 
-      await applications_api.resolve(id, {
-        resolucion: reportData.status === 'APPROVED' ? 'APROBADO' : 'NEGADO',
-        observaciones: reportData.observations,
-        motivoRechazo: reportData.status === 'REJECTED' ? reportData.observations : undefined,
+      await applications_api.Resolve(id, {
+        approved: report_data.status === 'APPROVED',
+        comments: report_text,
+        rejection_reason: report_data.status === 'REJECTED' ? report_data.observations : undefined,
       });
 
-      addToast({
+      AddToast({
         type: 'success',
         message:
-          reportData.status === 'APPROVED'
+          report_data.status === 'APPROVED'
             ? 'Inspección aprobada y firmada correctamente'
             : 'Inspección rechazada y registrada',
       });
@@ -182,16 +186,16 @@ export function InspectionPage() {
     } catch (e: any) {
       const message = e.response?.data?.message || 'Error al enviar la inspección';
       set_error(message);
-      addToast({ type: 'error', message });
+      AddToast({ type: 'error', message });
     } finally {
       set_is_submitting(false);
     }
   };
 
-  const openPhotoLightbox = async (key: string) => {
+  const OpenPhotoLightbox = async (key: string) => {
     try {
-      const blobUrl = await fetchFileBlob(getFileUrl(key));
-      set_lightbox_src(blobUrl);
+      const blob_url = await FetchFileBlob(GetFileUrl(key));
+      set_lightbox_src(blob_url);
     } catch (e) {
       console.error(e);
       set_error('No se pudo cargar la foto');
@@ -216,26 +220,26 @@ export function InspectionPage() {
     );
   }
 
-  const is_resolved = ['APROBADO', 'NEGADO', 'APPROVED', 'REJECTED'].includes(application.status);
+  const is_resolved = ['APPROVED', 'REJECTED', 'APPROVED', 'REJECTED'].includes(application.status);
   const can_inspect = [
-    'EN_REVISION',
-    'EN_REVISION_TECNICA',
     'UNDER_REVIEW',
-    'INSPECCION',
+    'PENDING_TECHNICIAN',
+    'UNDER_REVIEW',
+    'INSPECTION',
     'INSPECTION',
   ].includes(application.status);
 
   return (
     <div className="animate-fade-in space-y-5 max-w-3xl mx-auto pb-10">
       <DetailPageHeader
-        backTo="/technician/inbox"
-        title={getProcedureTypeLabel(application.procedure_type) || 'Trámite Territorial'}
-        subtitle={`#${id?.slice(0, 8).toUpperCase()} • ${formatDateTime(application.created_at)}`}
+        back_to="/technician/inbox"
+        title={GetProcedureTypeLabel(application.procedure_type) || 'Trámite Territorial'}
+        subtitle={`#${id?.slice(0, 8).toUpperCase()} • ${FormatDateTime(application.created_at)}`}
         status={application.status}
         badges={<ZoneBadge zone={application.property?.location} />}
       />
 
-      {error && <AlertBanner message={error} onDismiss={() => set_error(null)} />}
+      {error && <AlertBanner message={error} OnDismiss={() => set_error(null)} />}
 
       <DetailSection title="Ciudadano Solicitante" icon={User}>
         <InfoGrid
@@ -254,7 +258,7 @@ export function InspectionPage() {
       <DetailSection title="Datos del Predio" icon={MapPin}>
         <InfoGrid
           items={[
-            { label: 'Tipo de Trámite', value: getProcedureTypeLabel(application.procedure_type) },
+            { label: 'Tipo de Trámite', value: GetProcedureTypeLabel(application.procedure_type) },
             { label: 'Zona', value: application.property?.location },
             { label: 'Dirección', value: application.property?.address },
             {
@@ -270,7 +274,7 @@ export function InspectionPage() {
         )}
       </DetailSection>
 
-      {id && <DocumentPanel requestId={id} allowedUpload />}
+      {id && <DocumentPanel request_id={id} allowed_upload />}
 
       {application.existing_photos.length > 0 && (
         <DetailSection
@@ -282,10 +286,10 @@ export function InspectionPage() {
               <div
                 key={foto.id}
                 className="relative group aspect-square rounded-xl overflow-hidden cursor-pointer border border-sky-100 bg-sky-50/20"
-                onClick={() => openPhotoLightbox(foto.key)}
+                onClick={() => OpenPhotoLightbox(foto.key)}
               >
                 <img
-                  src={getFileUrl(foto.key)}
+                  src={GetFileUrl(foto.key)}
                   alt={foto.name}
                   className="h-full w-full object-cover opacity-60 group-hover:opacity-100"
                 />
@@ -303,33 +307,33 @@ export function InspectionPage() {
           <p className="text-sm leading-6 text-blue-955">{application.report_comments}</p>
           {application.report_date && (
             <p className="mt-2 text-[0.7rem] text-sky-700/50">
-              Registrado: {formatDateTime(application.report_date)}
+              Registrado: {FormatDateTime(application.report_date)}
             </p>
           )}
         </DetailSection>
       )}
 
       {can_inspect && !is_resolved && (
-        <div className={cn(is_submitting && 'opacity-60 pointer-events-none')}>
-          <InspectionReporter onSubmitReport={handleSubmitReport} />
+        <div className={Cn(is_submitting && 'opacity-60 pointer-events-none')}>
+          <InspectionReporter OnSubmitReport={HandleSubmitReport} />
         </div>
       )}
 
       {is_resolved && (
         <DetailSection
           title={
-            application.status === 'APROBADO' || application.status === 'APPROVED'
+            application.status === 'APPROVED' || application.status === 'APPROVED'
               ? 'Solicitud Aprobada ✅'
               : 'Solicitud Negada ❌'
           }
           className={
-            application.status === 'APROBADO' || application.status === 'APPROVED'
+            application.status === 'APPROVED' || application.status === 'APPROVED'
               ? 'border-success-default'
               : 'border-error-default'
           }
         >
           <div className="flex items-center gap-3 mb-3">
-            {application.status === 'APROBADO' || application.status === 'APPROVED' ? (
+            {application.status === 'APPROVED' || application.status === 'APPROVED' ? (
               <CheckCircle2 size={24} className="text-success-dark" />
             ) : (
               <XCircle size={24} className="text-error-default" />
@@ -344,7 +348,7 @@ export function InspectionPage() {
         </DetailSection>
       )}
 
-      {lightbox_src && <ImageLightbox src={lightbox_src} onClose={() => set_lightbox_src(null)} />}
+      {lightbox_src && <ImageLightbox src={lightbox_src} OnClose={() => set_lightbox_src(null)} />}
     </div>
   );
 }

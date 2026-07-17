@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Inbox,
@@ -12,7 +12,7 @@ import {
 } from 'lucide-react';
 import { applications_api } from '@/lib/api.calls';
 import { useAuthStore } from '@/stores/auth.store';
-import { formatDate, cn } from '@/lib/utils';
+import { FormatDate, Cn } from '@/lib/utils';
 import { StatusBadge } from '@/components/ui/status.badge';
 import { ZoneBadge } from '@/components/ui/zone.badge';
 import { PageHeader } from '@/components/ui/page.header';
@@ -26,7 +26,7 @@ interface Application {
   procedure_type: string;
   status: string;
   created_at: string;
-  attachments_count: number;
+  attachments?: Array<{ id: string }>;
   citizen?: {
     first_name: string;
     last_name: string;
@@ -45,28 +45,9 @@ export function TechnicianInbox() {
 
   useEffect(() => {
     applications_api
-      .list()
+      .List()
       .then(({ data }) => {
-        const mapped = (data.data || []).map((s: any) => ({
-          id: s.id,
-          procedure_type: s.tipoTramite,
-          status: s.estado,
-          created_at: s.createdAt,
-          attachments_count: s._count?.anexos || 0,
-          citizen: s.ciudadano
-            ? {
-                first_name: s.ciudadano.nombre,
-                last_name: s.ciudadano.apellido,
-              }
-            : null,
-          property: s.predio
-            ? {
-                location: s.predio.ubicacion,
-                address: s.predio.direccion,
-              }
-            : null,
-        }));
-        set_applications(mapped);
+        set_applications(data.data || []);
       })
       .catch(() => set_applications([]))
       .finally(() => set_is_loading(false));
@@ -77,20 +58,20 @@ export function TechnicianInbox() {
       ? applications
       : applications.filter((s) => {
           if (filter === 'UNDER_REVIEW')
-            return ['UNDER_REVIEW', 'EN_REVISION', 'EN_REVISION_TECNICA'].includes(s.status);
-          if (filter === 'INSPECTION') return ['INSPECTION', 'INSPECCION'].includes(s.status);
-          if (filter === 'APPROVED') return ['APPROVED', 'APROBADO'].includes(s.status);
-          if (filter === 'REJECTED') return ['REJECTED', 'NEGADO'].includes(s.status);
+            return ['UNDER_REVIEW', 'UNDER_REVIEW', 'PENDING_TECHNICIAN'].includes(s.status);
+          if (filter === 'INSPECTION') return ['INSPECTION', 'INSPECTION'].includes(s.status);
+          if (filter === 'APPROVED') return ['APPROVED', 'APPROVED'].includes(s.status);
+          if (filter === 'REJECTED') return ['REJECTED', 'REJECTED'].includes(s.status);
           return s.status === filter;
         });
 
   const counts = {
     under_review: applications.filter((s) =>
-      ['EN_REVISION', 'EN_REVISION_TECNICA', 'UNDER_REVIEW'].includes(s.status)
+      ['UNDER_REVIEW', 'PENDING_TECHNICIAN', 'UNDER_REVIEW'].includes(s.status)
     ).length,
-    inspection: applications.filter((s) => ['INSPECCION', 'INSPECTION'].includes(s.status)).length,
-    approved: applications.filter((s) => ['APROBADO', 'APPROVED'].includes(s.status)).length,
-    rejected: applications.filter((s) => ['NEGADO', 'REJECTED'].includes(s.status)).length,
+    inspection: applications.filter((s) => ['INSPECTION', 'INSPECTION'].includes(s.status)).length,
+    approved: applications.filter((s) => ['APPROVED', 'APPROVED'].includes(s.status)).length,
+    rejected: applications.filter((s) => ['REJECTED', 'REJECTED'].includes(s.status)).length,
   };
 
   const FILTERS = [
@@ -118,33 +99,33 @@ export function TechnicianInbox() {
           label="En Revisión"
           value={counts.under_review}
           icon={Clock}
-          iconClassName="text-warning-dark"
-          iconWrapperClassName="bg-warning-light/20"
-          isLoading={is_loading}
+          icon_class_name="text-warning-dark"
+          icon_wrapper_class_name="bg-warning-light/20"
+          is_loading={is_loading}
         />
         <StatCard
           label="En Inspección"
           value={counts.inspection}
           icon={MapPin}
-          iconClassName="text-primary-default"
-          iconWrapperClassName="bg-primary-light/10"
-          isLoading={is_loading}
+          icon_class_name="text-primary-default"
+          icon_wrapper_class_name="bg-primary-light/10"
+          is_loading={is_loading}
         />
         <StatCard
           label="Aprobadas"
           value={counts.approved}
           icon={CheckCircle2}
-          iconClassName="text-success-dark"
-          iconWrapperClassName="bg-success-light/20"
-          isLoading={is_loading}
+          icon_class_name="text-success-dark"
+          icon_wrapper_class_name="bg-success-light/20"
+          is_loading={is_loading}
         />
         <StatCard
           label="Negadas"
           value={counts.rejected}
           icon={XCircle}
-          iconClassName="text-error-dark"
-          iconWrapperClassName="bg-error-light/20"
-          isLoading={is_loading}
+          icon_class_name="text-error-dark"
+          icon_wrapper_class_name="bg-error-light/20"
+          is_loading={is_loading}
         />
       </KpiGrid>
 
@@ -154,7 +135,7 @@ export function TechnicianInbox() {
           <button
             key={f.key}
             onClick={() => set_filter(f.key)}
-            className={cn(
+            className={Cn(
               'px-4 py-2 rounded-xl text-sm font-medium border',
               filter === f.key
                 ? 'border-primary-dark bg-primary-default text-neutral-50'
@@ -212,15 +193,16 @@ export function TechnicianInbox() {
                       <MapPin size={11} />
                       {app.property?.address || app.property?.location || '—'}
                     </span>
-                    <span>{formatDate(app.created_at)}</span>
+                    <span>{FormatDate(app.created_at)}</span>
                   </div>
                 </div>
 
                 {/* Attachments */}
-                {app.attachments_count > 0 && (
+                {(app.attachments?.length ?? 0) > 0 && (
                   <span className="text-xs text-slate-500 hidden sm:flex items-center gap-1">
                     <FileText size={11} />
-                    {app.attachments_count} doc{app.attachments_count > 1 ? 's' : ''}
+                    {app.attachments?.length ?? 0} doc
+                    {(app.attachments?.length ?? 0) > 1 ? 's' : ''}
                   </span>
                 )}
 

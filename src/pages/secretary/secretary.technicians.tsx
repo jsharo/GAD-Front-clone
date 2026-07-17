@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { MapPin, Save, Users } from 'lucide-react';
 import { users_api } from '@/lib/api.calls';
-import { mapUser, type User } from '@/stores/auth.store';
+import { MapUser, type User } from '@/stores/auth.store';
 import { PageHeader } from '@/components/ui/page.header';
 import { StatCard, KpiGrid } from '@/components/ui/stat.card';
 import { AlertBanner } from '@/components/ui/alert.banner';
@@ -18,12 +18,12 @@ export function SecretaryTechnicians() {
   const [saving_id, set_saving_id] = useState<string | null>(null);
   const [error, set_error] = useState<string | null>(null);
 
-  const loadTechnicians = async () => {
+  const LoadTechnicians = async () => {
     set_is_loading(true);
     set_error(null);
     try {
-      const { data } = await users_api.technicians();
-      const list = (data ?? []).map(mapUser).filter((u): u is User => u !== null);
+      const { data } = await users_api.Technicians();
+      const list = (data ?? []).map(MapUser).filter((u): u is User => u !== null);
       set_technicians(list);
       set_zones(Object.fromEntries(list.map((t: User) => [t.id, t.zone ?? ''])));
     } catch (e: any) {
@@ -34,7 +34,7 @@ export function SecretaryTechnicians() {
   };
 
   useEffect(() => {
-    loadTechnicians();
+    LoadTechnicians();
   }, []);
 
   const filtered_technicians = useMemo(() => {
@@ -48,13 +48,13 @@ export function SecretaryTechnicians() {
     );
   }, [search, technicians]);
 
-  const saveZone = async (technician: User) => {
+  const SaveZone = async (technician: User) => {
     set_saving_id(technician.id);
     set_error(null);
     try {
       const zone = zones[technician.id] || null;
-      const { data } = await users_api.updateTechnicianZone(technician.id, zone);
-      const updated = mapUser(data);
+      const { data } = await users_api.UpdateTechnicianZone(technician.id, zone);
+      const updated = MapUser(data);
       if (updated) {
         set_technicians((prev) => prev.map((t) => (t.id === technician.id ? updated : t)));
         set_zones((prev) => ({ ...prev, [technician.id]: updated.zone ?? '' }));
@@ -87,29 +87,29 @@ export function SecretaryTechnicians() {
             label: 'Técnicos',
             value: counts.all,
             icon: Users,
-            iconClassName: 'text-primary-default',
-            iconWrapperClassName: 'bg-primary-light/10',
+            icon_class_name: 'text-primary-default',
+            icon_wrapper_class_name: 'bg-primary-light/10',
           },
           {
             label: 'Urbano',
             value: counts.urban,
             icon: MapPin,
-            iconClassName: 'text-primary-dark',
-            iconWrapperClassName: 'bg-primary-light/10',
+            icon_class_name: 'text-primary-dark',
+            icon_wrapper_class_name: 'bg-primary-light/10',
           },
           {
             label: 'Rural',
             value: counts.rural,
             icon: MapPin,
-            iconClassName: 'text-success-dark',
-            iconWrapperClassName: 'bg-success-light/20',
+            icon_class_name: 'text-success-dark',
+            icon_wrapper_class_name: 'bg-success-light/20',
           },
           {
             label: 'Sin zona',
             value: counts.no_zone,
             icon: Users,
-            iconClassName: 'text-secondary-dark',
-            iconWrapperClassName: 'bg-secondary-light/20',
+            icon_class_name: 'text-secondary-dark',
+            icon_wrapper_class_name: 'bg-secondary-light/20',
           },
         ].map((stat) => (
           <StatCard
@@ -117,19 +117,19 @@ export function SecretaryTechnicians() {
             label={stat.label}
             value={stat.value}
             icon={stat.icon}
-            iconClassName={stat.iconClassName}
-            iconWrapperClassName={stat.iconWrapperClassName}
-            isLoading={is_loading}
+            icon_class_name={stat.icon_class_name}
+            icon_wrapper_class_name={stat.icon_wrapper_class_name}
+            is_loading={is_loading}
           />
         ))}
       </KpiGrid>
 
-      {error && <AlertBanner message={error} onDismiss={() => set_error(null)} />}
+      {error && <AlertBanner message={error} OnDismiss={() => set_error(null)} />}
 
       <PanelCard className="p-6">
         <SearchInput
-          containerClassName="mb-5"
-          iconSize={16}
+          container_class_name="mb-5"
+          icon_size={16}
           value={search}
           onChange={(e) => set_search(e.target.value)}
           placeholder="Buscar técnico por nombre, correo o teléfono..."
@@ -204,7 +204,7 @@ export function SecretaryTechnicians() {
                     </td>
                     <td className="px-6 py-4 text-right">
                       <button
-                        onClick={() => saveZone(technician)}
+                        onClick={() => SaveZone(technician)}
                         disabled={
                           saving_id === technician.id ||
                           (zones[technician.id] ?? '') === (technician.zone ?? '')

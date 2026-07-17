@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import { Users, FileText, CheckCircle2, Activity, Shield, AlertTriangle } from 'lucide-react';
 import api from '@/lib/api';
 import { PageHeader } from '@/components/ui/page.header';
@@ -10,7 +10,7 @@ interface UserDashboardStats {
   activeTechnicians: number;
 }
 
-async function fetchUserDashboardStats(): Promise<UserDashboardStats | null> {
+async function FetchUserDashboardStats(): Promise<UserDashboardStats | null> {
   const response = await api.get<{ success: boolean; data: UserDashboardStats }>(
     '/users/dashboard/stats'
   );
@@ -22,7 +22,7 @@ export function AdminDashboard() {
   const [is_loading, set_is_loading] = useState(true);
 
   useEffect(() => {
-    fetchUserDashboardStats()
+    FetchUserDashboardStats()
       .then(set_user_stats)
       .catch(() => {})
       .finally(() => set_is_loading(false));
@@ -73,9 +73,9 @@ export function AdminDashboard() {
             label={kpi.label}
             value={kpi.value}
             icon={kpi.icon}
-            iconClassName={kpi.color}
-            iconWrapperClassName={kpi.bg}
-            isLoading={is_loading}
+            icon_class_name={kpi.color}
+            icon_wrapper_class_name={kpi.bg}
+            is_loading={is_loading}
           />
         ))}
       </KpiGrid>
@@ -84,19 +84,19 @@ export function AdminDashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <DetailSection title="Estado de Solicitudes" icon={FileText}>
           {[
-            { key: 'BORRADOR', label: 'Borrador (Ciudadano)', color: 'bg-neutral-400' },
+            { key: 'DRAFT', label: 'Borrador (Ciudadano)', color: 'bg-neutral-400' },
             {
-              key: 'PENDIENTE_SECRETARIA',
+              key: 'PENDING_SECRETARY',
               label: 'Revisión Secretaría',
               color: 'bg-secondary-default',
             },
-            { key: 'OBSERVADO', label: 'Observado (Devuelto)', color: 'bg-error-default' },
-            { key: 'EN_REVISION', label: 'Revisión Técnica', color: 'bg-warning-default' },
-            { key: 'INSPECCION', label: 'En Inspección', color: 'bg-primary-default' },
-            { key: 'PENDIENTE_PAGO', label: 'Pendiente de Pago', color: 'bg-warning-dark' },
-            { key: 'PAGADO', label: 'Pagado', color: 'bg-success-default' },
-            { key: 'APROBADO', label: 'Completado / Aprobado', color: 'bg-success-dark' },
-            { key: 'NEGADO', label: 'Negado', color: 'bg-error-dark' },
+            { key: 'OBSERVED', label: 'Observado (Devuelto)', color: 'bg-error-default' },
+            { key: 'UNDER_REVIEW', label: 'Revisión Técnica', color: 'bg-warning-default' },
+            { key: 'INSPECTION', label: 'En Inspección', color: 'bg-primary-default' },
+            { key: 'PENDING_PAYMENT', label: 'Pendiente de Pago', color: 'bg-warning-dark' },
+            { key: 'PAID', label: 'Pagado', color: 'bg-success-default' },
+            { key: 'APPROVED', label: 'Completado / Aprobado', color: 'bg-success-dark' },
+            { key: 'REJECTED', label: 'Negado', color: 'bg-error-dark' },
           ].map(({ key, label, color }) => {
             const total = 1;
             const count = 0;

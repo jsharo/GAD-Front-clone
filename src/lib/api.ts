@@ -29,7 +29,7 @@ api.interceptors.response.use(
       } catch {
         // El refresh falló: limpiar estado y redirigir
         const { useAuthStore } = await import('@/stores/auth.store');
-        useAuthStore.getState().logout();
+        useAuthStore.getState().Logout();
         window.location.href = '/auth/signin';
       }
     }

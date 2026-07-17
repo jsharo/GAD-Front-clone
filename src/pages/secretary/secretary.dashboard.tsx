@@ -2,8 +2,8 @@ import { useEffect, useState } from 'react';
 import { FileCheck2, Clock, CheckCircle2, XCircle, Inbox, TrendingUp } from 'lucide-react';
 import { applications_api } from '@/lib/api.calls';
 import { Link } from 'react-router-dom';
-import { formatDateTime } from '@/lib/utils';
-import { getProcedureTypeLabel } from '@/lib/constants/procedure-types';
+import { FormatDateTime } from '@/lib/utils';
+import { GetProcedureTypeLabel } from '@/lib/constants/procedure.types';
 import { PageHeader } from '@/components/ui/page.header';
 import { StatCard, KpiGrid } from '@/components/ui/stat.card';
 import { LoadingSkeleton } from '@/components/ui/loading.skeleton';
@@ -27,21 +27,9 @@ export function SecretaryDashboard() {
 
   useEffect(() => {
     applications_api
-      .list({ limit: 100 })
+      .List({ limit: 100 })
       .then(({ data }) => {
-        const mapped = (data.data || []).map((s: any) => ({
-          id: s.id,
-          status: s.estado,
-          procedure_type: s.tipoTramite,
-          created_at: s.createdAt,
-          citizen: s.ciudadano
-            ? {
-                first_name: s.ciudadano.nombre,
-                last_name: s.ciudadano.apellido,
-              }
-            : null,
-        }));
-        set_applications(mapped);
+        set_applications(data.data || []);
       })
       .catch(() => set_applications([]))
       .finally(() => set_is_loading(false));
@@ -56,30 +44,30 @@ export function SecretaryDashboard() {
       label: 'Pendientes de Revisión',
       value: pending_applications.length,
       icon: Clock,
-      iconClass: 'text-warning-dark',
-      iconWrapperClass: 'bg-warning-light/20',
+      icon_class: 'text-warning-dark',
+      icon_wrapper_class: 'bg-warning-light/20',
     },
     {
       label: 'En Proceso',
       value: applications.filter((s) => ['PENDING_TECHNICIAN', 'INSPECTION'].includes(s.status))
         .length,
       icon: CheckCircle2,
-      iconClass: 'text-success-dark',
-      iconWrapperClass: 'bg-success-light/20',
+      icon_class: 'text-success-dark',
+      icon_wrapper_class: 'bg-success-light/20',
     },
     {
       label: 'Devueltas con Obs.',
       value: observed_applications.length,
       icon: XCircle,
-      iconClass: 'text-error-dark',
-      iconWrapperClass: 'bg-error-light/20',
+      icon_class: 'text-error-dark',
+      icon_wrapper_class: 'bg-error-light/20',
     },
     {
       label: 'Total Histórico',
       value: total,
       icon: TrendingUp,
-      iconClass: 'text-secondary-dark',
-      iconWrapperClass: 'bg-secondary-light/20',
+      icon_class: 'text-secondary-dark',
+      icon_wrapper_class: 'bg-secondary-light/20',
     },
   ];
 
@@ -97,8 +85,8 @@ export function SecretaryDashboard() {
             label={s.label}
             value={s.value}
             icon={s.icon}
-            iconClassName={s.iconClass}
-            iconWrapperClassName={s.iconWrapperClass}
+            icon_class_name={s.icon_class}
+            icon_wrapper_class_name={s.icon_wrapper_class}
           />
         ))}
       </KpiGrid>
@@ -112,25 +100,25 @@ export function SecretaryDashboard() {
               label: 'Ciudadano\nSube docs',
               active: false,
               activeClass: 'bg-primary-default text-neutral-50',
-              textClass: 'text-primary-default',
+              text_class: 'text-primary-default',
             },
             {
               label: 'Secretaría\nRevisa',
               active: true,
               activeClass: 'bg-secondary-default text-neutral-50',
-              textClass: 'text-secondary-dark',
+              text_class: 'text-secondary-dark',
             },
             {
               label: 'Técnico\nEvalúa',
               active: false,
               activeClass: 'bg-success-default text-neutral-50',
-              textClass: 'text-success-dark',
+              text_class: 'text-success-dark',
             },
             {
               label: 'Aprobado',
               active: false,
               activeClass: 'bg-success-default text-neutral-50',
-              textClass: 'text-success-dark',
+              text_class: 'text-success-dark',
             },
           ].map((step, i, arr) => (
             <div key={step.label} className="flex items-center flex-shrink-0">
@@ -141,7 +129,7 @@ export function SecretaryDashboard() {
                   {i + 1}
                 </div>
                 <p
-                  className={`mt-2 max-w-[72px] whitespace-pre-line text-center text-xs font-semibold leading-tight ${step.active ? step.textClass : 'text-neutral-400'}`}
+                  className={`mt-2 max-w-[72px] whitespace-pre-line text-center text-xs font-semibold leading-tight ${step.active ? step.text_class : 'text-neutral-400'}`}
                 >
                   {step.label}
                 </p>
@@ -157,7 +145,7 @@ export function SecretaryDashboard() {
       <PanelCard
         title="Solicitudes Pendientes de Revisión"
         icon={Inbox}
-        iconClassName="text-secondary-dark"
+        icon_class_name="text-secondary-dark"
         footer={
           <Link
             to="/secretary/inbox"
@@ -177,10 +165,10 @@ export function SecretaryDashboard() {
               className="py-8"
             />
           ) : (
-            pending_applications.slice(0, 5).map((sol) => (
+            pending_applications.slice(0, 5).map((application) => (
               <Link
-                to={`/secretary/inbox/${sol.id}`}
-                key={sol.id}
+                to={`/secretary/inbox/${application.id}`}
+                key={application.id}
                 className="block cursor-pointer px-6 py-4 hover:bg-neutral-100"
               >
                 <div className="flex items-center gap-4">
@@ -189,20 +177,20 @@ export function SecretaryDashboard() {
                   </div>
                   <div className="text-left">
                     <p className="font-semibold text-blue-955 text-sm">
-                      {sol.citizen?.first_name} {sol.citizen?.last_name}
+                      {application.citizen?.first_name} {application.citizen?.last_name}
                     </p>
                     <p className="text-[0.75rem] text-slate-500">
-                      #{sol.id.slice(0, 8)} ·{' '}
-                      {getProcedureTypeLabel(sol.procedure_type) || 'Trámite'}
+                      #{application.id.slice(0, 8)} ·{' '}
+                      {GetProcedureTypeLabel(application.procedure_type) || 'Trámite'}
                     </p>
                   </div>
                 </div>
                 <div className="flex items-center gap-4">
                   <span className="rounded-full bg-warning-light/20 px-3 py-1 text-xs font-semibold text-warning-dark">
-                    {sol.status.replace('_', ' ')}
+                    {application.status.replace('_', ' ')}
                   </span>
                   <span className="text-[0.7rem] text-slate-400">
-                    {formatDateTime(sol.created_at)}
+                    {FormatDateTime(application.created_at)}
                   </span>
                 </div>
               </Link>

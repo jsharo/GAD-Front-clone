@@ -11,26 +11,26 @@ export interface ToastItem {
 
 interface ToastState {
   toasts: ToastItem[];
-  addToast: (toast: Omit<ToastItem, 'id'> & { id?: string }) => string;
-  removeToast: (id: string) => void;
-  clearToasts: () => void;
+  AddToast: (toast: Omit<ToastItem, 'id'> & { id?: string }) => string;
+  RemoveToast: (id: string) => void;
+  ClearToasts: () => void;
 }
 
 export const useToastStore = create<ToastState>((set) => ({
   toasts: [],
-  addToast: (toast) => {
+  AddToast: (toast) => {
     const id = toast.id ?? `toast-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
     set((state) => ({
       toasts: [...state.toasts, { ...toast, id }],
     }));
     return id;
   },
-  removeToast: (id) => {
+  RemoveToast: (id) => {
     set((state) => ({
       toasts: state.toasts.filter((toast) => toast.id !== id),
     }));
   },
-  clearToasts: () => {
+  ClearToasts: () => {
     set({ toasts: [] });
   },
 }));

@@ -10,7 +10,7 @@ import {
   Phone,
   Calendar,
 } from 'lucide-react';
-import { formatDateTime } from '@/lib/utils';
+import { FormatDateTime } from '@/lib/utils';
 import { BaseModal } from '@/components/logic/base.modal';
 import { PageHeader } from '@/components/ui/page.header';
 import { LoadingSkeleton } from '@/components/ui/loading.skeleton';
@@ -32,7 +32,7 @@ interface PendingArchitect {
 }
 
 export function ArchitectApproval() {
-  const addToast = useToastStore((state) => state.addToast);
+  const AddToast = useToastStore((state) => state.AddToast);
   const [architects, set_architects] = useState<PendingArchitect[]>([]);
   const [is_loading, set_is_loading] = useState(true);
   const [action_loading, set_action_loading] = useState<string | null>(null);
@@ -40,22 +40,23 @@ export function ArchitectApproval() {
   // Modal title preview state
   const [preview_title, set_preview_title] = useState<{ name: string; file: string } | null>(null);
 
-  const fetchPending = () => {
+  const FetchPending = () => {
     set_is_loading(true);
     users_api
-      .pendingArchitects()
+      .PendingArchitects()
       .then(({ data }) => {
-        const list = (data ?? []).map((u: any) => ({
-          id: u.id,
-          email: u.email,
-          first_name: u.nombre || u.first_name || '',
-          last_name: u.apellido || u.last_name || '',
-          national_id: u.cedula || u.national_id || '',
-          phone: u.telefono || u.phone || null,
-          registration_number: u.numeroRegistro || u.registration_number || '',
-          title: u.titulo || u.title || '',
-          title_file: u.tituloArchivo || u.title_file || null,
-          created_at: u.createdAt || u.created_at || '',
+        const list = (data.data ?? data ?? []).map((user: any) => ({
+          id: user.id,
+          email: user.email,
+          first_name: user.name || user.first_name || '',
+          last_name: user.lastname || user.last_name || '',
+          // Backend wire field for Ecuadorian ID remains `cedula`
+          national_id: user.cedula || user.national_id || '',
+          phone: user.phone || null,
+          registration_number: user.registration_number || '',
+          title: user.title || '',
+          title_file: user.title_file || null,
+          created_at: user.createdAt || user.created_at || '',
         }));
         set_architects(list);
       })
@@ -64,21 +65,21 @@ export function ArchitectApproval() {
   };
 
   useEffect(() => {
-    fetchPending();
+    FetchPending();
   }, []);
 
-  const handleApprove = async (id: string) => {
+  const HandleApprove = async (id: string) => {
     set_action_loading(id);
 
     try {
-      await users_api.approveArchitect(id, true);
-      addToast({
+      await users_api.ApproveArchitect(id, true);
+      AddToast({
         type: 'success',
         message: 'El arquitecto ha sido habilitado y notificado con éxito.',
       });
-      fetchPending();
+      FetchPending();
     } catch (err: any) {
-      addToast({
+      AddToast({
         type: 'error',
         message:
           err.response?.data?.message || 'Ocurrió un error al intentar aprobar al arquitecto.',
@@ -99,7 +100,7 @@ export function ArchitectApproval() {
       <PanelCard
         title="Arquitectos por Habilitar"
         icon={HardHat}
-        iconClassName="text-secondary-dark"
+        icon_class_name="text-secondary-dark"
         actions={
           <span className="rounded-full bg-amber-50 px-2.5 py-1 text-xs font-bold text-amber-700">
             {architects.length} pendientes
@@ -150,7 +151,7 @@ export function ArchitectApproval() {
                     </div>
                     <div className="flex items-center gap-2">
                       <Calendar size={13} className="text-slate-400" />
-                      <span>Registrado: {formatDateTime(architect.created_at)}</span>
+                      <span>Registrado: {FormatDateTime(architect.created_at)}</span>
                     </div>
                   </div>
 
@@ -185,7 +186,7 @@ export function ArchitectApproval() {
                 <div className="flex sm:flex-row md:flex-col gap-2 flex-shrink-0 justify-end">
                   <button
                     disabled={action_loading !== null}
-                    onClick={() => handleApprove(architect.id)}
+                    onClick={() => HandleApprove(architect.id)}
                     className="inline-flex items-center justify-center gap-2 rounded-xl border border-secondary-dark bg-secondary-default px-6 py-2.5 text-xs font-bold text-neutral-50 hover:bg-primary-dark hover:border-primary-dark"
                   >
                     {action_loading === architect.id ? (
@@ -203,8 +204,8 @@ export function ArchitectApproval() {
       </PanelCard>
 
       <BaseModal
-        isOpen={!!preview_title}
-        onClose={() => set_preview_title(null)}
+        is_open={!!preview_title}
+        OnClose={() => set_preview_title(null)}
         title="Título Profesional"
         size="lg"
       >

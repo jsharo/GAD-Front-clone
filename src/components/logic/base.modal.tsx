@@ -2,50 +2,50 @@ import React, { useEffect, useRef } from 'react';
 import { X } from 'lucide-react';
 
 export interface BaseModalProps {
-  isOpen: boolean;
-  onClose: () => void;
+  is_open: boolean;
+  OnClose: () => void;
   title?: string;
   children: React.ReactNode;
   size?: 'sm' | 'md' | 'lg' | 'xl';
-  hideBrandBar?: boolean;
+  hide_brand_bar?: boolean;
   /** Respeta el header fijo (h-20) arriba y margen inferior al posicionar el modal. */
-  respectHeader?: boolean;
+  respect_header?: boolean;
 }
 
 export function BaseModal({
-  isOpen,
-  onClose,
+  is_open,
+  OnClose,
   title,
   children,
   size = 'md',
-  hideBrandBar = false,
-  respectHeader = false,
+  hide_brand_bar = false,
+  respect_header = false,
 }: BaseModalProps) {
-  const modalRef = useRef<HTMLDivElement>(null);
+  const modal_ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const handleEscape = (e: KeyboardEvent) => {
+    const HandleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        onClose();
+        OnClose();
       }
     };
 
-    if (isOpen) {
+    if (is_open) {
       document.body.style.overflow = 'hidden';
-      window.addEventListener('keydown', handleEscape);
+      window.addEventListener('keydown', HandleEscape);
     } else {
       document.body.style.overflow = 'unset';
     }
 
     return () => {
       document.body.style.overflow = 'unset';
-      window.removeEventListener('keydown', handleEscape);
+      window.removeEventListener('keydown', HandleEscape);
     };
-  }, [isOpen, onClose]);
+  }, [is_open, OnClose]);
 
-  if (!isOpen) return null;
+  if (!is_open) return null;
 
-  const sizeClasses = {
+  const size_classes = {
     sm: 'max-w-md',
     md: 'max-w-lg',
     lg: 'max-w-2xl',
@@ -57,23 +57,23 @@ export function BaseModal({
       {/* Backdrop: cubre toda la pantalla, incluido el header */}
       <div
         className="absolute inset-0 bg-slate-950/45 backdrop-blur-xs cursor-default"
-        onClick={onClose}
+        onClick={OnClose}
       />
 
       {/* Capa de posicionamiento del modal */}
       <div
         className={`relative z-10 flex h-full w-full justify-center px-4 ${
-          respectHeader ? 'pt-20 pb-6 items-center' : 'py-4 items-center'
+          respect_header ? 'pt-20 pb-6 items-center' : 'py-4 items-center'
         }`}
       >
         <div
-          ref={modalRef}
-          className={`relative flex w-full flex-col ${sizeClasses[size]} overflow-hidden bg-white border border-slate-200/50 shadow-2xl rounded-3xl transition-all duration-300 animate-slide-up ${
-            respectHeader ? 'max-h-[calc(100vh-5rem-1.5rem)]' : 'max-h-[75vh]'
+          ref={modal_ref}
+          className={`relative flex w-full flex-col ${size_classes[size]} overflow-hidden bg-white border border-slate-200/50 shadow-2xl rounded-3xl transition-all duration-300 animate-slide-up ${
+            respect_header ? 'max-h-[calc(100vh-5rem-1.5rem)]' : 'max-h-[75vh]'
           }`}
           onClick={(e) => e.stopPropagation()}
         >
-          {!hideBrandBar && (
+          {!hide_brand_bar && (
             <div className="h-1.5 w-full shrink-0 bg-gradient-to-r from-red-500 via-[#F5C100] to-green-500" />
           )}
 
@@ -87,7 +87,7 @@ export function BaseModal({
               <div />
             )}
             <button
-              onClick={onClose}
+              onClick={OnClose}
               className="p-2 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition-all active:scale-95 cursor-pointer"
               aria-label="Close modal"
             >

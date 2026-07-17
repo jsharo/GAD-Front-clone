@@ -4,27 +4,27 @@ import { X } from 'lucide-react';
 interface ImageLightboxProps {
   src: string;
   alt?: string;
-  onClose: () => void;
+  OnClose: () => void;
 }
 
-export function ImageLightbox({ src, alt = 'Vista ampliada', onClose }: ImageLightboxProps) {
+export function ImageLightbox({ src, alt = 'Vista ampliada', OnClose }: ImageLightboxProps) {
   useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+    const Handler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') OnClose();
     };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
-  }, [onClose]);
+    window.addEventListener('keydown', Handler);
+    return () => window.removeEventListener('keydown', Handler);
+  }, [OnClose]);
 
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/95"
-      onClick={onClose}
+      onClick={OnClose}
     >
       <button
         type="button"
         className="absolute right-4 top-4 rounded-full bg-black/30 p-2 text-white"
-        onClick={onClose}
+        onClick={OnClose}
         aria-label="Cerrar"
       >
         <X size={22} />
