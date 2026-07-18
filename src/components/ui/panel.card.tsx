@@ -1,10 +1,10 @@
 import type { LucideIcon } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { Cn } from '@/lib/utils';
 
 interface PanelCardProps {
   title?: string;
   icon?: LucideIcon;
-  iconClassName?: string;
+  icon_class_name?: string;
   actions?: React.ReactNode;
   footer?: React.ReactNode;
   variant?: 'neutral' | 'glass';
@@ -15,26 +15,26 @@ interface PanelCardProps {
 export function PanelCard({
   title,
   icon: Icon,
-  iconClassName = 'text-primary-default',
+  icon_class_name = 'text-primary-default',
   actions,
   footer,
   variant = 'neutral',
   className,
   children,
 }: PanelCardProps) {
-  const hasHeader = Boolean(title || Icon || actions);
+  const has_header = Boolean(title || Icon || actions);
 
   return (
     <div
-      className={cn(
+      className={Cn(
         'overflow-hidden',
         variant === 'glass' ? 'glass-card' : 'rounded-2xl border border-neutral-200 bg-neutral-50',
         className
       )}
     >
-      {hasHeader && (
+      {has_header && (
         <div
-          className={cn(
+          className={Cn(
             'flex items-center gap-3 border-b px-6 py-4',
             variant === 'glass' ? 'border-surface-border' : 'border-neutral-200',
             actions ? 'justify-between' : undefined
@@ -44,12 +44,12 @@ export function PanelCard({
             {Icon && (
               <Icon
                 size={variant === 'glass' ? 18 : 20}
-                className={cn('flex-shrink-0', iconClassName)}
+                className={Cn('flex-shrink-0', icon_class_name)}
               />
             )}
             {title && (
               <h2
-                className={cn(
+                className={Cn(
                   'truncate text-blue-955',
                   variant === 'glass' ? 'font-heading font-semibold' : 'font-bold'
                 )}
@@ -64,7 +64,7 @@ export function PanelCard({
       {children}
       {footer && (
         <div
-          className={cn(
+          className={Cn(
             'border-t px-6 py-3 text-center',
             variant === 'glass' ? 'border-surface-border' : 'border-neutral-200'
           )}

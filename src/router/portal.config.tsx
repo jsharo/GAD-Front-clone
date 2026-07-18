@@ -51,36 +51,36 @@ export interface PortalChildRoute {
 
 export interface PortalConfig {
   role: Role;
-  basePath: string;
-  panelLabel: string;
-  accentClassName: string;
-  accentBackground: string;
-  accentBorderClassName: string;
-  badgeBgClassName: string;
-  badgeIcon: LucideIcon;
-  badgeLabel: string;
-  navItems: PortalNavItem[];
-  childRoutes: PortalChildRoute[];
+  base_path: string;
+  panel_label: string;
+  accent_class_name: string;
+  accent_background: string;
+  accent_border_class_name: string;
+  badge_bg_class_name: string;
+  badge_icon: LucideIcon;
+  badge_label: string;
+  nav_items: PortalNavItem[];
+  child_routes: PortalChildRoute[];
 }
 
 export const PORTAL_CONFIGS: PortalConfig[] = [
   {
     role: 'ADMINISTRATOR',
-    basePath: '/admin',
-    panelLabel: 'PANEL DE ADMINISTRACION',
-    accentClassName: 'text-red-600',
-    accentBackground: '#cc2229',
-    accentBorderClassName: 'border-red-700',
-    badgeBgClassName: 'bg-red-500/5',
-    badgeIcon: Shield,
-    badgeLabel: 'Administrador',
-    navItems: [
+    base_path: '/admin',
+    panel_label: 'PANEL DE ADMINISTRACION',
+    accent_class_name: 'text-red-600',
+    accent_background: '#cc2229',
+    accent_border_class_name: 'border-red-700',
+    badge_bg_class_name: 'bg-red-500/5',
+    badge_icon: Shield,
+    badge_label: 'Administrador',
+    nav_items: [
       { to: '/admin', icon: LayoutDashboard, label: 'Dashboard', end: true },
       { to: '/admin/applications', icon: FileText, label: 'Todas las Solicitudes' },
       { to: '/admin/users', icon: Users, label: 'Usuarios y Técnicos' },
       { to: '/admin/audit', icon: Activity, label: 'Auditoría' },
     ],
-    childRoutes: [
+    child_routes: [
       { index: true, element: <AdminDashboard /> },
       { path: 'users', element: <AdminUsers /> },
       { path: 'applications', element: <AdminApplications /> },
@@ -90,20 +90,20 @@ export const PORTAL_CONFIGS: PortalConfig[] = [
   },
   {
     role: 'USER',
-    basePath: '/architect',
-    panelLabel: 'PORTAL PROFESIONAL',
-    accentClassName: 'text-amber-600',
-    accentBackground: '#d97706',
-    accentBorderClassName: 'border-amber-700',
-    badgeBgClassName: 'bg-amber-500/5',
-    badgeIcon: HardHat,
-    badgeLabel: 'Arquitecto',
-    navItems: [
+    base_path: '/architect',
+    panel_label: 'PORTAL PROFESIONAL',
+    accent_class_name: 'text-amber-600',
+    accent_background: '#d97706',
+    accent_border_class_name: 'border-amber-700',
+    badge_bg_class_name: 'bg-amber-500/5',
+    badge_icon: HardHat,
+    badge_label: 'Arquitecto',
+    nav_items: [
       { to: '/architect', icon: LayoutDashboard, label: 'Inicio', end: true },
       { to: '/architect/procedures', icon: FileText, label: 'Mis Trámites', end: true },
       { to: '/architect/procedures/new', icon: PlusCircle, label: 'Nuevo Trámite', end: true },
     ],
-    childRoutes: [
+    child_routes: [
       { index: true, element: <ArchitectDashboard /> },
       { path: 'procedures', element: <MyProcedures /> },
       { path: 'procedures/new', element: <NewProcedure /> },
@@ -112,22 +112,22 @@ export const PORTAL_CONFIGS: PortalConfig[] = [
   },
   {
     role: 'SECRETARY',
-    basePath: '/secretary',
-    panelLabel: 'PORTAL SECRETARIA',
-    accentClassName: 'text-blue-600',
-    accentBackground: '#2563eb',
-    accentBorderClassName: 'border-blue-700',
-    badgeBgClassName: 'bg-blue-500/5',
-    badgeIcon: Stamp,
-    badgeLabel: 'Secretaría',
-    navItems: [
+    base_path: '/secretary',
+    panel_label: 'PORTAL SECRETARIA',
+    accent_class_name: 'text-blue-600',
+    accent_background: '#2563eb',
+    accent_border_class_name: 'border-blue-700',
+    badge_bg_class_name: 'bg-blue-500/5',
+    badge_icon: Stamp,
+    badge_label: 'Secretaría',
+    nav_items: [
       { to: '/secretary', icon: LayoutDashboard, label: 'Dashboard', end: true },
       { to: '/secretary/inbox', icon: Inbox, label: 'Bandeja de Trámites' },
       { to: '/secretary/technicians', icon: MapPin, label: 'Técnicos y Zonas' },
       { to: '/secretary/architects', icon: HardHat, label: 'Aprobación Arquitectos' },
       { to: '/secretary/history', icon: History, label: 'Historial' },
     ],
-    childRoutes: [
+    child_routes: [
       { index: true, element: <SecretaryDashboard /> },
       { path: 'inbox', element: <SecretaryInbox /> },
       { path: 'inbox/:id', element: <ApplicationDetailSecretary /> },
@@ -138,19 +138,19 @@ export const PORTAL_CONFIGS: PortalConfig[] = [
   },
   {
     role: 'TECHNICIAN',
-    basePath: '/technician',
-    panelLabel: 'PORTAL TECNICO',
-    accentClassName: 'text-green-600',
-    accentBackground: '#15803d',
-    accentBorderClassName: 'border-green-700',
-    badgeBgClassName: 'bg-green-500/5',
-    badgeIcon: Wrench,
-    badgeLabel: 'Técnico',
-    navItems: [
+    base_path: '/technician',
+    panel_label: 'PORTAL TECNICO',
+    accent_class_name: 'text-green-600',
+    accent_background: '#15803d',
+    accent_border_class_name: 'border-green-700',
+    badge_bg_class_name: 'bg-green-500/5',
+    badge_icon: Wrench,
+    badge_label: 'Técnico',
+    nav_items: [
       { to: '/technician', icon: LayoutDashboard, label: 'Dashboard', end: true },
       { to: '/technician/inbox', icon: Inbox, label: 'Bandeja de Trabajo' },
     ],
-    childRoutes: [
+    child_routes: [
       { index: true, element: <TechnicianDashboard /> },
       { path: 'inbox', element: <TechnicianInbox /> },
       { path: 'inbox/:id', element: <InspectionPage /> },
@@ -158,29 +158,29 @@ export const PORTAL_CONFIGS: PortalConfig[] = [
   },
   {
     role: 'FINANCIAL',
-    basePath: '/financial',
-    panelLabel: 'PORTAL FINANCIERO',
-    accentClassName: 'text-emerald-600',
-    accentBackground: '#047857',
-    accentBorderClassName: 'border-emerald-700',
-    badgeBgClassName: 'bg-emerald-500/5',
-    badgeIcon: Landmark,
-    badgeLabel: 'Financiero',
-    navItems: [{ to: '/financial', icon: Landmark, label: 'Inicio', end: true }],
-    childRoutes: [{ index: true, element: <ModulePlaceholder title="Portal Financiero" /> }],
+    base_path: '/financial',
+    panel_label: 'PORTAL FINANCIERO',
+    accent_class_name: 'text-emerald-600',
+    accent_background: '#047857',
+    accent_border_class_name: 'border-emerald-700',
+    badge_bg_class_name: 'bg-emerald-500/5',
+    badge_icon: Landmark,
+    badge_label: 'Financiero',
+    nav_items: [{ to: '/financial', icon: Landmark, label: 'Inicio', end: true }],
+    child_routes: [{ index: true, element: <ModulePlaceholder title="Portal Financiero" /> }],
   },
   {
     role: 'CITIZEN',
-    basePath: '/citizen',
-    panelLabel: 'PORTAL CIUDADANO',
-    accentClassName: 'text-cyan-700',
-    accentBackground: '#0e7490',
-    accentBorderClassName: 'border-cyan-800',
-    badgeBgClassName: 'bg-cyan-500/5',
-    badgeIcon: UserRound,
-    badgeLabel: 'Ciudadano',
-    navItems: [{ to: '/citizen', icon: UserRound, label: 'Inicio', end: true }],
-    childRoutes: [{ index: true, element: <ModulePlaceholder title="Portal Ciudadano" /> }],
+    base_path: '/citizen',
+    panel_label: 'PORTAL CIUDADANO',
+    accent_class_name: 'text-cyan-700',
+    accent_background: '#0e7490',
+    accent_border_class_name: 'border-cyan-800',
+    badge_bg_class_name: 'bg-cyan-500/5',
+    badge_icon: UserRound,
+    badge_label: 'Ciudadano',
+    nav_items: [{ to: '/citizen', icon: UserRound, label: 'Inicio', end: true }],
+    child_routes: [{ index: true, element: <ModulePlaceholder title="Portal Ciudadano" /> }],
   },
 ];
 
@@ -194,19 +194,19 @@ export const PORTAL_CONFIG_BY_ROLE: Record<Role, PortalConfig> = PORTAL_CONFIGS.
 
 export const ROLE_HOME: Record<Role, string> = PORTAL_CONFIGS.reduce(
   (acc, portal) => {
-    acc[portal.role] = portal.basePath;
+    acc[portal.role] = portal.base_path;
     return acc;
   },
   {} as Record<Role, string>
 );
 
-export function resolvePortalRole(pathname: string, fallbackRole?: Role | null): Role {
-  if (fallbackRole && PORTAL_CONFIG_BY_ROLE[fallbackRole]) {
-    return fallbackRole;
+export function resolvePortalRole(pathname: string, fallback_role?: Role | null): Role {
+  if (fallback_role && PORTAL_CONFIG_BY_ROLE[fallback_role]) {
+    return fallback_role;
   }
 
-  const matchedPortal = PORTAL_CONFIGS.find(
-    (portal) => pathname === portal.basePath || pathname.startsWith(`${portal.basePath}/`)
+  const matched_portal = PORTAL_CONFIGS.find(
+    (portal) => pathname === portal.base_path || pathname.startsWith(`${portal.base_path}/`)
   );
-  return matchedPortal?.role ?? 'USER';
+  return matched_portal?.role ?? 'USER';
 }

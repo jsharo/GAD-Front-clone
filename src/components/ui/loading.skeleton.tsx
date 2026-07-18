@@ -1,4 +1,4 @@
-import { cn } from '@/lib/utils';
+import { Cn } from '@/lib/utils';
 
 interface LoadingSkeletonProps {
   count?: number;
@@ -14,7 +14,7 @@ const VARIANT_CLASSES: Record<NonNullable<LoadingSkeletonProps['variant']>, stri
 
 export function LoadingSkeleton({ count = 3, variant = 'card', className }: LoadingSkeletonProps) {
   return (
-    <div className={cn('space-y-4', className)}>
+    <div className={Cn('space-y-4', className)}>
       {Array.from({ length: count }).map((_, index) => (
         <div key={index} className={VARIANT_CLASSES[variant]} />
       ))}

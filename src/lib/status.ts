@@ -24,6 +24,6 @@ const STATUS_NORMALIZE_MAP: Record<string, ApplicationStatus> = {
   RECHAZADO: 'REJECTED',
 };
 
-export function normalizeApplicationStatus(status: string): ApplicationStatus {
+export function NormalizeApplicationStatus(status: string): ApplicationStatus {
   return STATUS_NORMALIZE_MAP[status] ?? 'DRAFT';
 }

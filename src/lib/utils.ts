@@ -1,29 +1,29 @@
-import { clsx, type ClassValue } from 'clsx'
-import { twMerge } from 'tailwind-merge'
+import { clsx, type ClassValue } from 'clsx';
+import { twMerge } from 'tailwind-merge';
 
-export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs))
+export function Cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs));
 }
 
-export function formatDate(date: string | Date): string {
+export function FormatDate(date: string | Date): string {
   return new Intl.DateTimeFormat('es-EC', {
     day: '2-digit',
     month: 'long',
     year: 'numeric',
-  }).format(new Date(date))
+  }).format(new Date(date));
 }
 
-export function formatDateTime(date: string | Date): string {
+export function FormatDateTime(date: string | Date): string {
   return new Intl.DateTimeFormat('es-EC', {
     day: '2-digit',
     month: 'short',
     year: 'numeric',
     hour: '2-digit',
     minute: '2-digit',
-  }).format(new Date(date))
+  }).format(new Date(date));
 }
 
-export function getStatusBadgeClass(status: string): string {
+export function GetStatusBadgeClass(status: string): string {
   const status_map: Record<string, string> = {
     DRAFT: 'badge-draft',
     UNDER_REVIEW: 'badge-review',
@@ -44,11 +44,11 @@ export function getStatusBadgeClass(status: string): string {
     PENDIENTE_SECRETARIA: 'badge-pending-secretary',
     PENDIENTE_PAGO: 'badge-pending-payment',
     PAGADO: 'badge-paid',
-  }
-  return status_map[status] ?? 'badge-draft'
+  };
+  return status_map[status] ?? 'badge-draft';
 }
 
-export function getStatusLabel(status: string): string {
+export function GetStatusLabel(status: string): string {
   const label_map: Record<string, string> = {
     DRAFT: 'Borrador',
     UNDER_REVIEW: 'En Revisión',
@@ -69,6 +69,6 @@ export function getStatusLabel(status: string): string {
     PENDIENTE_SECRETARIA: 'Pendiente de Secretaría',
     PENDIENTE_PAGO: 'Pendiente de Pago',
     PAGADO: 'Pagado',
-  }
-  return label_map[status] ?? status
+  };
+  return label_map[status] ?? status;
 }

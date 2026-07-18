@@ -1,9 +1,9 @@
 import { useEffect, useState, useMemo } from 'react';
 import { Activity, ShieldCheck, ShieldAlert } from 'lucide-react';
 import { audit_api } from '@/lib/api.calls';
-import { verifyAuditChain } from '@/lib/api.calls';
-import { cn } from '@/lib/utils';
-import { BlockchainAuditTrail, type AuditEvent } from '@/components/logic/blockchain.audit-trail';
+import { VerifyAuditChain } from '@/lib/api.calls';
+import { Cn } from '@/lib/utils';
+import { BlockchainAuditTrail, type AuditEvent } from '@/components/logic/blockchain.audit.trail';
 import { PageHeader } from '@/components/ui/page.header';
 import { LoadingSkeleton } from '@/components/ui/loading.skeleton';
 import { AlertBanner } from '@/components/ui/alert.banner';
@@ -20,7 +20,7 @@ interface AuditLog {
   detail: string | null;
 }
 
-function parseDetail(detail_str: string | null) {
+function ParseDetail(detail_str: string | null) {
   if (!detail_str) return undefined;
   try {
     return JSON.parse(detail_str);
@@ -29,17 +29,17 @@ function parseDetail(detail_str: string | null) {
   }
 }
 
-function mapLogsToAuditEvents(logs: AuditLog[]): AuditEvent[] {
+function MapLogsToAuditEvents(logs: AuditLog[]): AuditEvent[] {
   return logs.map((log, index) => ({
     id: log.id,
     action: `${log.action} — ${log.entity}${log.entity_id ? ` #${log.entity_id.slice(0, 8)}` : ''}`,
-    performerName: log.user_name,
+    performer_name: log.user_name,
     role: 'Auditoría GAD',
     timestamp: log.timestamp,
-    blockIndex: logs.length - index,
-    blockHash: log.hash,
-    previousHash: log.previous_hash || 'BLOQUE GÉNESIS (NULL)',
-    metadata: parseDetail(log.detail),
+    block_index: logs.length - index,
+    block_hash: log.hash,
+    previous_hash: log.previous_hash || 'BLOQUE GÉNESIS (NULL)',
+    metadata: ParseDetail(log.detail),
   }));
 }
 
@@ -54,10 +54,10 @@ export function AdminAudit() {
     legacy_logs?: number;
   } | null>(null);
 
-  const fetchLogs = async () => {
+  const FetchLogs = async () => {
     try {
       set_is_loading(true);
-      const { data } = await audit_api.list({ limit: 100 });
+      const { data } = await audit_api.List({ limit: 100 });
 
       const mapped = (data.data || []).map((l: any) => ({
         id: l.id,
@@ -80,14 +80,14 @@ export function AdminAudit() {
   };
 
   useEffect(() => {
-    fetchLogs();
+    FetchLogs();
   }, []);
 
-  const handleVerify = async () => {
+  const HandleVerify = async () => {
     set_is_verifying(true);
     set_integrity_status(null);
     try {
-      const data = await verifyAuditChain();
+      const data = await VerifyAuditChain();
       set_integrity_status({
         is_intact: data.valid,
         breakage_info: data.message,
@@ -105,7 +105,7 @@ export function AdminAudit() {
     }
   };
 
-  const auditEvents = useMemo(() => mapLogsToAuditEvents(logs), [logs]);
+  const audit_events = useMemo(() => MapLogsToAuditEvents(logs), [logs]);
 
   return (
     <div className="animate-fade-in space-y-8">
@@ -115,9 +115,9 @@ export function AdminAudit() {
         icon={Activity}
         actions={
           <button
-            onClick={handleVerify}
+            onClick={HandleVerify}
             disabled={is_verifying || is_loading}
-            className={cn(
+            className={Cn(
               'relative overflow-hidden group font-bold px-6 py-3 rounded-xl transition-all duration-300 flex items-center gap-2 text-white shadow-lg',
               integrity_status?.is_intact === false
                 ? 'bg-gradient-to-r from-red-600 to-red-500 shadow-red-500/30'
@@ -154,7 +154,7 @@ export function AdminAudit() {
       {is_loading ? (
         <LoadingSkeleton className="max-w-4xl mx-auto" />
       ) : (
-        <BlockchainAuditTrail historyEvents={auditEvents} />
+        <BlockchainAuditTrail history_events={audit_events} />
       )}
     </div>
   );

@@ -3,13 +3,13 @@ import type { ClipboardEvent, KeyboardEvent } from 'react';
 import { Link, useNavigate, useLocation, Navigate } from 'react-router-dom';
 import { MailCheck } from 'lucide-react';
 import api from '@/lib/api';
-import { getApiError } from '@/lib/errors';
+import { GetApiError } from '@/lib/errors';
 import { AlertBanner } from '@/components/ui/alert.banner';
 
 const CODE_LENGTH = 6;
 
 type EmailCodeLocationState = {
-  fromSignup?: boolean;
+  from_signup?: boolean;
   email?: string;
 };
 
@@ -18,60 +18,60 @@ export function EmailCodePage() {
   const location = useLocation();
   const state = location.state as EmailCodeLocationState | null;
 
-  const [digits, setDigits] = useState<string[]>(Array(CODE_LENGTH).fill(''));
-  const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [digits, set_digits] = useState<string[]>(Array(CODE_LENGTH).fill(''));
+  const [error, set_error] = useState<string | null>(null);
+  const [is_loading, set_is_loading] = useState(false);
   const inputs = useRef<Array<HTMLInputElement | null>>([]);
 
-  if (!state?.fromSignup || !state.email) {
+  if (!state?.from_signup || !state.email) {
     return <Navigate to="/auth/signup" replace />;
   }
 
   const email = state.email;
 
-  const focusAt = (index: number) => inputs.current[index]?.focus();
+  const FocusAt = (index: number) => inputs.current[index]?.focus();
 
-  const handleChange = (index: number, value: string) => {
+  const HandleChange = (index: number, value: string) => {
     const digit = value.replace(/\D/g, '').slice(-1);
     const next = [...digits];
     next[index] = digit;
-    setDigits(next);
-    if (digit && index < CODE_LENGTH - 1) focusAt(index + 1);
+    set_digits(next);
+    if (digit && index < CODE_LENGTH - 1) FocusAt(index + 1);
   };
 
-  const handleKeyDown = (index: number, e: KeyboardEvent<HTMLInputElement>) => {
+  const HandleKeyDown = (index: number, e: KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Backspace' && !digits[index] && index > 0) {
-      focusAt(index - 1);
+      FocusAt(index - 1);
     }
   };
 
-  const handlePaste = (e: ClipboardEvent<HTMLInputElement>) => {
+  const HandlePaste = (e: ClipboardEvent<HTMLInputElement>) => {
     e.preventDefault();
     const pasted = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, CODE_LENGTH);
     const next = [...digits];
     pasted.split('').forEach((ch, i) => {
       next[i] = ch;
     });
-    setDigits(next);
-    focusAt(Math.min(pasted.length, CODE_LENGTH - 1));
+    set_digits(next);
+    FocusAt(Math.min(pasted.length, CODE_LENGTH - 1));
   };
 
-  const onSubmit = async (e: React.FormEvent) => {
+  const OnSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const code = digits.join('');
     if (code.length < CODE_LENGTH) {
-      setError('Please enter the complete 6-digit code.');
+      set_error('Please enter the complete 6-digit code.');
       return;
     }
-    setError(null);
-    setIsLoading(true);
+    set_error(null);
+    set_is_loading(true);
     try {
       await api.post('/verification/verify-email', { email, code });
       navigate('/auth/signin', { replace: true });
     } catch (err) {
-      setError(getApiError(err, 'Invalid or expired code. Please try again.'));
+      set_error(GetApiError(err, 'Invalid or expired code. Please try again.'));
     } finally {
-      setIsLoading(false);
+      set_is_loading(false);
     }
   };
 
@@ -104,10 +104,12 @@ export function EmailCodePage() {
         </div>
 
         {/* Global error */}
-        {error && <AlertBanner message={error} onDismiss={() => setError(null)} className="mb-6" />}
+        {error && (
+          <AlertBanner message={error} OnDismiss={() => set_error(null)} className="mb-6" />
+        )}
 
         {/* Form */}
-        <form onSubmit={onSubmit} className="space-y-4">
+        <form onSubmit={OnSubmit} className="space-y-4">
           {/* Code inputs */}
           <div>
             <label className="block text-xs font-bold text-neutral-500 tracking-widest mb-4">
@@ -127,9 +129,9 @@ export function EmailCodePage() {
                   value={digit}
                   autoFocus={i === 0}
                   autoComplete="one-time-code"
-                  onChange={(e) => handleChange(i, e.target.value)}
-                  onKeyDown={(e) => handleKeyDown(i, e)}
-                  onPaste={handlePaste}
+                  onChange={(e) => HandleChange(i, e.target.value)}
+                  onKeyDown={(e) => HandleKeyDown(i, e)}
+                  onPaste={HandlePaste}
                   className="w-full aspect-square text-center text-lg font-bold outline-none rounded-xl bg-neutral-50 border border-neutral-300 text-neutral-900 focus:border-primary-default focus:ring-2 focus:ring-primary-light"
                 />
               ))}
@@ -140,12 +142,12 @@ export function EmailCodePage() {
           <button
             type="submit"
             id="email-code-submit"
-            disabled={isLoading}
+            disabled={is_loading}
             className={`w-full flex items-center justify-center gap-2 py-3.5 rounded-xl font-bold text-sm text-neutral-50 mt-2 ${
-              isLoading ? 'bg-neutral-400/50' : 'bg-primary-default hover:bg-primary-dark'
+              is_loading ? 'bg-neutral-400/50' : 'bg-primary-default hover:bg-primary-dark'
             }`}
           >
-            {isLoading ? <span>Verificando...</span> : <span>Verify</span>}
+            {is_loading ? <span>Verificando...</span> : <span>Verify</span>}
           </button>
         </form>
 

@@ -10,15 +10,15 @@ import {
   ShieldCheck,
 } from 'lucide-react';
 import {
-  getRequestSignatureVerification,
+  GetRequestSignatureVerification,
   type RequestSignatureSummary,
   type SignatureIdentityStatus,
   type SignatureTrustStatus,
   type SignatureVerificationStatus,
 } from '@/lib/api.calls';
 import { BaseModal } from '@/components/logic/base.modal';
-import { getApiError } from '@/lib/errors';
-import { formatDateTime } from '@/lib/utils';
+import { GetApiError } from '@/lib/errors';
+import { FormatDateTime } from '@/lib/utils';
 
 interface SignatureVerificationPanelProps {
   request_id: string;
@@ -106,13 +106,13 @@ export function SignatureVerificationPanel({
       on_loading_change?.(true);
       setError(null);
       try {
-        const result = await getRequestSignatureVerification(request_id, refresh);
+        const result = await GetRequestSignatureVerification(request_id, refresh);
         setSummary(result);
         on_change?.(result);
       } catch (verification_error) {
         setSummary(null);
         on_change?.(null);
-        setError(getApiError(verification_error, 'No se pudo ejecutar el verificador de firmas.'));
+        setError(GetApiError(verification_error, 'No se pudo ejecutar el verificador de firmas.'));
       } finally {
         setLoading(false);
         on_loading_change?.(false);
@@ -219,11 +219,11 @@ export function SignatureVerificationPanel({
       </section>
 
       <BaseModal
-        isOpen={details_open}
-        onClose={() => setDetailsOpen(false)}
+        is_open={details_open}
+        OnClose={() => setDetailsOpen(false)}
         title="Detalle de firmas y alertas"
         size="xl"
-        respectHeader
+        respect_header
       >
         <div className="grid gap-6 text-left lg:grid-cols-[minmax(0,1.4fr)_minmax(260px,0.6fr)]">
           <section aria-labelledby="signature-documents-title" className="min-w-0">
@@ -303,7 +303,7 @@ export function SignatureVerificationPanel({
                               <dt>Fecha</dt>
                               <dd className="text-right font-semibold text-slate-800">
                                 {signature.signing_time
-                                  ? formatDateTime(signature.signing_time)
+                                  ? FormatDateTime(signature.signing_time)
                                   : 'No disponible'}
                               </dd>
                             </div>
@@ -353,7 +353,7 @@ export function SignatureVerificationPanel({
               <div>
                 <dt className="font-bold uppercase text-slate-400">Última verificación</dt>
                 <dd className="mt-1 font-semibold text-slate-800">
-                  {formatDateTime(summary.verified_at)}
+                  {FormatDateTime(summary.verified_at)}
                 </dd>
               </div>
             </dl>

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   FileText,
@@ -74,27 +74,9 @@ export function ArchitectDashboard() {
 
   useEffect(() => {
     applications_api
-      .myApplications()
+      .MyApplications()
       .then(({ data }) => {
-        const mapped = (data.data || []).map((s: any) => ({
-          id: s.id,
-          status: s.estado,
-          procedure_type: s.tipoTramite,
-          property: s.predio
-            ? {
-                address: s.predio.direccion,
-              }
-            : null,
-          citizen: s.ciudadano
-            ? {
-                first_name: s.ciudadano.nombre,
-                last_name: s.ciudadano.apellido,
-                national_id: s.ciudadano.cedula,
-              }
-            : null,
-          created_at: s.createdAt,
-        }));
-        set_applications(mapped);
+        set_applications(data.data || []);
       })
       .catch(() => {
         set_applications([]);
@@ -107,36 +89,36 @@ export function ArchitectDashboard() {
       label: 'Total Trámites',
       value: applications.length,
       icon: FileText,
-      iconClass: 'text-primary-default',
-      iconWrapperClass: 'bg-primary-light/10',
+      icon_class: 'text-primary-default',
+      icon_wrapper_class: 'bg-primary-light/10',
     },
     {
       label: 'En Proceso',
-      value: applications.filter((s) => !['APROBADO', 'RECHAZADO', 'BORRADOR'].includes(s.status))
+      value: applications.filter((s) => !['APPROVED', 'REJECTED', 'DRAFT'].includes(s.status))
         .length,
       icon: Clock,
-      iconClass: 'text-warning-dark',
-      iconWrapperClass: 'bg-warning-light/20',
+      icon_class: 'text-warning-dark',
+      icon_wrapper_class: 'bg-warning-light/20',
     },
     {
       label: 'Aprobados',
-      value: applications.filter((s) => s.status === 'APROBADO').length,
+      value: applications.filter((s) => s.status === 'APPROVED').length,
       icon: CheckCircle2,
-      iconClass: 'text-success-dark',
-      iconWrapperClass: 'bg-success-light/20',
+      icon_class: 'text-success-dark',
+      icon_wrapper_class: 'bg-success-light/20',
     },
     {
       label: 'Rechazados',
-      value: applications.filter((s) => s.status === 'RECHAZADO').length,
+      value: applications.filter((s) => s.status === 'REJECTED').length,
       icon: XCircle,
-      iconClass: 'text-error-dark',
-      iconWrapperClass: 'bg-error-light/20',
+      icon_class: 'text-error-dark',
+      icon_wrapper_class: 'bg-error-light/20',
     },
   ];
 
   return (
     <div className="space-y-6">
-      {!is_enabled && needs_profile_completion && <CompleteProfileModal allowClose={false} />}
+      {!is_enabled && needs_profile_completion && <CompleteProfileModal allow_close={false} />}
 
       {!is_enabled && !needs_profile_completion && <PendingEnablementBanner />}
 
@@ -164,8 +146,8 @@ export function ArchitectDashboard() {
             label={stat.label}
             value={stat.value}
             icon={stat.icon}
-            iconClassName={stat.iconClass}
-            iconWrapperClassName={stat.iconWrapperClass}
+            icon_class_name={stat.icon_class}
+            icon_wrapper_class_name={stat.icon_wrapper_class}
           />
         ))}
       </KpiGrid>
@@ -217,10 +199,10 @@ export function ArchitectDashboard() {
           />
         ) : (
           <div className="divide-y divide-surface-border">
-            {applications.slice(0, 5).map((sol) => (
+            {applications.slice(0, 5).map((application) => (
               <Link
-                key={sol.id}
-                to={`/architect/procedures/${sol.id}`}
+                key={application.id}
+                to={`/architect/procedures/${application.id}`}
                 className="group block p-5 hover:bg-neutral-100"
               >
                 <div className="flex items-center justify-between mb-3">
@@ -230,14 +212,14 @@ export function ArchitectDashboard() {
                     </div>
                     <div>
                       <p className="text-blue-955 font-bold text-sm">
-                        {sol.procedure_type || 'Trámite'}
+                        {application.procedure_type || 'Trámite'}
                       </p>
                       <div className="flex items-center gap-2 mt-0.5">
                         <User size={11} className="text-slate-400" />
                         <p className="text-slate-500 text-xs">
-                          {sol.citizen
-                            ? `${sol.citizen.first_name} ${sol.citizen.last_name}`
-                            : `ID: #${sol.id.slice(0, 8)}`}
+                          {application.citizen
+                            ? `${application.citizen.first_name} ${application.citizen.last_name}`
+                            : `ID: #${application.id.slice(0, 8)}`}
                         </p>
                       </div>
                     </div>
@@ -245,7 +227,7 @@ export function ArchitectDashboard() {
                   <ArrowRight size={16} className="text-slate-400 group-hover:text-primary-dark" />
                 </div>
                 <div className="pt-1 px-2 sm:px-8">
-                  <ApplicationTimeline current_status={sol.status} />
+                  <ApplicationTimeline current_status={application.status} />
                 </div>
               </Link>
             ))}

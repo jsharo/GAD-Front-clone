@@ -70,30 +70,25 @@
     @apply inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-[11px] font-bold uppercase tracking-wide;
   }
 
-  .badge-borrador,
   .badge-draft {
     @apply badge border-neutral-300 bg-neutral-200 text-neutral-700;
   }
 
-  .badge-revision,
   .badge-review,
   .badge-pending-secretary,
   .badge-pending-payment {
     @apply badge border-warning-light bg-warning-light/20 text-warning-dark;
   }
 
-  .badge-inspeccion,
   .badge-inspection,
   .badge-paid {
     @apply badge border-primary-light bg-primary-light/10 text-primary-default;
   }
 
-  .badge-aprobado,
   .badge-approved {
     @apply badge border-success-light bg-success-light/20 text-success-dark;
   }
 
-  .badge-negado,
   .badge-rejected,
   .badge-observed {
     @apply badge border-error-light bg-error-light/20 text-error-dark;
@@ -464,35 +459,35 @@
     text-transform: uppercase;
   }
 
-  .badge-borrador {
+  .badge-draft {
     @apply badge;
     background: rgba(0, 0, 0, 0.04);
     color: #4b5563;
     border: 1px solid rgba(0, 0, 0, 0.1);
   }
 
-  .badge-revision {
+  .badge-review {
     @apply badge;
     background: rgba(245, 193, 0, 0.12);
     color: #d97706;
     border: 1px solid rgba(245, 193, 0, 0.3);
   }
 
-  .badge-inspeccion {
+  .badge-inspection {
     @apply badge;
     background: rgba(37, 99, 235, 0.12);
     color: #1d4ed8;
     border: 1px solid rgba(37, 99, 235, 0.3);
   }
 
-  .badge-aprobado {
+  .badge-approved {
     @apply badge;
     background: rgba(34, 197, 94, 0.12);
     color: #15803d;
     border: 1px solid rgba(34, 197, 94, 0.3);
   }
 
-  .badge-negado {
+  .badge-rejected {
     @apply badge;
     background: rgba(234, 88, 12, 0.12);
     color: #c2410c;

@@ -17,20 +17,20 @@ import {
 } from 'lucide-react';
 import {
   applications_api,
-  submitSecretaryReview,
+  SubmitSecretaryReview,
   type RequestSignatureSummary,
 } from '@/lib/api.calls';
 import { BaseModal } from '@/components/logic/base.modal';
 import { DocumentPanel } from '@/components/documents/document.panel';
 import { SignatureVerificationPanel } from '@/components/documents/signature.verification.panel';
 import { AlertBanner } from '@/components/ui/alert.banner';
-import { DetailPageHeader } from '@/components/ui/detail-page.header';
+import { DetailPageHeader } from '@/components/ui/detail.page.header';
 import { EmptyState } from '@/components/ui/empty.state';
 import { InfoGrid } from '@/components/ui/info.grid';
 import { LoadingSkeleton } from '@/components/ui/loading.skeleton';
-import { getProcedureTypeLabel } from '@/lib/constants/procedure-types';
-import { getApiError } from '@/lib/errors';
-import { formatDateTime } from '@/lib/utils';
+import { GetProcedureTypeLabel } from '@/lib/constants/procedure.types';
+import { GetApiError } from '@/lib/errors';
+import { FormatDateTime } from '@/lib/utils';
 
 interface Attachment {
   id: string;
@@ -197,10 +197,10 @@ export function ApplicationDetailSecretary() {
     if (!id) return;
     setError(null);
     try {
-      const { data } = await applications_api.getById(id);
+      const { data } = await applications_api.GetById(id);
       setApplication(mapApplication(data));
     } catch (load_error) {
-      setError(getApiError(load_error, 'No se pudo cargar la solicitud.'));
+      setError(GetApiError(load_error, 'No se pudo cargar la solicitud.'));
     } finally {
       setIsLoading(false);
     }
@@ -233,7 +233,7 @@ export function ApplicationDetailSecretary() {
     setIsSubmitting(true);
     setError(null);
     try {
-      await submitSecretaryReview(id, {
+      await SubmitSecretaryReview(id, {
         approved: decision === 'approve',
         acknowledge_signature_warning,
         remarks: observations.trim() || undefined,
@@ -241,7 +241,7 @@ export function ApplicationDetailSecretary() {
       navigate('/secretary/inbox');
     } catch (submission_error) {
       setConfirmationOpen(false);
-      setError(getApiError(submission_error, 'No se pudo registrar el dictamen.'));
+      setError(GetApiError(submission_error, 'No se pudo registrar el dictamen.'));
     } finally {
       setIsSubmitting(false);
     }
@@ -283,7 +283,7 @@ export function ApplicationDetailSecretary() {
     );
   }
 
-  const procedure_label = getProcedureTypeLabel(application.procedure_type);
+  const procedure_label = GetProcedureTypeLabel(application.procedure_type);
   const is_already_resolved =
     application.secretary_decision != null ||
     !['PENDING_SECRETARY', 'OBSERVED'].includes(application.status);
@@ -296,19 +296,19 @@ export function ApplicationDetailSecretary() {
   return (
     <div className="mx-auto max-w-7xl animate-fade-in space-y-4 pb-10">
       <DetailPageHeader
-        backTo="/secretary/inbox"
+        back_to="/secretary/inbox"
         title={procedure_label}
         subtitle={
           <span className="flex items-center gap-2 text-slate-400">
             <Clock size={14} />
-            Recibido: {formatDateTime(application.created_at)}
+            Recibido: {FormatDateTime(application.created_at)}
           </span>
         }
         status={application.status}
-        contentClassName="text-left"
+        content_class_name="text-left"
       />
 
-      {error && <AlertBanner message={error} onDismiss={() => setError(null)} />}
+      {error && <AlertBanner message={error} OnDismiss={() => setError(null)} />}
 
       {id && (
         <SignatureVerificationPanel
@@ -635,7 +635,7 @@ export function ApplicationDetailSecretary() {
                   <p className="mt-0.5 text-xs text-slate-500">
                     {application.secretary_decision?.is_approved ? 'Aprobado' : 'Devuelto'} ·{' '}
                     {application.secretary_decision?.created_at
-                      ? formatDateTime(application.secretary_decision.created_at)
+                      ? FormatDateTime(application.secretary_decision.created_at)
                       : 'Sin fecha'}
                   </p>
                 </div>
@@ -658,11 +658,11 @@ export function ApplicationDetailSecretary() {
 
       {id && (
         <BaseModal
-          isOpen={documents_open}
-          onClose={() => setDocumentsOpen(false)}
+          is_open={documents_open}
+          OnClose={() => setDocumentsOpen(false)}
           title="Gestión de documentos"
           size="xl"
-          respectHeader
+          respect_header
         >
           <DocumentPanel
             request_id={id}
@@ -675,8 +675,8 @@ export function ApplicationDetailSecretary() {
       )}
 
       <BaseModal
-        isOpen={confirmation_open}
-        onClose={() => setConfirmationOpen(false)}
+        is_open={confirmation_open}
+        OnClose={() => setConfirmationOpen(false)}
         title="Confirmar aprobación con alerta"
         size="sm"
       >

@@ -5,7 +5,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { AuthLayout } from '@/layouts/auth.layout';
 import { SignInPage } from '@/pages/auth/signin.page';
 import { SignUpPage } from '@/pages/auth/signup.page';
-import { EmailCodePage } from '@/pages/auth/email-code.page';
+import { EmailCodePage } from '@/pages/auth/email.code.page';
 
 // Landing
 import { LandingPage } from '@/pages/landing.page';
@@ -34,8 +34,8 @@ export function AppRouter() {
 
       {PORTAL_CONFIGS.map((portal) => (
         <Route key={portal.role} element={<ProtectedRoute allowed_roles={[portal.role]} />}>
-          <Route path={portal.basePath} element={<UsersLayout />}>
-            {portal.childRoutes.map((childRoute) =>
+          <Route path={portal.base_path} element={<UsersLayout />}>
+            {portal.child_routes.map((childRoute) =>
               childRoute.index ? (
                 <Route key={`${portal.role}-index`} index element={childRoute.element} />
               ) : (

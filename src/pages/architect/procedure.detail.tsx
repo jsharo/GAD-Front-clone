@@ -1,17 +1,28 @@
-import { useEffect, useState, useCallback } from 'react';
+﻿import { useEffect, useState, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
-import { Calendar, User, MapPin, XCircle, Send, AlertCircle, DollarSign } from 'lucide-react';
-import { applications_api } from '@/lib/api.calls';
-import { formatDateTime, cn } from '@/lib/utils';
-import { getProcedureTypeLabel } from '@/lib/constants/procedure-types';
+import {
+  FileText,
+  Calendar,
+  User,
+  MapPin,
+  XCircle,
+  Upload,
+  Send,
+  AlertCircle,
+  DollarSign,
+} from 'lucide-react';
+import { applications_api, attachments_api } from '@/lib/api.calls';
+import { FormatDateTime, Cn } from '@/lib/utils';
+import { GetProcedureTypeLabel } from '@/lib/constants/procedure.types';
 import { ApplicationTimeline } from '@/components/ui/application.timeline';
+import { AttachmentRow } from '@/components/logic/attachment.row';
 import { DocumentPanel } from '@/components/documents/document.panel';
 import { LoadingSkeleton } from '@/components/ui/loading.skeleton';
 import { EmptyState } from '@/components/ui/empty.state';
 import { AlertBanner } from '@/components/ui/alert.banner';
 import { DetailSection } from '@/components/ui/detail.section';
 import { InfoGrid } from '@/components/ui/info.grid';
-import { DetailPageHeader } from '@/components/ui/detail-page.header';
+import { DetailPageHeader } from '@/components/ui/detail.page.header';
 
 interface Attachment {
   id: string;
@@ -71,74 +82,13 @@ export function ProcedureDetail() {
   const [is_loading, set_is_loading] = useState(true);
   const [error, set_error] = useState<string | null>(null);
   const [is_submitting, set_is_submitting] = useState(false);
+  const [is_uploading_file, set_is_uploading_file] = useState(false);
 
-  const mapApplicationObj = (s: any): ApplicationDetail | null => {
-    if (!s) return null;
-    return {
-      id: s.id,
-      created_at: s.createdAt,
-      status: s.estado,
-      procedure_type: s.tipoTramite,
-      rejection_reason: s.motivoRechazo,
-      observations: s.observaciones,
-      secretary_decision: s.dictamenSecretaria
-        ? {
-            observations: s.dictamenSecretaria.observaciones,
-          }
-        : null,
-      payments: (s.cobros || []).map((c: any) => ({
-        id: c.id,
-        amount: c.monto,
-        concept: c.concepto,
-        status: c.estado,
-      })),
-      citizen: s.ciudadano
-        ? {
-            first_name: s.ciudadano.nombre,
-            last_name: s.ciudadano.apellido,
-            national_id: s.ciudadano.cedula,
-            email: s.ciudadano.email,
-            phone: s.ciudadano.telefono,
-          }
-        : null,
-      property: s.predio
-        ? {
-            address: s.predio.direccion,
-            location: s.predio.ubicacion,
-            area: s.predio.area,
-            description: s.predio.descripcion,
-          }
-        : null,
-      technician: s.tecnico
-        ? {
-            first_name: s.tecnico.nombre,
-            last_name: s.tecnico.apellido,
-            email: s.tecnico.email,
-          }
-        : null,
-      schedule: s.agenda
-        ? {
-            date: s.agenda.fecha,
-            notes: s.agenda.notas,
-            is_confirmed: s.agenda.confirmada,
-          }
-        : null,
-      attachments: (s.anexos || []).map((anexo: any) => ({
-        id: anexo.id,
-        name: anexo.nombre,
-        size: anexo.tamano,
-        hash: anexo.hash,
-        key: anexo.key,
-      })),
-    };
-  };
-
-  const loadApplication = useCallback(async () => {
+  const LoadApplication = useCallback(async () => {
     if (!id) return;
     try {
-      const { data } = await applications_api.getById(id);
-      const mapped = mapApplicationObj(data);
-      set_application(mapped);
+      const { data } = await applications_api.GetById(id);
+      set_application(data as ApplicationDetail);
     } catch (e: any) {
       set_error(e.response?.data?.message || 'Error al cargar la solicitud');
     } finally {
@@ -147,16 +97,30 @@ export function ProcedureDetail() {
   }, [id]);
 
   useEffect(() => {
-    loadApplication();
-  }, [loadApplication]);
+    LoadApplication();
+  }, [LoadApplication]);
 
-  const handleSubmitApplication = async () => {
+  const HandleUploadAttachment = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !id) return;
+    set_is_uploading_file(true);
+    try {
+      await attachments_api.Upload(id, file);
+      await LoadApplication();
+    } catch (e: any) {
+      set_error(e.response?.data?.message || 'Error al subir archivo');
+    } finally {
+      set_is_uploading_file(false);
+    }
+  };
+
+  const HandleSubmitApplication = async () => {
     if (!id) return;
     set_is_submitting(true);
     set_error(null);
     try {
-      await applications_api.send(id);
-      await loadApplication();
+      await applications_api.Send(id);
+      await LoadApplication();
     } catch (e: any) {
       set_error(e.response?.data?.message || 'Error al enviar');
     } finally {
@@ -175,24 +139,24 @@ export function ProcedureDetail() {
       />
     );
 
-  const is_rejected = application.status === 'RECHAZADO';
-  const is_draft = application.status === 'BORRADOR';
+  const is_rejected = application.status === 'REJECTED';
+  const is_draft = application.status === 'DRAFT';
   const payment = application.payments?.[0];
-  const is_payment_paid = payment?.status === 'PAGADO';
+  const is_payment_paid = payment?.status === 'PAID' || payment?.status === 'PAID';
 
   return (
     <div className="animate-fade-in space-y-6 max-w-3xl mx-auto">
       <DetailPageHeader
-        backTo="/architect/procedures"
-        title={getProcedureTypeLabel(application.procedure_type) || 'Trámite de Ordenamiento'}
-        subtitle={`ID: #${id?.slice(0, 8)}... • Creado ${formatDateTime(application.created_at)}`}
+        back_to="/architect/procedures"
+        title={GetProcedureTypeLabel(application.procedure_type) || 'Trámite de Ordenamiento'}
+        subtitle={`ID: #${id?.slice(0, 8)}... • Creado ${FormatDateTime(application.created_at)}`}
         status={application.status}
-        contentClassName="text-left"
+        content_class_name="text-left"
       />
 
       {/* Error */}
       {error && (
-        <AlertBanner message={error} onDismiss={() => set_error(null)} className="text-left" />
+        <AlertBanner message={error} OnDismiss={() => set_error(null)} className="text-left" />
       )}
 
       <DetailSection title="Progreso del Trámite" className="pb-12 mb-6">
@@ -200,7 +164,7 @@ export function ProcedureDetail() {
       </DetailSection>
 
       {/* Observaciones de Secretaría (cuando devuelven) */}
-      {application.status === 'OBSERVADO' && application.secretary_decision?.observations && (
+      {application.status === 'OBSERVED' && application.secretary_decision?.observations && (
         <DetailSection
           title="Trámite Observado por Secretaría"
           icon={AlertCircle}
@@ -216,21 +180,21 @@ export function ProcedureDetail() {
         </DetailSection>
       )}
 
-      {(application.status === 'PENDIENTE_PAGO' ||
-        application.status === 'PAGADO' ||
-        application.status === 'APROBADO') &&
+      {(application.status === 'PENDING_PAYMENT' ||
+        application.status === 'PAID' ||
+        application.status === 'APPROVED') &&
         application.payments?.length > 0 && (
           <DetailSection
             title="Información de Pago"
             icon={DollarSign}
-            className={cn(
+            className={Cn(
               'text-left',
               is_payment_paid ? 'border-success-light' : 'border-warning-light'
             )}
           >
             <div className="flex justify-end -mt-10 mb-4">
               <span
-                className={cn(
+                className={Cn(
                   'px-3 py-1 rounded-full text-xs font-bold',
                   is_payment_paid
                     ? 'border border-success-light bg-success-light/20 text-success-dark'
@@ -249,7 +213,7 @@ export function ProcedureDetail() {
                 { label: 'Concepto', value: payment?.concept },
               ]}
             />
-            {payment?.status === 'PENDIENTE' && (
+            {(payment?.status === 'PENDING' || payment?.status === 'PENDIENTE') && (
               <div className="mt-4 rounded-xl border border-primary-light/30 bg-primary-light/10 p-3">
                 <p className="text-xs text-blue-800">
                   El propietario debe acercarse a las ventanillas de recaudación del GAD Municipal
@@ -320,14 +284,14 @@ export function ProcedureDetail() {
 
       {application.schedule && (
         <DetailSection title="Inspección Programada" icon={Calendar} className="text-left">
-          <p className="text-blue-955 font-medium">{formatDateTime(application.schedule.date)}</p>
+          <p className="text-blue-955 font-medium">{FormatDateTime(application.schedule.date)}</p>
           {application.schedule.notes && (
             <p className="text-blue-800 text-sm mt-1">{application.schedule.notes}</p>
           )}
           <span
-            className={cn(
+            className={Cn(
               'badge mt-2',
-              application.schedule.is_confirmed ? 'badge-aprobado' : 'badge-revision'
+              application.schedule.is_confirmed ? 'badge-approved' : 'badge-review'
             )}
           >
             {application.schedule.is_confirmed ? 'Confirmada' : 'Pendiente de confirmación'}
@@ -350,8 +314,8 @@ export function ProcedureDetail() {
             </p>
           )}
           <button
-            id="detalle-enviar"
-            onClick={handleSubmitApplication}
+            id="detail-submit"
+            onClick={HandleSubmitApplication}
             disabled={is_submitting || application.attachments?.length === 0}
             className="btn-primary w-full"
           >

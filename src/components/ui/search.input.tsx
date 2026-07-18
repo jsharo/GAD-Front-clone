@@ -1,24 +1,24 @@
 import { Search } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { Cn } from '@/lib/utils';
 
 interface SearchInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'type'> {
-  containerClassName?: string;
-  iconSize?: number;
+  container_class_name?: string;
+  icon_size?: number;
 }
 
 export function SearchInput({
   className,
-  containerClassName,
-  iconSize = 18,
+  container_class_name,
+  icon_size = 18,
   ...props
 }: SearchInputProps) {
   return (
-    <div className={cn('relative', containerClassName)}>
+    <div className={Cn('relative', container_class_name)}>
       <Search
-        size={iconSize}
+        size={icon_size}
         className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
       />
-      <input type="search" className={cn('input-field pl-10', className)} {...props} />
+      <input type="search" className={Cn('input-field pl-10', className)} {...props} />
     </div>
   );
 }

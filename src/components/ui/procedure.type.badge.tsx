@@ -1,5 +1,5 @@
-import { cn } from '@/lib/utils';
-import { getProcedureTypeBadgeClass, getProcedureTypeLabel } from '@/lib/constants/procedure-types';
+import { Cn } from '@/lib/utils';
+import { GetProcedureTypeBadgeClass, GetProcedureTypeLabel } from '@/lib/constants/procedure.types';
 
 interface ProcedureTypeBadgeProps {
   type: string;
@@ -9,13 +9,13 @@ interface ProcedureTypeBadgeProps {
 export function ProcedureTypeBadge({ type, className }: ProcedureTypeBadgeProps) {
   return (
     <span
-      className={cn(
+      className={Cn(
         'inline-flex rounded-full border px-3 py-1 text-xs font-semibold',
-        getProcedureTypeBadgeClass(type),
+        GetProcedureTypeBadgeClass(type),
         className
       )}
     >
-      {getProcedureTypeLabel(type)}
+      {GetProcedureTypeLabel(type)}
     </span>
   );
 }

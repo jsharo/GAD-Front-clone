@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import { Inbox, CheckCircle2, Clock, MapPin, ArrowRight } from 'lucide-react';
 import { useAuthStore } from '@/stores/auth.store';
 import { applications_api } from '@/lib/api.calls';
@@ -23,30 +23,19 @@ export function TechnicianDashboard() {
 
   useEffect(() => {
     applications_api
-      .list({ limit: 100 })
+      .List({ limit: 100 })
       .then(({ data }) => {
-        const mapped = (data.data || []).map((s: any) => ({
-          id: s.id,
-          procedure_type: s.tipoTramite,
-          property: s.predio
-            ? {
-                address: s.predio.direccion,
-              }
-            : null,
-          created_at: s.createdAt,
-          status: s.estado,
-        }));
-        set_applications(mapped);
+        set_applications(data.data || []);
       })
       .catch(() => set_applications([]))
       .finally(() => set_is_loading(false));
   }, []);
 
   const assigned_applications = applications.filter((s) =>
-    ['EN_REVISION_TECNICA', 'UNDER_REVIEW'].includes(s.status)
+    ['PENDING_TECHNICIAN', 'UNDER_REVIEW'].includes(s.status)
   );
   const inspection_applications = applications.filter((s) =>
-    ['INSPECCION', 'INSPECTION'].includes(s.status)
+    ['INSPECTION', 'INSPECTION'].includes(s.status)
   );
   const resolved_applications = applications.filter((s) =>
     [
@@ -54,10 +43,10 @@ export function TechnicianDashboard() {
       'REJECTED',
       'PENDING_PAYMENT',
       'PAID',
-      'APROBADO',
-      'NEGADO',
-      'PENDIENTE_PAGO',
-      'PAGADO',
+      'APPROVED',
+      'REJECTED',
+      'PENDING_PAYMENT',
+      'PAID',
     ].includes(s.status)
   );
 
@@ -66,22 +55,22 @@ export function TechnicianDashboard() {
       label: 'En Revisión (Nuevos)',
       value: assigned_applications.length,
       icon: Inbox,
-      iconClassName: 'text-warning-dark',
-      iconWrapperClassName: 'bg-warning-light/20',
+      icon_class_name: 'text-warning-dark',
+      icon_wrapper_class_name: 'bg-warning-light/20',
     },
     {
       label: 'En Inspección',
       value: inspection_applications.length,
       icon: MapPin,
-      iconClassName: 'text-primary-default',
-      iconWrapperClassName: 'bg-primary-light/10',
+      icon_class_name: 'text-primary-default',
+      icon_wrapper_class_name: 'bg-primary-light/10',
     },
     {
       label: 'Resueltos',
       value: resolved_applications.length,
       icon: CheckCircle2,
-      iconClassName: 'text-success-dark',
-      iconWrapperClassName: 'bg-success-light/20',
+      icon_class_name: 'text-success-dark',
+      icon_wrapper_class_name: 'bg-success-light/20',
     },
   ];
 
@@ -99,9 +88,9 @@ export function TechnicianDashboard() {
             label={kpi.label}
             value={kpi.value}
             icon={kpi.icon}
-            iconClassName={kpi.iconClassName}
-            iconWrapperClassName={kpi.iconWrapperClassName}
-            isLoading={is_loading}
+            icon_class_name={kpi.icon_class_name}
+            icon_wrapper_class_name={kpi.icon_wrapper_class_name}
+            is_loading={is_loading}
           />
         ))}
       </KpiGrid>

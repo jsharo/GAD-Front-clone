@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -21,19 +21,19 @@ import {
   UserCheck,
 } from 'lucide-react';
 import { applications_api, attachments_api } from '@/lib/api.calls';
-import { mapUser, type User as AuthUser } from '@/stores/auth.store';
-import { cn } from '@/lib/utils';
-import { PROCEDURE_TYPE_LABELS } from '@/lib/constants/procedure-types';
+import { MapUser, type User as AuthUser } from '@/stores/auth.store';
+import { Cn } from '@/lib/utils';
+import { PROCEDURE_TYPE_LABELS } from '@/lib/constants/procedure.types';
 import { PageHeader } from '@/components/ui/page.header';
 import { AlertBanner } from '@/components/ui/alert.banner';
 import api from '@/lib/api';
 
-type ProcedureType = 'LINEA_FABRICAS' | 'APROBACION_PLANOS' | 'PERMISO_CONSTRUCCION';
+type ProcedureType = 'BUILDING_LINE' | 'PLAN_APPROVAL' | 'CONSTRUCTION_PERMIT';
 
 const PROCEDURES = [
   {
-    value: 'LINEA_FABRICAS' as ProcedureType,
-    label: PROCEDURE_TYPE_LABELS.LINEA_FABRICAS,
+    value: 'BUILDING_LINE' as ProcedureType,
+    label: PROCEDURE_TYPE_LABELS.BUILDING_LINE,
     desc: 'Certificado que establece el lindero frontal de un predio respecto a la vía pública.',
     icon: <Factory size={28} />,
     color: '#D97706',
@@ -46,8 +46,8 @@ const PROCEDURES = [
     ],
   },
   {
-    value: 'APROBACION_PLANOS' as ProcedureType,
-    label: PROCEDURE_TYPE_LABELS.APROBACION_PLANOS,
+    value: 'PLAN_APPROVAL' as ProcedureType,
+    label: PROCEDURE_TYPE_LABELS.PLAN_APPROVAL,
     desc: 'Revisión y aprobación técnica de planos arquitectónicos y estructurales.',
     icon: <Layers size={28} />,
     color: '#2563EB',
@@ -61,8 +61,8 @@ const PROCEDURES = [
     ],
   },
   {
-    value: 'PERMISO_CONSTRUCCION' as ProcedureType,
-    label: PROCEDURE_TYPE_LABELS.PERMISO_CONSTRUCCION,
+    value: 'CONSTRUCTION_PERMIT' as ProcedureType,
+    label: PROCEDURE_TYPE_LABELS.CONSTRUCTION_PERMIT,
     desc: 'Autorización municipal para ejecutar obras de construcción, ampliación o remodelación.',
     icon: <HardHat size={28} />,
     color: '#2E8B57',
@@ -78,7 +78,7 @@ const PROCEDURES = [
 ];
 
 const step2Schema = z.object({
-  procedure_type: z.enum(['LINEA_FABRICAS', 'APROBACION_PLANOS', 'PERMISO_CONSTRUCCION'], {
+  procedure_type: z.enum(['BUILDING_LINE', 'PLAN_APPROVAL', 'CONSTRUCTION_PERMIT'], {
     required_error: 'Selecciona el tipo de trámite',
   }),
   location: z.enum(['URBAN', 'RURAL'], { required_error: 'Selecciona la ubicación' }),
@@ -99,33 +99,33 @@ const STEPS = [
 const PROCEDURE_THEME: Record<
   ProcedureType,
   {
-    accentText: string;
-    accentBg: string;
-    accentBorder: string;
-    accentSoft: string;
-    accentSoftBorder: string;
+    accent_text: string;
+    accent_bg: string;
+    accent_border: string;
+    accent_soft: string;
+    accent_soft_border: string;
   }
 > = {
-  LINEA_FABRICAS: {
-    accentText: 'text-secondary-dark',
-    accentBg: 'bg-secondary-light/20',
-    accentBorder: 'border-secondary-default',
-    accentSoft: 'bg-secondary-light/10',
-    accentSoftBorder: 'border-secondary-light',
+  BUILDING_LINE: {
+    accent_text: 'text-secondary-dark',
+    accent_bg: 'bg-secondary-light/20',
+    accent_border: 'border-secondary-default',
+    accent_soft: 'bg-secondary-light/10',
+    accent_soft_border: 'border-secondary-light',
   },
-  APROBACION_PLANOS: {
-    accentText: 'text-primary-default',
-    accentBg: 'bg-primary-light/10',
-    accentBorder: 'border-primary-default',
-    accentSoft: 'bg-primary-light/10',
-    accentSoftBorder: 'border-primary-light',
+  PLAN_APPROVAL: {
+    accent_text: 'text-primary-default',
+    accent_bg: 'bg-primary-light/10',
+    accent_border: 'border-primary-default',
+    accent_soft: 'bg-primary-light/10',
+    accent_soft_border: 'border-primary-light',
   },
-  PERMISO_CONSTRUCCION: {
-    accentText: 'text-success-dark',
-    accentBg: 'bg-success-light/20',
-    accentBorder: 'border-success-default',
-    accentSoft: 'bg-success-light/20',
-    accentSoftBorder: 'border-success-light',
+  CONSTRUCTION_PERMIT: {
+    accent_text: 'text-success-dark',
+    accent_bg: 'bg-success-light/20',
+    accent_border: 'border-success-default',
+    accent_soft: 'bg-success-light/20',
+    accent_soft_border: 'border-success-light',
   },
 };
 
@@ -162,7 +162,7 @@ export function NewProcedure() {
   const procedure_theme = selected_procedure ? PROCEDURE_THEME[selected_procedure] : null;
 
   // ── PASO 1: Buscar propietario por cédula ──
-  const searchCitizen = async () => {
+  const SearchCitizen = async () => {
     if (!national_id_search || national_id_search.length !== 10) {
       set_error('La cédula debe tener 10 dígitos');
       return;
@@ -174,7 +174,7 @@ export function NewProcedure() {
       const users = data.data || [];
       const citizen = users.find((u: any) => u.cedula === national_id_search);
       if (citizen) {
-        set_citizen_found(mapUser(citizen));
+        set_citizen_found(MapUser(citizen));
       } else {
         set_citizen_found(null);
       }
@@ -187,7 +187,7 @@ export function NewProcedure() {
     }
   };
 
-  const onStep1Next = () => {
+  const OnStep1Next = () => {
     if (!citizen_national_id) {
       set_error('Ingresa la cédula del propietario del predio');
       return;
@@ -197,7 +197,7 @@ export function NewProcedure() {
   };
 
   // ── PASO 2: Selección de tipo de trámite ──
-  const onStep2Next = () => {
+  const OnStep2Next = () => {
     if (!selected_procedure) {
       set_error('Selecciona el tipo de trámite para continuar');
       return;
@@ -208,20 +208,21 @@ export function NewProcedure() {
   };
 
   // ── PASO 3: Crear solicitud con datos del predio ──
-  const onStep3 = async (data: Step2Form) => {
+  const OnStep3 = async (data: Step2Form) => {
     set_is_loading(true);
     set_error(null);
     try {
       const payload = {
-        tipoTramite: selected_procedure,
-        ubicacion: data.location === 'URBAN' ? 'URBANO' : 'RURAL',
-        direccion: data.address,
-        area: data.area,
-        descripcion: data.description,
-        ciudadanoCedula: citizen_national_id,
+        request_type: selected_procedure,
+        citizen_id: citizen_found?.id,
+        property: {
+          address: data.address,
+          area: data.area ? Number(data.area) : undefined,
+          zone: data.location,
+        },
       };
-      const { data: res } = await applications_api.create(payload);
-      set_application_id(res.id);
+      const { data: res } = await applications_api.Create(payload);
+      set_application_id(res.data?.id || res.id);
       set_step(4);
     } catch (e: any) {
       set_error(e.response?.data?.message || 'Error al crear la solicitud');
@@ -231,7 +232,7 @@ export function NewProcedure() {
   };
 
   // ── PASO 4: Subir archivos ──
-  const handleFileAdd = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const HandleFileAdd = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file_list = Array.from(e.target.files ?? []);
     const valid = file_list.filter((f) => {
       if (!['application/pdf', 'image/jpeg', 'image/png'].includes(f.type)) {
@@ -248,14 +249,14 @@ export function NewProcedure() {
     set_error(null);
   };
 
-  const uploadFiles = async () => {
+  const UploadFiles = async () => {
     if (!application_id) return;
     set_is_loading(true);
     set_error(null);
     try {
       for (const file of files) {
         set_upload_progress((p) => ({ ...p, [file.name]: false }));
-        await attachments_api.upload(application_id, file);
+        await attachments_api.Upload(application_id, file);
         set_upload_progress((p) => ({ ...p, [file.name]: true }));
       }
       set_step(5);
@@ -267,12 +268,12 @@ export function NewProcedure() {
   };
 
   // ── PASO 5: Enviar ──
-  const handleSubmitApplication = async () => {
+  const HandleSubmitApplication = async () => {
     if (!application_id) return;
     set_is_loading(true);
     set_error(null);
     try {
-      await applications_api.send(application_id);
+      await applications_api.Send(application_id);
       navigate(`/architect/procedures/${application_id}`);
     } catch (e: any) {
       set_error(e.response?.data?.message || 'Error al enviar la solicitud');
@@ -293,7 +294,7 @@ export function NewProcedure() {
         {STEPS.map((s, i) => (
           <div key={s.num} className="flex items-center gap-1 flex-1">
             <div
-              className={cn(
+              className={Cn(
                 'w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0',
                 step > s.num
                   ? 'bg-green-500 text-white'
@@ -305,7 +306,7 @@ export function NewProcedure() {
               {step > s.num ? <CheckCircle2 size={14} /> : s.num}
             </div>
             <span
-              className={cn(
+              className={Cn(
                 'text-xs font-medium hidden sm:block',
                 step >= s.num ? 'text-blue-955' : 'text-slate-400'
               )}
@@ -314,7 +315,7 @@ export function NewProcedure() {
             </span>
             {i < STEPS.length - 1 && (
               <div
-                className={cn('flex-1 h-px ml-1', step > s.num ? 'bg-green-500' : 'bg-slate-200')}
+                className={Cn('flex-1 h-px ml-1', step > s.num ? 'bg-green-500' : 'bg-slate-200')}
               />
             )}
           </div>
@@ -322,7 +323,7 @@ export function NewProcedure() {
       </div>
 
       {/* Error */}
-      {error && <AlertBanner message={error} onDismiss={() => set_error(null)} />}
+      {error && <AlertBanner message={error} OnDismiss={() => set_error(null)} />}
 
       {/* ── PASO 1: Propietario ── */}
       {step === 1 && (
@@ -353,11 +354,11 @@ export function NewProcedure() {
                   className="input-field flex-1"
                   placeholder="0102030405"
                   maxLength={10}
-                  id="propietario-cedula"
+                  id="owner-national-id"
                 />
                 <button
                   type="button"
-                  onClick={searchCitizen}
+                  onClick={SearchCitizen}
                   disabled={is_searching || national_id_search.length !== 10}
                   className="flex items-center gap-2 rounded-xl bg-secondary-default px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
                 >
@@ -370,7 +371,7 @@ export function NewProcedure() {
             {/* Resultado de búsqueda */}
             {citizen_national_id && (
               <div
-                className={cn(
+                className={Cn(
                   'p-4 rounded-xl border',
                   citizen_found
                     ? 'bg-green-50 border-green-200'
@@ -414,7 +415,7 @@ export function NewProcedure() {
 
           <button
             type="button"
-            onClick={onStep1Next}
+            onClick={OnStep1Next}
             disabled={!citizen_national_id}
             id="step1-next"
             className="btn-primary w-full bg-secondary-default hover:bg-primary-dark disabled:opacity-50"
@@ -442,19 +443,19 @@ export function NewProcedure() {
                   key={t.value}
                   type="button"
                   onClick={() => set_selected_procedure(t.value)}
-                  className={cn(
+                  className={Cn(
                     'w-full text-left p-5 rounded-2xl border-2 group',
                     selected_procedure === t.value
-                      ? `${PROCEDURE_THEME[t.value].accentBorder} ${PROCEDURE_THEME[t.value].accentSoft}`
+                      ? `${PROCEDURE_THEME[t.value].accent_border} ${PROCEDURE_THEME[t.value].accent_soft}`
                       : 'border-slate-200 hover:border-slate-300 bg-white hover:bg-slate-50'
                   )}
                 >
                   <div className="flex items-start gap-4">
                     <div
-                      className={cn(
+                      className={Cn(
                         'p-3 rounded-xl flex-shrink-0 bg-neutral-100 text-slate-500',
                         selected_procedure === t.value &&
-                          `${PROCEDURE_THEME[t.value].accentBg} ${PROCEDURE_THEME[t.value].accentText}`
+                          `${PROCEDURE_THEME[t.value].accent_bg} ${PROCEDURE_THEME[t.value].accent_text}`
                       )}
                     >
                       {t.icon}
@@ -463,7 +464,10 @@ export function NewProcedure() {
                       <div className="flex items-center justify-between">
                         <p className="font-bold text-blue-955">{t.label}</p>
                         {selected_procedure === t.value && (
-                          <CheckCircle2 size={20} className={PROCEDURE_THEME[t.value].accentText} />
+                          <CheckCircle2
+                            size={20}
+                            className={PROCEDURE_THEME[t.value].accent_text}
+                          />
                         )}
                       </div>
                       <p className="text-slate-500 text-sm mt-1 leading-relaxed">{t.desc}</p>
@@ -480,7 +484,7 @@ export function NewProcedure() {
             </button>
             <button
               type="button"
-              onClick={onStep2Next}
+              onClick={OnStep2Next}
               disabled={!selected_procedure}
               id="step2-next"
               className="btn-primary flex-1 bg-secondary-default hover:bg-primary-dark disabled:opacity-50"
@@ -494,16 +498,16 @@ export function NewProcedure() {
 
       {/* ── PASO 3: Datos del predio ── */}
       {step === 3 && (
-        <form onSubmit={handleSubmit(onStep3)} className="space-y-4">
+        <form onSubmit={handleSubmit(OnStep3)} className="space-y-4">
           {procedure_info && (
             <div
-              className={cn(
+              className={Cn(
                 'flex items-center gap-3 rounded-xl border p-4',
-                procedure_theme?.accentSoft,
-                procedure_theme?.accentSoftBorder
+                procedure_theme?.accent_soft,
+                procedure_theme?.accent_soft_border
               )}
             >
-              <div className={procedure_theme?.accentText}>{procedure_info.icon}</div>
+              <div className={procedure_theme?.accent_text}>{procedure_info.icon}</div>
               <div>
                 <p className="font-bold text-blue-955 text-sm">{procedure_info.label}</p>
                 <p className="text-slate-500 text-xs">
@@ -521,7 +525,7 @@ export function NewProcedure() {
                 {(['URBAN', 'RURAL'] as const).map((u) => (
                   <label
                     key={u}
-                    className={cn(
+                    className={Cn(
                       'flex items-center gap-3 p-4 rounded-xl border cursor-pointer',
                       watch('location') === u
                         ? 'border-blue-500 bg-blue-50'
@@ -534,7 +538,7 @@ export function NewProcedure() {
                       className={watch('location') === u ? 'text-blue-600' : 'text-slate-400'}
                     />
                     <span
-                      className={cn(
+                      className={Cn(
                         'font-medium text-sm',
                         watch('location') === u ? 'text-blue-700' : 'text-blue-800'
                       )}
@@ -550,7 +554,7 @@ export function NewProcedure() {
               <label className="input-label">Dirección del Predio *</label>
               <input
                 {...register('address')}
-                id="predio-direccion"
+                id="property-address"
                 className="input-field"
                 placeholder="Av. Los Cerezos y Calle 5, sector norte"
               />
@@ -570,7 +574,7 @@ export function NewProcedure() {
                 {...register('area')}
                 type="number"
                 step="0.01"
-                id="predio-area"
+                id="property-area"
                 className="input-field"
                 placeholder="150.5"
               />
@@ -582,7 +586,7 @@ export function NewProcedure() {
               </label>
               <textarea
                 {...register('description')}
-                id="predio-descripcion"
+                id="property-description"
                 className="input-field resize-none"
                 rows={3}
                 placeholder="Información adicional sobre el predio o el trámite..."
@@ -628,16 +632,16 @@ export function NewProcedure() {
 
             {procedure_info && (
               <div
-                className={cn(
+                className={Cn(
                   'rounded-xl border p-4',
-                  procedure_theme?.accentSoft,
-                  procedure_theme?.accentSoftBorder
+                  procedure_theme?.accent_soft,
+                  procedure_theme?.accent_soft_border
                 )}
               >
                 <p
-                  className={cn(
+                  className={Cn(
                     'mb-2 text-xs font-bold uppercase tracking-wider',
-                    procedure_theme?.accentText
+                    procedure_theme?.accent_text
                   )}
                 >
                   📋 Documentos para {procedure_info.label}
@@ -649,9 +653,9 @@ export function NewProcedure() {
                       className="flex items-center gap-2 text-sm text-slate-600 text-left"
                     >
                       <div
-                        className={cn(
+                        className={Cn(
                           'w-1.5 h-1.5 rounded-full flex-shrink-0',
-                          procedure_theme?.accentBg
+                          procedure_theme?.accent_bg
                         )}
                       />
                       {doc}
@@ -666,7 +670,7 @@ export function NewProcedure() {
                 type="file"
                 multiple
                 accept=".pdf,.jpg,.jpeg,.png"
-                onChange={handleFileAdd}
+                onChange={HandleFileAdd}
                 className="sr-only"
                 id="file-upload"
               />
@@ -716,7 +720,7 @@ export function NewProcedure() {
               type="button"
               id="step4-upload"
               disabled={is_loading || files.length === 0}
-              onClick={uploadFiles}
+              onClick={UploadFiles}
               className="btn-primary flex-1 bg-secondary-default hover:bg-primary-dark disabled:opacity-50"
             >
               {is_loading ? (
@@ -763,10 +767,10 @@ export function NewProcedure() {
             {procedure_info && (
               <div className="flex items-center gap-3">
                 <div
-                  className={cn(
+                  className={Cn(
                     'rounded-lg p-2',
-                    procedure_theme?.accentBg,
-                    procedure_theme?.accentText
+                    procedure_theme?.accent_bg,
+                    procedure_theme?.accent_text
                   )}
                 >
                   {procedure_info.icon}
@@ -796,33 +800,35 @@ export function NewProcedure() {
                 {
                   label: 'Secretaría',
                   desc: 'Verifica docs',
-                  circleClass: 'bg-secondary-default',
-                  textClass: 'text-secondary-dark',
+                  circle_class: 'bg-secondary-default',
+                  text_class: 'text-secondary-dark',
                 },
                 {
                   label: 'Técnico',
                   desc: 'Evalúa predio',
-                  circleClass: 'bg-success-default',
-                  textClass: 'text-success-dark',
+                  circle_class: 'bg-success-default',
+                  text_class: 'text-success-dark',
                 },
                 {
                   label: 'Resultado',
                   desc: 'Notifica al ciudadano',
-                  circleClass: 'bg-primary-default',
-                  textClass: 'text-primary-default',
+                  circle_class: 'bg-primary-default',
+                  text_class: 'text-primary-default',
                 },
               ].map((item, i, arr) => (
                 <div key={item.label} className="flex items-center gap-2">
                   <div className="text-center">
                     <div
-                      className={cn(
+                      className={Cn(
                         'mx-auto flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold text-white',
-                        item.circleClass
+                        item.circle_class
                       )}
                     >
                       {i + 1}
                     </div>
-                    <p className={cn('mt-1 text-xs font-semibold', item.textClass)}>{item.label}</p>
+                    <p className={Cn('mt-1 text-xs font-semibold', item.text_class)}>
+                      {item.label}
+                    </p>
                     <p className="text-xs text-slate-400">{item.desc}</p>
                   </div>
                   {i < arr.length - 1 && (
@@ -844,9 +850,9 @@ export function NewProcedure() {
             </button>
             <button
               type="button"
-              id="step5-enviar"
+              id="step5-submit"
               disabled={is_loading}
-              onClick={handleSubmitApplication}
+              onClick={HandleSubmitApplication}
               className="btn-primary flex-1 bg-secondary-default hover:bg-primary-dark disabled:opacity-50"
             >
               {is_loading ? (

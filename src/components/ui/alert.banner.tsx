@@ -1,45 +1,45 @@
 import { AlertCircle, CheckCircle2, AlertTriangle, Info, X } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { Cn } from '@/lib/utils';
 
 type AlertVariant = 'error' | 'success' | 'warning' | 'info';
 
 interface AlertBannerProps {
   variant?: AlertVariant;
   message: string;
-  onDismiss?: () => void;
+  OnDismiss?: () => void;
   className?: string;
 }
 
 const VARIANT_CONFIG: Record<
   AlertVariant,
-  { icon: typeof AlertCircle; container: string; iconClass: string }
+  { icon: typeof AlertCircle; container: string; icon_class: string }
 > = {
   error: {
     icon: AlertCircle,
     container: 'bg-red-50 text-red-600 border-red-200',
-    iconClass: 'text-red-600',
+    icon_class: 'text-red-600',
   },
   success: {
     icon: CheckCircle2,
     container: 'bg-green-50 text-green-800 border-green-200',
-    iconClass: 'text-green-600',
+    icon_class: 'text-green-600',
   },
   warning: {
     icon: AlertTriangle,
     container: 'bg-amber-50 text-amber-800 border-amber-200',
-    iconClass: 'text-amber-600',
+    icon_class: 'text-amber-600',
   },
   info: {
     icon: Info,
     container: 'bg-primary-light/10 text-primary-default border-primary-light/30',
-    iconClass: 'text-primary-default',
+    icon_class: 'text-primary-default',
   },
 };
 
 export function AlertBanner({
   variant = 'error',
   message,
-  onDismiss,
+  OnDismiss,
   className,
 }: AlertBannerProps) {
   const config = VARIANT_CONFIG[variant];
@@ -47,19 +47,19 @@ export function AlertBanner({
 
   return (
     <div
-      className={cn(
+      className={Cn(
         'flex items-start gap-3 rounded-xl border p-3 sm:p-4 text-sm',
         config.container,
         className
       )}
       role="alert"
     >
-      <Icon size={16} className={cn('flex-shrink-0 mt-0.5', config.iconClass)} />
+      <Icon size={16} className={Cn('flex-shrink-0 mt-0.5', config.icon_class)} />
       <span className="flex-1">{message}</span>
-      {onDismiss && (
+      {OnDismiss && (
         <button
           type="button"
-          onClick={onDismiss}
+          onClick={OnDismiss}
           className="flex-shrink-0 rounded-lg p-1 hover:bg-black/5"
           aria-label="Cerrar alerta"
         >

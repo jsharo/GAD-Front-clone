@@ -1,23 +1,23 @@
-import { FileText, CheckCircle2, Clock, MapPin, XCircle, FileCheck2 } from 'lucide-react';
-import { cn } from '@/lib/utils';
+﻿import { FileText, CheckCircle2, Clock, MapPin, XCircle, FileCheck2 } from 'lucide-react';
+import { Cn } from '@/lib/utils';
 
 const STEPS = [
-  { key: 'ENTRY', statuses: ['BORRADOR', 'DRAFT'], label: 'Ingresada', icon: FileText },
+  { key: 'ENTRY', statuses: ['DRAFT'], label: 'Ingresada', icon: FileText },
   {
     key: 'SECRETARY',
-    statuses: ['PENDIENTE_SECRETARIA', 'PENDING_SECRETARY', 'OBSERVADO', 'OBSERVED'],
+    statuses: ['PENDING_SECRETARY', 'OBSERVED'],
     label: 'Secretaría',
     icon: FileCheck2,
   },
   {
     key: 'TECHNICIAN',
-    statuses: ['EN_REVISION', 'UNDER_REVIEW', 'INSPECCION', 'INSPECTION'],
+    statuses: ['PENDING_TECHNICIAN', 'UNDER_REVIEW', 'INSPECTION'],
     label: 'Técnico',
     icon: MapPin,
   },
   {
     key: 'END',
-    statuses: ['APROBADO', 'APPROVED', 'NEGADO', 'REJECTED'],
+    statuses: ['APPROVED', 'REJECTED', 'PENDING_PAYMENT', 'PAID'],
     label: 'Resultado',
     icon: CheckCircle2,
   },
@@ -26,8 +26,8 @@ const STEPS = [
 export function ApplicationTimeline({ current_status }: { current_status: string }) {
   const current_step_index = STEPS.findIndex((step) => step.statuses.includes(current_status));
 
-  const is_rejected = current_status === 'NEGADO' || current_status === 'REJECTED';
-  const is_observed = current_status === 'OBSERVADO' || current_status === 'OBSERVED';
+  const is_rejected = current_status === 'REJECTED';
+  const is_observed = current_status === 'OBSERVED';
 
   return (
     <div className="flex items-start w-full pt-2">
@@ -70,7 +70,7 @@ export function ApplicationTimeline({ current_status }: { current_status: string
           <div key={step.key} className="flex flex-1 items-start last:flex-none">
             <div className="relative z-10 flex flex-col items-center gap-2">
               <div
-                className={cn(
+                className={Cn(
                   'w-10 h-10 rounded-full border-2 flex items-center justify-center',
                   bg_color,
                   border_color
@@ -79,19 +79,19 @@ export function ApplicationTimeline({ current_status }: { current_status: string
                 <CurrentIcon size={18} className={icon_color} />
               </div>
               <span
-                className={cn('mt-1 text-[11px] sm:text-xs text-center font-medium', label_color)}
+                className={Cn('mt-1 text-[11px] sm:text-xs text-center font-medium', label_color)}
               >
                 {step.label}
               </span>
               {is_current && (
                 <span
-                  className={cn(
+                  className={Cn(
                     'absolute -bottom-6 whitespace-nowrap rounded-full px-2 py-0.5 text-[10px] font-bold',
                     is_rejected
                       ? 'bg-error-light/20 text-error-dark border border-error-light'
                       : is_observed
                         ? 'bg-warning-light/20 text-warning-dark border border-warning-light'
-                        : current_status === 'APROBADO' || current_status === 'APPROVED'
+                        : current_status === 'APPROVED' || current_status === 'APPROVED'
                           ? 'bg-success-light/20 text-success-dark border border-success-light'
                           : 'bg-primary-light/10 text-primary-default border border-primary-light/30'
                   )}
@@ -102,7 +102,7 @@ export function ApplicationTimeline({ current_status }: { current_status: string
             </div>
             {index < STEPS.length - 1 && (
               <div
-                className={cn(
+                className={Cn(
                   'mx-2 mt-[18px] h-1 flex-1 rounded-full',
                   current_step_index > index && !is_rejected && !is_observed
                     ? 'bg-primary-default'

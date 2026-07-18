@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useState } from 'react';
 import { FileText, Loader2, Upload } from 'lucide-react';
 import {
-  getRequestAttachments,
-  uploadRequestAttachment,
+  GetRequestAttachments,
+  UploadRequestAttachment,
   type AttachmentFolder,
   type RequestAttachment,
 } from '@/lib/api.calls';
-import { getApiError } from '@/lib/errors';
+import { GetApiError } from '@/lib/errors';
 import { AttachmentRow } from '@/components/logic/attachment.row';
 import { AlertBanner } from '@/components/ui/alert.banner';
 import { DetailSection } from '@/components/ui/detail.section';
@@ -41,9 +41,9 @@ export function DocumentPanel({
   const loadAttachments = useCallback(async () => {
     setLoading(true);
     try {
-      setAttachments(await getRequestAttachments(request_id));
+      setAttachments(await GetRequestAttachments(request_id));
     } catch (err) {
-      setError(getApiError(err, 'No se pudieron cargar los documentos.'));
+      setError(GetApiError(err, 'No se pudieron cargar los documentos.'));
     } finally {
       setLoading(false);
     }
@@ -61,12 +61,12 @@ export function DocumentPanel({
     setUploading(true);
     setError(null);
     try {
-      await uploadRequestAttachment(request_id, form_data);
+      await UploadRequestAttachment(request_id, form_data);
       form.reset();
       await loadAttachments();
       on_attachments_changed?.();
     } catch (err) {
-      setError(getApiError(err, 'No se pudo subir el documento.'));
+      setError(GetApiError(err, 'No se pudo subir el documento.'));
     } finally {
       setUploading(false);
     }
@@ -74,7 +74,7 @@ export function DocumentPanel({
 
   const content = (
     <>
-      {error && <AlertBanner message={error} onDismiss={() => setError(null)} className="mb-4" />}
+      {error && <AlertBanner message={error} OnDismiss={() => setError(null)} className="mb-4" />}
       {allowed_upload && (
         <form
           onSubmit={handleUpload}
@@ -108,10 +108,10 @@ export function DocumentPanel({
           {attachments.map((attachment) => (
             <AttachmentRow
               key={attachment.id}
-              requestId={request_id}
+              request_id={request_id}
               attachment={attachment}
-              allowedIpfs={allowed_ipfs}
-              onError={setError}
+              allowed_ipfs={allowed_ipfs}
+              OnError={setError}
             />
           ))}
         </div>
