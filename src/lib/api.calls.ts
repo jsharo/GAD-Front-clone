@@ -362,85 +362,80 @@ export async function GetRequests(params?: object) {
 
 export async function GetRequestById(request_id: string) {
   const response = await api.get<ApiEnvelope<any>>(`/requests/${request_id}`);
-
   return response.data.data;
 }
+export const getRequestById = GetRequestById;
 
 export async function SubmitSecretaryReview(request_id: string, review: SecretaryReviewInput) {
   const response = await api.post<ApiEnvelope<SecretaryReviewResult>>(
     `/requests/${request_id}/secretary-review`,
-
     review
   );
-
   return response.data.data;
 }
+export const submitSecretaryReview = SubmitSecretaryReview;
 
 export async function GetRequestAttachments(request_id: string) {
   const response = await api.get<ApiEnvelope<RequestAttachment[]>>(
     `/requests/${request_id}/attachments`
   );
-
   return response.data.data;
 }
+export const getRequestAttachments = GetRequestAttachments;
 
 export async function UploadRequestAttachment(request_id: string, form_data: FormData) {
   const response = await api.post<ApiEnvelope<RequestAttachment>>(
     `/requests/${request_id}/attachments`,
-
     form_data
   );
-
   return response.data.data;
 }
+export const uploadRequestAttachment = UploadRequestAttachment;
 
 export function DownloadRequestAttachment(request_id: string, attachment_id: string) {
   return api.get<Blob>(`/requests/${request_id}/attachments/${attachment_id}/download`, {
     responseType: 'blob',
   });
 }
+export const downloadRequestAttachment = DownloadRequestAttachment;
 
 export async function VerifyRequestAttachment(request_id: string, attachment_id: string) {
   const response = await api.get<AttachmentIntegrityResult>(
     `/requests/${request_id}/attachments/${attachment_id}/verify`
   );
-
   return response.data;
 }
+export const verifyRequestAttachment = VerifyRequestAttachment;
 
 export async function GetRequestSignatureVerification(request_id: string, refresh = false) {
   const response = await api.get<ApiEnvelope<RequestSignatureSummary>>(
     `/requests/${request_id}/signature-verification`,
-
     { params: refresh ? { refresh: true } : undefined }
   );
-
   return response.data.data;
 }
+export const getRequestSignatureVerification = GetRequestSignatureVerification;
 
 export async function GetAttachmentSignatureVerification(
   request_id: string,
-
   attachment_id: string,
-
   refresh = false
 ) {
   const response = await api.get<ApiEnvelope<AttachmentSignatureReport>>(
     `/requests/${request_id}/attachments/${attachment_id}/signatures`,
-
     { params: refresh ? { refresh: true } : undefined }
   );
-
   return response.data.data;
 }
+export const getAttachmentSignatureVerification = GetAttachmentSignatureVerification;
 
 export async function SendAttachmentToIpfs(request_id: string, attachment_id: string) {
   const response = await api.post<AttachmentIpfsResult>(
     `/requests/${request_id}/attachments/${attachment_id}/ipfs`
   );
-
   return response.data;
 }
+export const sendAttachmentToIpfs = SendAttachmentToIpfs;
 
 export async function VerifyAuditChain() {
   const response = await api.get<{
