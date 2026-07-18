@@ -2,15 +2,15 @@ import { useEffect, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { FileCheck2, Eye, RefreshCw, Clock, XCircle } from 'lucide-react';
 import { applications_api } from '@/lib/api.calls';
-import { ApplicationFilterBar } from '@/components/logic/application.filter-bar';
-import type { FilterState } from '@/lib/constants/application-filters';
+import { ApplicationFilterBar } from '@/components/logic/application.filter.bar';
+import type { FilterState } from '@/lib/constants/application.filters';
 import { StatusBadge } from '@/components/ui/status.badge';
 import { PageHeader } from '@/components/ui/page.header';
 import { StatCard, KpiGrid } from '@/components/ui/stat.card';
 import { LoadingSkeleton } from '@/components/ui/loading.skeleton';
 import { EmptyState } from '@/components/ui/empty.state';
 import { PanelCard } from '@/components/ui/panel.card';
-import { ProcedureTypeBadge } from '@/components/ui/procedure-type.badge';
+import { ProcedureTypeBadge } from '@/components/ui/procedure.type.badge';
 
 const SECRETARY_STATUS_OPTIONS = [
   { value: '', label: 'Todos (activos)' },
@@ -39,57 +39,34 @@ export function SecretaryInbox() {
   const [is_loading, set_is_loading] = useState(true);
   const [filters, set_filters] = useState<FilterState>({
     search: '',
-    procedureType: '',
+    procedure_type: '',
     status: '',
-    dateFrom: '',
-    dateTo: '',
+    date_from: '',
+    date_to: '',
   });
 
-  const handleFilterChange = useCallback((next: FilterState) => {
+  const HandleFilterChange = useCallback((next: FilterState) => {
     set_filters(next);
   }, []);
 
-  const loadInbox = useCallback(async () => {
+  const LoadInbox = useCallback(async () => {
     set_is_loading(true);
     try {
       const params: Record<string, string | number> = { limit: 100 };
-      if (filters.status) params.estado = filters.status;
-      if (filters.procedureType) params.tipoTramite = filters.procedureType;
-      const { data } = await applications_api.list(params);
-
-      const mapped = (data.data || []).map((s: any) => ({
-        id: s.id,
-        status: s.estado,
-        procedure_type: s.tipoTramite,
-        created_at: s.createdAt,
-        citizen: s.ciudadano
-          ? {
-              first_name: s.ciudadano.nombre,
-              last_name: s.ciudadano.apellido,
-              national_id: s.ciudadano.cedula,
-            }
-          : null,
-        property: s.predio
-          ? {
-              address: s.predio.direccion,
-            }
-          : null,
-        attachments: (s.anexos || []).map((a: any) => ({
-          id: a.id,
-        })),
-      }));
-
-      set_applications(mapped);
+      if (filters.status) params.status = filters.status;
+      if (filters.procedure_type) params.request_type = filters.procedure_type;
+      const { data } = await applications_api.List(params);
+      set_applications(data.data || []);
     } catch (e) {
       console.error('Error loading inbox', e);
     } finally {
       set_is_loading(false);
     }
-  }, [filters.status, filters.procedureType]);
+  }, [filters.status, filters.procedure_type]);
 
   useEffect(() => {
-    loadInbox();
-  }, [loadInbox]);
+    LoadInbox();
+  }, [LoadInbox]);
 
   const filtered_applications = applications.filter((s) => {
     if (!filters.status && !['PENDING_SECRETARY', 'OBSERVED'].includes(s.status)) {
@@ -108,13 +85,13 @@ export function SecretaryInbox() {
       }
     }
 
-    if (filters.dateFrom) {
-      const from = new Date(filters.dateFrom);
+    if (filters.date_from) {
+      const from = new Date(filters.date_from);
       if (new Date(s.created_at) < from) return false;
     }
 
-    if (filters.dateTo) {
-      const to = new Date(filters.dateTo);
+    if (filters.date_to) {
+      const to = new Date(filters.date_to);
       to.setHours(23, 59, 59, 999);
       if (new Date(s.created_at) > to) return false;
     }
@@ -132,7 +109,7 @@ export function SecretaryInbox() {
         description="Verificación documental — firma y completitud de expedientes"
         actions={
           <button
-            onClick={loadInbox}
+            onClick={LoadInbox}
             disabled={is_loading}
             className="rounded-xl border border-neutral-200 p-2.5 text-slate-500 hover:bg-primary-dark hover:text-neutral-50 hover:border-primary-dark"
             title="Actualizar"
@@ -147,33 +124,33 @@ export function SecretaryInbox() {
           label="Pendientes"
           value={pending_count}
           icon={Clock}
-          iconClassName="text-warning-dark"
-          iconWrapperClassName="bg-warning-light/20"
-          isLoading={is_loading}
+          icon_class_name="text-warning-dark"
+          icon_wrapper_class_name="bg-warning-light/20"
+          is_loading={is_loading}
         />
         <StatCard
           label="Observados"
           value={observed_count}
           icon={XCircle}
-          iconClassName="text-error-dark"
-          iconWrapperClassName="bg-error-light/20"
-          isLoading={is_loading}
+          icon_class_name="text-error-dark"
+          icon_wrapper_class_name="bg-error-light/20"
+          is_loading={is_loading}
         />
         <StatCard
           label="Total activos"
           value={pending_count + observed_count}
           icon={FileCheck2}
-          iconClassName="text-primary-default"
-          iconWrapperClassName="bg-primary-light/10"
-          isLoading={is_loading}
+          icon_class_name="text-primary-default"
+          icon_wrapper_class_name="bg-primary-light/10"
+          is_loading={is_loading}
         />
       </KpiGrid>
 
       <ApplicationFilterBar
-        onFilterChange={handleFilterChange}
-        statusOptions={SECRETARY_STATUS_OPTIONS}
-        showProcedureFilter
-        showDateFilters
+        OnFilterChange={HandleFilterChange}
+        status_options={SECRETARY_STATUS_OPTIONS}
+        show_procedure_filter
+        show_date_filters
       />
 
       <PanelCard>
@@ -216,46 +193,46 @@ export function SecretaryInbox() {
                   </td>
                 </tr>
               ) : (
-                filtered_applications.map((sol) => (
-                  <tr key={sol.id} className="hover:bg-neutral-100">
+                filtered_applications.map((application) => (
+                  <tr key={application.id} className="hover:bg-neutral-100">
                     <td className="px-6 py-4">
                       <p className="font-bold text-blue-955 text-sm font-mono">
-                        #{sol.id?.slice(0, 8).toUpperCase()}
+                        #{application.id?.slice(0, 8).toUpperCase()}
                       </p>
                       <p className="text-[0.7rem] text-slate-400">
-                        {sol.created_at
-                          ? new Date(sol.created_at).toLocaleDateString('es-EC')
+                        {application.created_at
+                          ? new Date(application.created_at).toLocaleDateString('es-EC')
                           : '—'}
                       </p>
                     </td>
                     <td className="px-6 py-4">
                       <p className="font-semibold text-blue-955 text-sm text-left">
-                        {sol.citizen?.first_name} {sol.citizen?.last_name}
+                        {application.citizen?.first_name} {application.citizen?.last_name}
                       </p>
                       <p className="text-left text-[0.75rem] text-slate-500">
-                        CI: {sol.citizen?.national_id || '—'}
+                        CI: {application.citizen?.national_id || '—'}
                       </p>
                     </td>
                     <td className="px-6 py-4">
-                      <ProcedureTypeBadge type={sol.procedure_type} />
+                      <ProcedureTypeBadge type={application.procedure_type} />
                       <p className="mt-1 text-[0.7rem] text-slate-400">
-                        {sol.property?.address ?? '—'}
+                        {application.property?.address ?? '—'}
                       </p>
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
                         <FileCheck2 size={14} className="text-slate-500" />
                         <span className="text-sm font-semibold text-blue-955">
-                          {sol.attachments?.length ?? 0} archivos
+                          {application.attachments?.length ?? 0} archivos
                         </span>
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <StatusBadge status={sol.status} />
+                      <StatusBadge status={application.status} />
                     </td>
                     <td className="px-6 py-4">
                       <Link
-                        to={`/secretary/inbox/${sol.id}`}
+                        to={`/secretary/inbox/${application.id}`}
                         className="inline-flex items-center gap-2 rounded-xl border border-secondary-light bg-secondary-light/20 px-3 py-2 text-xs font-semibold text-secondary-dark hover:border-primary-dark hover:bg-primary-dark hover:text-neutral-50"
                       >
                         <Eye size={14} /> Revisar

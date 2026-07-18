@@ -9,30 +9,30 @@ import {
 } from 'lucide-react';
 
 export interface DigitalSignatureSimulatorProps {
-  signerName: string;
-  signerId: string;
-  requirePin?: boolean;
-  onSignComplete: (signatureHash: string) => void;
+  signer_name: string;
+  signer_id: string;
+  require_pin?: boolean;
+  OnSignComplete: (signature_hash: string) => void;
   title?: string;
 }
 
 export function DigitalSignatureSimulator({
-  signerName,
-  signerId,
-  requirePin = true,
-  onSignComplete,
+  signer_name,
+  signer_id,
+  require_pin = true,
+  OnSignComplete,
   title = 'Simulador de Firma Electrónica Avanzada',
 }: DigitalSignatureSimulatorProps) {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [isDrawing, setIsDrawing] = useState(false);
-  const [pin, setPin] = useState('');
-  const [isSigning, setIsSigning] = useState(false);
-  const [signedHash, setSignedHash] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [canvasHasContent, setCanvasHasContent] = useState(false);
+  const canvas_ref = useRef<HTMLCanvasElement>(null);
+  const [is_drawing, set_is_drawing] = useState(false);
+  const [pin, set_pin] = useState('');
+  const [is_signing, set_is_signing] = useState(false);
+  const [signed_hash, set_signed_hash] = useState<string | null>(null);
+  const [error, set_error] = useState<string | null>(null);
+  const [canvas_has_content, set_canvas_has_content] = useState(false);
 
   // Generate a mock SHA-256 fingerprint hash on sign-off
-  const generateSHA256 = () => {
+  const GenerateSHA256 = () => {
     const chars = '0123456789abcdef';
     let hash = 'sha256:f8ca9b2e';
     for (let i = 0; i < 48; i++) {
@@ -43,7 +43,7 @@ export function DigitalSignatureSimulator({
 
   // Draw handlers for HTML5 Canvas
   useEffect(() => {
-    const canvas = canvasRef.current;
+    const canvas = canvas_ref.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
@@ -55,10 +55,10 @@ export function DigitalSignatureSimulator({
     ctx.lineJoin = 'round';
   }, []);
 
-  const getCoordinates = (
+  const GetCoordinates = (
     e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>
   ) => {
-    const canvas = canvasRef.current;
+    const canvas = canvas_ref.current;
     if (!canvas) return { x: 0, y: 0 };
     const rect = canvas.getBoundingClientRect();
 
@@ -77,74 +77,74 @@ export function DigitalSignatureSimulator({
     }
   };
 
-  const startDrawing = (
+  const StartDrawing = (
     e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>
   ) => {
     if ('touches' in e) {
       e.preventDefault();
     }
-    const canvas = canvasRef.current;
+    const canvas = canvas_ref.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    const { x, y } = getCoordinates(e);
+    const { x, y } = GetCoordinates(e);
     ctx.beginPath();
     ctx.moveTo(x, y);
-    setIsDrawing(true);
+    set_is_drawing(true);
   };
 
-  const draw = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
-    if (!isDrawing) return;
+  const Draw = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
+    if (!is_drawing) return;
     if ('touches' in e) {
       e.preventDefault();
     }
-    const canvas = canvasRef.current;
+    const canvas = canvas_ref.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    const { x, y } = getCoordinates(e);
+    const { x, y } = GetCoordinates(e);
     ctx.lineTo(x, y);
     ctx.stroke();
-    setCanvasHasContent(true);
+    set_canvas_has_content(true);
   };
 
-  const stopDrawing = () => {
-    setIsDrawing(false);
+  const StopDrawing = () => {
+    set_is_drawing(false);
   };
 
-  const clearCanvas = () => {
-    const canvas = canvasRef.current;
+  const ClearCanvas = () => {
+    const canvas = canvas_ref.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    setCanvasHasContent(false);
-    setError(null);
+    set_canvas_has_content(false);
+    set_error(null);
   };
 
-  const handleAuthorize = async () => {
-    setError(null);
+  const HandleAuthorize = async () => {
+    set_error(null);
 
-    if (requirePin && pin.length !== 4) {
-      setError('Por favor ingresa un código PIN de 4 dígitos.');
+    if (require_pin && pin.length !== 4) {
+      set_error('Por favor ingresa un código PIN de 4 dígitos.');
       return;
     }
 
-    if (!canvasHasContent) {
-      setError('Debes dibujar tu firma en el recuadro para continuar.');
+    if (!canvas_has_content) {
+      set_error('Debes dibujar tu firma en el recuadro para continuar.');
       return;
     }
 
-    setIsSigning(true);
+    set_is_signing(true);
 
     // Simulate signature processing / cryptographic verification delay
     setTimeout(() => {
-      const hash = generateSHA256();
-      setSignedHash(hash);
-      setIsSigning(false);
-      onSignComplete(hash);
+      const hash = GenerateSHA256();
+      set_signed_hash(hash);
+      set_is_signing(false);
+      OnSignComplete(hash);
     }, 1500);
   };
 
@@ -162,7 +162,7 @@ export function DigitalSignatureSimulator({
         </div>
       </div>
 
-      {!signedHash ? (
+      {!signed_hash ? (
         <div className="space-y-5">
           {/* Signer details */}
           <div className="grid grid-cols-2 gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-200/50 text-xs">
@@ -170,13 +170,13 @@ export function DigitalSignatureSimulator({
               <p className="text-slate-400 font-bold uppercase tracking-wider text-[9px]">
                 Firmante
               </p>
-              <p className="text-slate-700 font-bold mt-0.5">{signerName}</p>
+              <p className="text-slate-700 font-bold mt-0.5">{signer_name}</p>
             </div>
             <div>
               <p className="text-slate-400 font-bold uppercase tracking-wider text-[9px]">
                 Identificación (Cédula)
               </p>
-              <p className="text-slate-700 font-mono font-semibold mt-0.5">{signerId}</p>
+              <p className="text-slate-700 font-mono font-semibold mt-0.5">{signer_id}</p>
             </div>
             <div className="col-span-2 border-t border-slate-200/50 pt-2">
               <p className="text-slate-400 font-bold uppercase tracking-wider text-[9px]">
@@ -192,10 +192,10 @@ export function DigitalSignatureSimulator({
               <label className="text-[10px] font-bold text-blue-600 uppercase tracking-wider flex items-center gap-1">
                 <PenTool size={10} /> Trazo de Firma Digital *
               </label>
-              {canvasHasContent && (
+              {canvas_has_content && (
                 <button
                   type="button"
-                  onClick={clearCanvas}
+                  onClick={ClearCanvas}
                   className="text-[10px] text-red-500 hover:text-red-650 font-bold uppercase flex items-center gap-1 transition-colors cursor-pointer"
                 >
                   <RefreshCw size={10} /> Limpiar
@@ -204,19 +204,19 @@ export function DigitalSignatureSimulator({
             </div>
             <div className="relative border border-slate-200 hover:border-slate-350 rounded-2xl overflow-hidden bg-slate-50 cursor-crosshair">
               <canvas
-                ref={canvasRef}
+                ref={canvas_ref}
                 width={430}
                 height={160}
-                onMouseDown={startDrawing}
-                onMouseMove={draw}
-                onMouseUp={stopDrawing}
-                onMouseLeave={stopDrawing}
-                onTouchStart={startDrawing}
-                onTouchMove={draw}
-                onTouchEnd={stopDrawing}
+                onMouseDown={StartDrawing}
+                onMouseMove={Draw}
+                onMouseUp={StopDrawing}
+                onMouseLeave={StopDrawing}
+                onTouchStart={StartDrawing}
+                onTouchMove={Draw}
+                onTouchEnd={StopDrawing}
                 className="w-full h-40"
               />
-              {!canvasHasContent && (
+              {!canvas_has_content && (
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none text-slate-400 text-xs">
                   Dibuja tu firma aquí (Mouse o Dedo)
                 </div>
@@ -225,7 +225,7 @@ export function DigitalSignatureSimulator({
           </div>
 
           {/* Optional PIN */}
-          {requirePin && (
+          {require_pin && (
             <div className="space-y-1.5">
               <label className="text-[10px] font-bold text-blue-600 uppercase tracking-wider flex items-center gap-1">
                 <KeyRound size={10} /> Código PIN del Certificado (4 dígitos) *
@@ -234,7 +234,7 @@ export function DigitalSignatureSimulator({
                 type="password"
                 maxLength={4}
                 value={pin}
-                onChange={(e) => setPin(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                onChange={(e) => set_pin(e.target.value.replace(/\D/g, '').slice(0, 4))}
                 placeholder="••••"
                 className="input-field py-2.5 text-center font-mono text-lg tracking-[0.5em] focus:bg-blue-50/50"
               />
@@ -250,11 +250,11 @@ export function DigitalSignatureSimulator({
           {/* Submit button */}
           <button
             type="button"
-            onClick={handleAuthorize}
-            disabled={isSigning}
+            onClick={HandleAuthorize}
+            disabled={is_signing}
             className="btn-primary w-full py-3 flex items-center justify-center gap-2 rounded-xl transition-all font-bold text-xs"
           >
-            {isSigning ? (
+            {is_signing ? (
               <>
                 <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                 <span>Encriptando y Firmando...</span>
@@ -290,7 +290,7 @@ export function DigitalSignatureSimulator({
             </div>
             <div className="break-all">
               <span className="text-slate-400 font-bold">HUELLA DIGITAL:</span>
-              <p className="font-mono mt-0.5 text-slate-700">{signedHash}</p>
+              <p className="font-mono mt-0.5 text-slate-700">{signed_hash}</p>
             </div>
           </div>
         </div>

@@ -1,57 +1,82 @@
 import { useState, useEffect } from 'react';
+
 import { Search, Calendar, RefreshCcw, SlidersHorizontal } from 'lucide-react';
+
 import {
   DEFAULT_PROCEDURE_TYPES,
   DEFAULT_STATUS_OPTIONS,
   type FilterOption,
   type FilterState,
-} from '@/lib/constants/application-filters';
+} from '@/lib/constants/application.filters';
 
 export interface ApplicationFilterBarProps {
-  onFilterChange: (filters: FilterState) => void;
-  initialFilters?: Partial<FilterState>;
-  statusOptions?: FilterOption[];
-  procedureTypes?: FilterOption[];
-  showProcedureFilter?: boolean;
-  showDateFilters?: boolean;
+  OnFilterChange: (filters: FilterState) => void;
+
+  initial_filters?: Partial<FilterState>;
+
+  status_options?: FilterOption[];
+
+  procedure_types?: FilterOption[];
+
+  show_procedure_filter?: boolean;
+
+  show_date_filters?: boolean;
 }
 
 export function ApplicationFilterBar({
-  onFilterChange,
-  initialFilters,
-  statusOptions = DEFAULT_STATUS_OPTIONS,
-  procedureTypes = DEFAULT_PROCEDURE_TYPES,
-  showProcedureFilter = true,
-  showDateFilters = true,
+  OnFilterChange,
+
+  initial_filters,
+
+  status_options = DEFAULT_STATUS_OPTIONS,
+
+  procedure_types = DEFAULT_PROCEDURE_TYPES,
+
+  show_procedure_filter = true,
+
+  show_date_filters = true,
 }: ApplicationFilterBarProps) {
-  const [search, setSearch] = useState(initialFilters?.search ?? '');
-  const [procedureType, setProcedureType] = useState(initialFilters?.procedureType ?? '');
-  const [status, setStatus] = useState(initialFilters?.status ?? '');
-  const [dateFrom, setDateFrom] = useState(initialFilters?.dateFrom ?? '');
-  const [dateTo, setDateTo] = useState(initialFilters?.dateTo ?? '');
+  const [search, set_search] = useState(initial_filters?.search ?? '');
+
+  const [procedure_type, set_procedure_type] = useState(initial_filters?.procedure_type ?? '');
+
+  const [status, set_status] = useState(initial_filters?.status ?? '');
+
+  const [date_from, set_date_from] = useState(initial_filters?.date_from ?? '');
+
+  const [date_to, set_date_to] = useState(initial_filters?.date_to ?? '');
 
   useEffect(() => {
-    onFilterChange({
+    OnFilterChange({
       search,
-      procedureType,
-      status,
-      dateFrom,
-      dateTo,
-    });
-  }, [search, procedureType, status, dateFrom, dateTo, onFilterChange]);
 
-  const handleClear = () => {
-    setSearch('');
-    setProcedureType('');
-    setStatus('');
-    setDateFrom('');
-    setDateTo('');
+      procedure_type,
+
+      status,
+
+      date_from,
+
+      date_to,
+    });
+  }, [search, procedure_type, status, date_from, date_to, OnFilterChange]);
+
+  const HandleClear = () => {
+    set_search('');
+
+    set_procedure_type('');
+
+    set_status('');
+
+    set_date_from('');
+
+    set_date_to('');
   };
 
   return (
     <div className="w-full bg-white/75 backdrop-blur-md border border-slate-200/50 rounded-3xl p-5 shadow-sm space-y-4">
       <div className="flex items-center gap-2 text-slate-800 font-bold text-sm">
         <SlidersHorizontal size={16} className="text-blue-600" />
+
         <span>Buscador y Filtros de Solicitudes</span>
       </div>
 
@@ -60,30 +85,34 @@ export function ApplicationFilterBar({
           <label className="text-[10px] tracking-wider uppercase font-bold text-blue-600">
             Buscar
           </label>
+
           <div className="relative">
             <input
               type="text"
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(e) => set_search(e.target.value)}
               placeholder="Cédula, N° trámite, dirección..."
               className="input-field py-2 px-9 text-xs rounded-xl"
             />
+
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
           </div>
         </div>
 
-        {showProcedureFilter && (
+        {show_procedure_filter && (
           <div className="lg:col-span-2 space-y-1 text-left">
             <label className="text-[10px] tracking-wider uppercase font-bold text-blue-600">
               Trámite
             </label>
+
             <select
-              value={procedureType}
-              onChange={(e) => setProcedureType(e.target.value)}
+              value={procedure_type}
+              onChange={(e) => set_procedure_type(e.target.value)}
               className="input-field py-2 text-xs rounded-xl cursor-pointer bg-white"
             >
               <option value="">Todos los trámites</option>
-              {procedureTypes.map((t) => (
+
+              {procedure_types.map((t) => (
                 <option key={t.value} value={t.value}>
                   {t.label}
                 </option>
@@ -93,17 +122,18 @@ export function ApplicationFilterBar({
         )}
 
         <div
-          className={`space-y-1 text-left ${showProcedureFilter ? 'lg:col-span-2' : 'lg:col-span-3'}`}
+          className={`space-y-1 text-left ${show_procedure_filter ? 'lg:col-span-2' : 'lg:col-span-3'}`}
         >
           <label className="text-[10px] tracking-wider uppercase font-bold text-blue-600">
             Estado
           </label>
+
           <select
             value={status}
-            onChange={(e) => setStatus(e.target.value)}
+            onChange={(e) => set_status(e.target.value)}
             className="input-field py-2 text-xs rounded-xl cursor-pointer bg-white"
           >
-            {statusOptions.map((s) => (
+            {status_options.map((s) => (
               <option key={s.value || 'all'} value={s.value}>
                 {s.label}
               </option>
@@ -111,16 +141,17 @@ export function ApplicationFilterBar({
           </select>
         </div>
 
-        {showDateFilters && (
+        {show_date_filters && (
           <>
             <div className="lg:col-span-2 space-y-1 text-left">
               <label className="text-[10px] tracking-wider uppercase font-bold text-blue-600 flex items-center gap-1">
                 <Calendar size={10} /> Desde
               </label>
+
               <input
                 type="date"
-                value={dateFrom}
-                onChange={(e) => setDateFrom(e.target.value)}
+                value={date_from}
+                onChange={(e) => set_date_from(e.target.value)}
                 className="input-field py-1.5 px-2 text-xs rounded-xl"
               />
             </div>
@@ -129,10 +160,11 @@ export function ApplicationFilterBar({
               <label className="text-[10px] tracking-wider uppercase font-bold text-blue-600 flex items-center gap-1">
                 <Calendar size={10} /> Hasta
               </label>
+
               <input
                 type="date"
-                value={dateTo}
-                onChange={(e) => setDateTo(e.target.value)}
+                value={date_to}
+                onChange={(e) => set_date_to(e.target.value)}
                 className="input-field py-1.5 px-2 text-xs rounded-xl"
               />
             </div>
@@ -142,11 +174,12 @@ export function ApplicationFilterBar({
         <div className="lg:col-span-1 flex items-center justify-end">
           <button
             type="button"
-            onClick={handleClear}
+            onClick={HandleClear}
             className="btn-secondary w-full py-2 px-3 rounded-xl flex items-center justify-center gap-1.5 hover:bg-slate-50 transition-all font-semibold text-xs active:scale-95 cursor-pointer"
             title="Limpiar Filtros"
           >
             <RefreshCcw size={12} />
+
             <span className="lg:hidden">Limpiar</span>
           </button>
         </div>

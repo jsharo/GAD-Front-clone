@@ -1,108 +1,108 @@
 import React, { useState } from 'react';
 import { BaseModal } from '@/components/logic/base.modal';
-import { DigitalSignatureSimulator } from '@/components/logic/digital.signature-simulator';
+import { DigitalSignatureSimulator } from '@/components/logic/digital.signature.simulator';
 import { useAuthStore } from '@/stores/auth.store';
 import { MapPin, CheckCircle, XCircle, AlertCircle, Camera, CheckSquare } from 'lucide-react';
 
 export interface InspectionReporterProps {
-  onSubmitReport: (reportData: {
+  OnSubmitReport: (report_data: {
     status: 'APPROVED' | 'REJECTED';
-    dimensionsVerified: number;
-    frontSetback: boolean;
-    backSetback: boolean;
-    leftSetback: boolean;
-    rightSetback: boolean;
+    dimensions_verified: number;
+    front_setback: boolean;
+    back_setback: boolean;
+    left_setback: boolean;
+    right_setback: boolean;
     observations: string;
-    gpsLatitude?: string;
-    gpsLongitude?: string;
+    gps_latitude?: string;
+    gps_longitude?: string;
     attachments: string[];
-    signatureHash: string;
+    signature_hash: string;
     files?: File[];
   }) => void;
 }
 
-export function InspectionReporter({ onSubmitReport }: InspectionReporterProps) {
+export function InspectionReporter({ OnSubmitReport }: InspectionReporterProps) {
   const { user } = useAuthStore();
 
   // Form State
-  const [status, setStatus] = useState<'APPROVED' | 'REJECTED'>('APPROVED');
-  const [dimensions, setDimensions] = useState<string>('');
-  const [frontSetback, setFrontSetback] = useState(false);
-  const [backSetback, setBackSetback] = useState(false);
-  const [leftSetback, setLeftSetback] = useState(false);
-  const [rightSetback, setRightSetback] = useState(false);
-  const [observations, setObservations] = useState('');
-  const [gpsLat, setGpsLat] = useState('');
-  const [gpsLng, setGpsLng] = useState('');
-  const [uploadedPhotos, setUploadedPhotos] = useState<string[]>([]);
-  const [photoFiles, setPhotoFiles] = useState<File[]>([]);
+  const [status, set_status] = useState<'APPROVED' | 'REJECTED'>('APPROVED');
+  const [dimensions, set_dimensions] = useState<string>('');
+  const [front_setback, set_front_setback] = useState(false);
+  const [back_setback, set_back_setback] = useState(false);
+  const [left_setback, set_left_setback] = useState(false);
+  const [right_setback, set_right_setback] = useState(false);
+  const [observations, set_observations] = useState('');
+  const [gps_lat, set_gps_lat] = useState('');
+  const [gps_lng, set_gps_lng] = useState('');
+  const [uploaded_photos, set_uploaded_photos] = useState<string[]>([]);
+  const [photo_files, set_photo_files] = useState<File[]>([]);
 
   // Signature Modal state
-  const [isSignModalOpen, setIsSignModalOpen] = useState(false);
-  const [validationError, setValidationError] = useState<string | null>(null);
+  const [is_sign_modal_open, set_is_sign_modal_open] = useState(false);
+  const [validation_error, set_validation_error] = useState<string | null>(null);
 
   // GPS Simulation
-  const simulateGPS = () => {
+  const SimulateGPS = () => {
     // Simulated GPS Coordinates for Cañar region
-    const randomLat = (-2.6283 + (Math.random() - 0.5) * 0.01).toFixed(6);
-    const randomLng = (-78.9372 + (Math.random() - 0.5) * 0.01).toFixed(6);
-    setGpsLat(randomLat);
-    setGpsLng(randomLng);
+    const random_lat = (-2.6283 + (Math.random() - 0.5) * 0.01).toFixed(6);
+    const random_lng = (-78.9372 + (Math.random() - 0.5) * 0.01).toFixed(6);
+    set_gps_lat(random_lat);
+    set_gps_lng(random_lng);
   };
 
   // Photo uploads simulation
-  const handlePhotoAdd = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const HandlePhotoAdd = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files ?? []);
     const names = files.map((f) => f.name);
-    setUploadedPhotos((prev) => [...prev, ...names]);
-    setPhotoFiles((prev) => [...prev, ...files]);
+    set_uploaded_photos((prev) => [...prev, ...names]);
+    set_photo_files((prev) => [...prev, ...files]);
   };
 
-  const handlePreSubmit = (e: React.FormEvent) => {
+  const HandlePreSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setValidationError(null);
+    set_validation_error(null);
 
     if (!dimensions || parseFloat(dimensions) <= 0) {
-      setValidationError('Por favor ingresa una dimensión de predio válida en m².');
+      set_validation_error('Por favor ingresa una dimensión de predio válida en m².');
       return;
     }
 
     if (status === 'REJECTED' && !observations.trim()) {
-      setValidationError('Debes ingresar observaciones detallando el motivo de rechazo.');
+      set_validation_error('Debes ingresar observaciones detallando el motivo de rechazo.');
       return;
     }
 
     // Open digital signature modal
-    setIsSignModalOpen(true);
+    set_is_sign_modal_open(true);
   };
 
-  const handleSignatureComplete = (signatureHash: string) => {
+  const HandleSignatureComplete = (signature_hash: string) => {
     setTimeout(() => {
-      setIsSignModalOpen(false);
-      onSubmitReport({
+      set_is_sign_modal_open(false);
+      OnSubmitReport({
         status,
-        dimensionsVerified: parseFloat(dimensions),
-        frontSetback,
-        backSetback,
-        leftSetback,
-        rightSetback,
+        dimensions_verified: parseFloat(dimensions),
+        front_setback,
+        back_setback,
+        left_setback,
+        right_setback,
         observations,
-        gpsLatitude: gpsLat || undefined,
-        gpsLongitude: gpsLng || undefined,
-        attachments: uploadedPhotos,
-        signatureHash,
-        files: photoFiles,
+        gps_latitude: gps_lat || undefined,
+        gps_longitude: gps_lng || undefined,
+        attachments: uploaded_photos,
+        signature_hash,
+        files: photo_files,
       });
     }, 1500);
   };
 
   // Defaults if no technician is logged in
-  const techName = user ? `${user.first_name} ${user.last_name}` : 'Téc. Municipal Cañar';
-  const techId = user?.national_id || '0301234567';
+  const tech_name = user ? `${user.first_name} ${user.last_name}` : 'Téc. Municipal Cañar';
+  const tech_id = user?.national_id || '0301234567';
 
   return (
     <div className="w-full max-w-2xl mx-auto bg-white/75 backdrop-blur-md border border-slate-200/50 rounded-3xl p-6 sm:p-8 shadow-md">
-      <form onSubmit={handlePreSubmit} className="space-y-6 text-left">
+      <form onSubmit={HandlePreSubmit} className="space-y-6 text-left">
         <div>
           <h2 className="font-heading font-black text-slate-900 text-xl tracking-wide">
             Ficha de Inspección Técnica
@@ -112,10 +112,10 @@ export function InspectionReporter({ onSubmitReport }: InspectionReporterProps) 
           </p>
         </div>
 
-        {validationError && (
+        {validation_error && (
           <div className="flex items-center gap-2.5 p-3.5 rounded-xl bg-red-50 border border-red-200 text-red-600 text-xs">
             <AlertCircle size={14} className="flex-shrink-0 animate-bounce" />
-            <span className="font-semibold">{validationError}</span>
+            <span className="font-semibold">{validation_error}</span>
           </div>
         )}
 
@@ -125,7 +125,7 @@ export function InspectionReporter({ onSubmitReport }: InspectionReporterProps) 
           <div className="grid grid-cols-2 gap-4">
             <button
               type="button"
-              onClick={() => setStatus('APPROVED')}
+              onClick={() => set_status('APPROVED')}
               className={`flex items-center justify-center gap-2 p-4 rounded-2xl border-2 transition-all font-bold text-sm cursor-pointer ${
                 status === 'APPROVED'
                   ? 'border-green-500 bg-green-50/70 text-green-800 shadow-md shadow-green-100'
@@ -137,7 +137,7 @@ export function InspectionReporter({ onSubmitReport }: InspectionReporterProps) 
             </button>
             <button
               type="button"
-              onClick={() => setStatus('REJECTED')}
+              onClick={() => set_status('REJECTED')}
               className={`flex items-center justify-center gap-2 p-4 rounded-2xl border-2 transition-all font-bold text-sm cursor-pointer ${
                 status === 'REJECTED'
                   ? 'border-red-500 bg-red-50/70 text-red-800 shadow-md shadow-red-100'
@@ -158,7 +158,7 @@ export function InspectionReporter({ onSubmitReport }: InspectionReporterProps) 
               type="number"
               step="0.01"
               value={dimensions}
-              onChange={(e) => setDimensions(e.target.value)}
+              onChange={(e) => set_dimensions(e.target.value)}
               placeholder="Ej. 185.50"
               className="input-field rounded-xl"
               required
@@ -172,21 +172,21 @@ export function InspectionReporter({ onSubmitReport }: InspectionReporterProps) 
                 <input
                   type="text"
                   placeholder="Latitud"
-                  value={gpsLat}
-                  onChange={(e) => setGpsLat(e.target.value)}
+                  value={gps_lat}
+                  onChange={(e) => set_gps_lat(e.target.value)}
                   className="input-field py-2 text-xs rounded-xl font-mono"
                 />
                 <input
                   type="text"
                   placeholder="Longitud"
-                  value={gpsLng}
-                  onChange={(e) => setGpsLng(e.target.value)}
+                  value={gps_lng}
+                  onChange={(e) => set_gps_lng(e.target.value)}
                   className="input-field py-2 text-xs rounded-xl font-mono"
                 />
               </div>
               <button
                 type="button"
-                onClick={simulateGPS}
+                onClick={SimulateGPS}
                 className="btn-secondary px-3.5 py-2.5 rounded-xl flex items-center justify-center gap-1.5 font-bold text-xs"
                 title="Simular coordenadas actuales"
               >
@@ -204,8 +204,8 @@ export function InspectionReporter({ onSubmitReport }: InspectionReporterProps) 
             <label className="flex items-center gap-2 cursor-pointer p-2 bg-white rounded-xl border border-slate-200/40 hover:bg-slate-50 transition-all select-none">
               <input
                 type="checkbox"
-                checked={frontSetback}
-                onChange={(e) => setFrontSetback(e.target.checked)}
+                checked={front_setback}
+                onChange={(e) => set_front_setback(e.target.checked)}
                 className="rounded text-blue-600 focus:ring-blue-500 h-4 w-4 border-slate-300"
               />
               <span>Retiro Frontal</span>
@@ -213,8 +213,8 @@ export function InspectionReporter({ onSubmitReport }: InspectionReporterProps) 
             <label className="flex items-center gap-2 cursor-pointer p-2 bg-white rounded-xl border border-slate-200/40 hover:bg-slate-50 transition-all select-none">
               <input
                 type="checkbox"
-                checked={backSetback}
-                onChange={(e) => setBackSetback(e.target.checked)}
+                checked={back_setback}
+                onChange={(e) => set_back_setback(e.target.checked)}
                 className="rounded text-blue-600 focus:ring-blue-500 h-4 w-4 border-slate-300"
               />
               <span>Retiro Posterior</span>
@@ -222,8 +222,8 @@ export function InspectionReporter({ onSubmitReport }: InspectionReporterProps) 
             <label className="flex items-center gap-2 cursor-pointer p-2 bg-white rounded-xl border border-slate-200/40 hover:bg-slate-50 transition-all select-none">
               <input
                 type="checkbox"
-                checked={leftSetback}
-                onChange={(e) => setLeftSetback(e.target.checked)}
+                checked={left_setback}
+                onChange={(e) => set_left_setback(e.target.checked)}
                 className="rounded text-blue-600 focus:ring-blue-500 h-4 w-4 border-slate-300"
               />
               <span>Retiro Lateral Izq.</span>
@@ -231,8 +231,8 @@ export function InspectionReporter({ onSubmitReport }: InspectionReporterProps) 
             <label className="flex items-center gap-2 cursor-pointer p-2 bg-white rounded-xl border border-slate-200/40 hover:bg-slate-50 transition-all select-none">
               <input
                 type="checkbox"
-                checked={rightSetback}
-                onChange={(e) => setRightSetback(e.target.checked)}
+                checked={right_setback}
+                onChange={(e) => set_right_setback(e.target.checked)}
                 className="rounded text-blue-600 focus:ring-blue-500 h-4 w-4 border-slate-300"
               />
               <span>Retiro Lateral Der.</span>
@@ -248,7 +248,7 @@ export function InspectionReporter({ onSubmitReport }: InspectionReporterProps) 
               type="file"
               multiple
               accept="image/*"
-              onChange={handlePhotoAdd}
+              onChange={HandlePhotoAdd}
               className="sr-only"
             />
             <Camera
@@ -259,9 +259,9 @@ export function InspectionReporter({ onSubmitReport }: InspectionReporterProps) 
             <p className="text-[10px] text-slate-400 mt-0.5">Formatos JPEG, PNG — Máximo 10MB</p>
           </label>
 
-          {uploadedPhotos.length > 0 && (
+          {uploaded_photos.length > 0 && (
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-2">
-              {uploadedPhotos.map((name, i) => (
+              {uploaded_photos.map((name, i) => (
                 <div
                   key={i}
                   className="flex items-center gap-1.5 p-2 rounded-xl bg-blue-50/50 border border-blue-100 text-[10px] font-semibold text-blue-800"
@@ -270,8 +270,8 @@ export function InspectionReporter({ onSubmitReport }: InspectionReporterProps) 
                   <button
                     type="button"
                     onClick={() => {
-                      setUploadedPhotos((prev) => prev.filter((_, idx) => idx !== i));
-                      setPhotoFiles((prev) => prev.filter((_, idx) => idx !== i));
+                      set_uploaded_photos((prev) => prev.filter((_, idx) => idx !== i));
+                      set_photo_files((prev) => prev.filter((_, idx) => idx !== i));
                     }}
                     className="text-red-500 hover:text-red-655 font-bold"
                   >
@@ -290,7 +290,7 @@ export function InspectionReporter({ onSubmitReport }: InspectionReporterProps) 
           </label>
           <textarea
             value={observations}
-            onChange={(e) => setObservations(e.target.value)}
+            onChange={(e) => set_observations(e.target.value)}
             rows={4}
             placeholder={
               status === 'REJECTED'
@@ -314,8 +314,8 @@ export function InspectionReporter({ onSubmitReport }: InspectionReporterProps) 
 
       {/* DIGITAL SIGNATURE MODAL CONTAINER */}
       <BaseModal
-        isOpen={isSignModalOpen}
-        onClose={() => setIsSignModalOpen(false)}
+        is_open={is_sign_modal_open}
+        OnClose={() => set_is_sign_modal_open(false)}
         title="Firma del Reporte Técnico de Inspección"
         size="md"
       >
@@ -325,10 +325,10 @@ export function InspectionReporter({ onSubmitReport }: InspectionReporterProps) 
             firma digital criptográfica de forma irrevocable sobre este documento técnico.
           </p>
           <DigitalSignatureSimulator
-            signerName={techName}
-            signerId={techId}
-            requirePin={true}
-            onSignComplete={handleSignatureComplete}
+            signer_name={tech_name}
+            signer_id={tech_id}
+            require_pin={true}
+            OnSignComplete={HandleSignatureComplete}
             title="Firmar Acta de Inspección Técnica"
           />
         </div>

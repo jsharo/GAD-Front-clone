@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+﻿import { useEffect, useState, useCallback } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import {
   ArrowLeft,
@@ -13,19 +13,19 @@ import {
 } from 'lucide-react';
 import {
   applications_api,
-  submitSecretaryReview,
+  SubmitSecretaryReview,
   type RequestSignatureSummary,
 } from '@/lib/api.calls';
-import { formatDateTime } from '@/lib/utils';
-import { getProcedureTypeLabel } from '@/lib/constants/procedure-types';
-import { DocumentPanel } from '@/components/documents/DocumentPanel';
-import { SignatureVerificationPanel } from '@/components/documents/SignatureVerificationPanel';
+import { FormatDateTime } from '@/lib/utils';
+import { GetProcedureTypeLabel } from '@/lib/constants/procedure.types';
+import { DocumentPanel } from '@/components/documents/document.panel';
+import { SignatureVerificationPanel } from '@/components/documents/signature.verification.panel';
 import { LoadingSkeleton } from '@/components/ui/loading.skeleton';
 import { EmptyState } from '@/components/ui/empty.state';
 import { AlertBanner } from '@/components/ui/alert.banner';
 import { DetailSection } from '@/components/ui/detail.section';
 import { InfoGrid } from '@/components/ui/info.grid';
-import { DetailPageHeader } from '@/components/ui/detail-page.header';
+import { DetailPageHeader } from '@/components/ui/detail.page.header';
 
 interface Attachment {
   id: string;
@@ -78,16 +78,16 @@ interface ApplicationDetail {
 function CheckItem({
   label,
   checked,
-  onToggle,
+  OnToggle,
 }: {
   label: string;
   checked: boolean;
-  onToggle: () => void;
+  OnToggle: () => void;
 }) {
   return (
     <button
       type="button"
-      onClick={onToggle}
+      onClick={OnToggle}
       className={`flex w-full items-center gap-3 rounded-xl border p-3 text-left ${
         checked ? 'border-success-light bg-success-light/10' : 'border-slate-200 bg-white'
       }`}
@@ -116,82 +116,25 @@ export function ApplicationDetailSecretary() {
 
   // Checklist de verificación
   const [checks, set_checks] = useState({
-    documentosCompletos: false,
-    datosCorrectos: false,
-    predioIdentificado: false,
-    validarTitulo: false,
+    documents_complete: false,
+    data_correct: false,
+    property_identified: false,
+    title_validated: false,
   });
   const [signature_summary, set_signature_summary] = useState<RequestSignatureSummary | null>(null);
   const [signature_loading, set_signature_loading] = useState(true);
   const [signature_refresh_key, set_signature_refresh_key] = useState(0);
   const [confirm_unvalidated_signature, set_confirm_unvalidated_signature] = useState(false);
 
-  // Formulario de dictamen
-  const [decision, set_decision] = useState<'aprobar' | 'devolver' | null>(null);
+  const [decision, set_decision] = useState<'approve' | 'return' | null>(null);
   const [observations, set_observations] = useState('');
   const [is_submitting, set_is_submitting] = useState(false);
 
-  const mapApplicationObj = (s: any): ApplicationDetail | null => {
-    if (!s) return null;
-    return {
-      id: s.id,
-      created_at: s.createdAt,
-      status: s.estado,
-      procedure_type: s.tipoTramite,
-      rejection_reason: s.motivoRechazo,
-      observations: s.observaciones,
-      secretary_decision: s.dictamenSecretaria
-        ? {
-            is_approved: s.dictamenSecretaria.aprobada,
-            signature_validated: Boolean(s.dictamenSecretaria.firmaValidada),
-            observations: s.dictamenSecretaria.observaciones,
-            created_at: s.dictamenSecretaria.creadoEn,
-          }
-        : null,
-      citizen: s.ciudadano
-        ? {
-            first_name: s.ciudadano.nombre,
-            last_name: s.ciudadano.apellido,
-            national_id: s.ciudadano.cedula,
-            email: s.ciudadano.email,
-            phone: s.ciudadano.telefono,
-          }
-        : null,
-      architect: s.arquitecto
-        ? {
-            first_name: s.arquitecto.nombre,
-            last_name: s.arquitecto.apellido,
-            national_id: s.arquitecto.cedula,
-            email: s.arquitecto.email,
-            phone: s.arquitecto.telefono,
-            title: s.arquitecto.titulo,
-            registration_number: s.arquitecto.numeroRegistro,
-          }
-        : null,
-      property: s.predio
-        ? {
-            address: s.predio.direccion,
-            location: s.predio.ubicacion,
-            area: s.predio.area,
-            description: s.predio.descripcion,
-          }
-        : null,
-      attachments: (s.anexos || []).map((anexo: any) => ({
-        id: anexo.id,
-        name: anexo.nombre,
-        size: anexo.tamano,
-        hash: anexo.hash,
-        key: anexo.key,
-        mime_type: anexo.tipoMime,
-      })),
-    };
-  };
-
-  const loadApplication = useCallback(async () => {
+  const LoadApplication = useCallback(async () => {
     if (!id) return;
     try {
-      const { data } = await applications_api.getById(id);
-      set_application(mapApplicationObj(data));
+      const { data } = await applications_api.GetById(id);
+      set_application(data as ApplicationDetail);
     } catch {
       set_error('No se pudo cargar la solicitud');
     } finally {
@@ -200,14 +143,14 @@ export function ApplicationDetailSecretary() {
   }, [id]);
 
   useEffect(() => {
-    loadApplication();
-  }, [loadApplication]);
+    LoadApplication();
+  }, [LoadApplication]);
 
-  const toggleCheck = (key: keyof typeof checks) => {
+  const ToggleCheck = (key: keyof typeof checks) => {
     set_checks((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
-  const handleSignatureChange = useCallback((summary: RequestSignatureSummary | null) => {
+  const HandleSignatureChange = useCallback((summary: RequestSignatureSummary | null) => {
     set_signature_summary(summary);
     if (summary && !summary.requires_acknowledgement) {
       set_confirm_unvalidated_signature(false);
@@ -218,14 +161,14 @@ export function ApplicationDetailSecretary() {
   const signature_validated = Boolean(signature_summary?.has_valid_expected_signature);
   const signature_requires_acknowledgement = signature_summary?.requires_acknowledgement ?? true;
 
-  const submitDecision = async (acknowledge_signature_warning = false) => {
+  const SubmitDecision = async (acknowledge_signature_warning = false) => {
     if (!id || !decision) return;
 
     set_is_submitting(true);
     set_error(null);
     try {
-      await submitSecretaryReview(id, {
-        approved: decision === 'aprobar',
+      await SubmitSecretaryReview(id, {
+        approved: decision === 'approve',
         acknowledge_signature_warning,
         remarks: observations.trim() || undefined,
       });
@@ -237,24 +180,24 @@ export function ApplicationDetailSecretary() {
     }
   };
 
-  const handleSubmitDecision = async () => {
+  const HandleSubmitDecision = async () => {
     if (!id || !decision) return;
-    if (decision === 'devolver' && !observations.trim()) {
+    if (decision === 'return' && !observations.trim()) {
       set_error('Escribe las observaciones para devolver la solicitud');
       return;
     }
 
-    if (decision === 'aprobar' && signature_loading) {
+    if (decision === 'approve' && signature_loading) {
       set_error('Espera a que termine la verificación automática de firmas');
       return;
     }
 
-    if (decision === 'aprobar' && signature_requires_acknowledgement) {
+    if (decision === 'approve' && signature_requires_acknowledgement) {
       set_confirm_unvalidated_signature(true);
       return;
     }
 
-    await submitDecision(false);
+    await SubmitDecision(false);
   };
 
   if (is_loading) {
@@ -276,7 +219,7 @@ export function ApplicationDetailSecretary() {
     );
   }
 
-  const tipo_label = getProcedureTypeLabel(application.procedure_type);
+  const type_label = GetProcedureTypeLabel(application.procedure_type);
   const is_already_resolved =
     application.secretary_decision != null ||
     !['PENDING_SECRETARY', 'OBSERVED'].includes(application.status);
@@ -286,21 +229,21 @@ export function ApplicationDetailSecretary() {
   return (
     <div className="animate-fade-in space-y-5 max-w-3xl mx-auto pb-10">
       <DetailPageHeader
-        backTo="/secretary/inbox"
-        title={tipo_label}
+        back_to="/secretary/inbox"
+        title={type_label}
         subtitle={
           <span className="flex items-center gap-2 text-slate-400">
             <Clock size={14} />
-            Recibido: {formatDateTime(application.created_at)}
+            Recibido: {FormatDateTime(application.created_at)}
           </span>
         }
         status={application.status}
-        contentClassName="text-left"
+        content_class_name="text-left"
       />
 
       {/* Error */}
       {error && (
-        <AlertBanner message={error} onDismiss={() => set_error(null)} className="text-left" />
+        <AlertBanner message={error} OnDismiss={() => set_error(null)} className="text-left" />
       )}
 
       {application.citizen && (
@@ -344,10 +287,10 @@ export function ApplicationDetailSecretary() {
       <DetailSection title="Datos del Predio" icon={MapPin} className="text-left">
         <InfoGrid
           items={[
-            { label: 'Tipo de trámite', value: tipo_label },
+            { label: 'Tipo de trámite', value: type_label },
             {
               label: 'Zona',
-              value: application.property?.location === 'URBANO' ? '🏙️ Urbano' : '🌾 Rural',
+              value: application.property?.location === 'URBAN' ? '🏙️ Urbano' : '🌾 Rural',
             },
             { label: 'Dirección', value: application.property?.address },
             {
@@ -366,16 +309,16 @@ export function ApplicationDetailSecretary() {
       {id && (
         <>
           <DocumentPanel
-            requestId={id}
-            allowedUpload
-            allowedIpfs
-            onAttachmentsChanged={() => set_signature_refresh_key((current) => current + 1)}
+            request_id={id}
+            allowed_upload
+            allowed_ipfs
+            OnAttachmentsChanged={() => set_signature_refresh_key((current) => current + 1)}
           />
           <SignatureVerificationPanel
-            requestId={id}
-            refreshKey={signature_refresh_key}
-            onLoadingChange={set_signature_loading}
-            onChange={handleSignatureChange}
+            request_id={id}
+            refresh_key={signature_refresh_key}
+            OnLoadingChange={set_signature_loading}
+            OnChange={HandleSignatureChange}
           />
         </>
       )}
@@ -402,23 +345,23 @@ export function ApplicationDetailSecretary() {
             <div className="space-y-2">
               <CheckItem
                 label="📁 Todos los documentos requeridos adjuntos"
-                checked={checks.documentosCompletos}
-                onToggle={() => toggleCheck('documentosCompletos')}
+                checked={checks.documents_complete}
+                OnToggle={() => ToggleCheck('documents_complete')}
               />
               <CheckItem
                 label="👤 Datos del solicitante correctos y completos"
-                checked={checks.datosCorrectos}
-                onToggle={() => toggleCheck('datosCorrectos')}
+                checked={checks.data_correct}
+                OnToggle={() => ToggleCheck('data_correct')}
               />
               <CheckItem
                 label="📍 Predio identificado con dirección clara"
-                checked={checks.predioIdentificado}
-                onToggle={() => toggleCheck('predioIdentificado')}
+                checked={checks.property_identified}
+                OnToggle={() => ToggleCheck('property_identified')}
               />
               <CheckItem
                 label="🪪 Título del Arquitecto validado con su Cédula"
-                checked={checks.validarTitulo}
-                onToggle={() => toggleCheck('validarTitulo')}
+                checked={checks.title_validated}
+                OnToggle={() => ToggleCheck('title_validated')}
               />
             </div>
           </div>
@@ -472,11 +415,11 @@ export function ApplicationDetailSecretary() {
               <button
                 type="button"
                 onClick={() => {
-                  set_decision('aprobar');
+                  set_decision('approve');
                   set_confirm_unvalidated_signature(false);
                 }}
                 className={
-                  decision === 'aprobar'
+                  decision === 'approve'
                     ? 'flex items-center gap-2 rounded-xl border-2 border-success-default bg-success-light/10 p-4 text-sm font-semibold text-success-dark'
                     : 'flex items-center gap-2 rounded-xl border-2 border-slate-200 p-4 text-sm font-semibold text-slate-500'
                 }
@@ -490,11 +433,11 @@ export function ApplicationDetailSecretary() {
               <button
                 type="button"
                 onClick={() => {
-                  set_decision('devolver');
+                  set_decision('return');
                   set_confirm_unvalidated_signature(false);
                 }}
                 className={
-                  decision === 'devolver'
+                  decision === 'return'
                     ? 'flex items-center gap-2 rounded-xl border-2 border-error-default bg-error-light/10 p-4 text-sm font-semibold text-error-default'
                     : 'flex items-center gap-2 rounded-xl border-2 border-slate-200 p-4 text-sm font-semibold text-slate-500'
                 }
@@ -511,7 +454,7 @@ export function ApplicationDetailSecretary() {
           {/* Observaciones (siempre visible, obligatorio si devuelve) */}
           <div>
             <label className="input-label">
-              Observaciones {decision === 'devolver' ? '*' : '(opcional)'}
+              Observaciones {decision === 'return' ? '*' : '(opcional)'}
             </label>
             <textarea
               value={observations}
@@ -519,7 +462,7 @@ export function ApplicationDetailSecretary() {
               className="input-field resize-none"
               rows={4}
               placeholder={
-                decision === 'devolver'
+                decision === 'return'
                   ? 'Describe qué documentos faltan, qué errores se encontraron o qué debe corregir el ciudadano...'
                   : 'Notas adicionales para el expediente (opcional)...'
               }
@@ -536,7 +479,7 @@ export function ApplicationDetailSecretary() {
             </div>
           )}
 
-          {decision === 'aprobar' && all_checked && signature_requires_acknowledgement && (
+          {decision === 'approve' && all_checked && signature_requires_acknowledgement && (
             <div className="flex items-start gap-3 rounded-xl border border-amber-300 bg-amber-50 p-3">
               <AlertCircle size={16} className="mt-0.5 flex-shrink-0 text-amber-700" />
               <p className="text-xs leading-relaxed text-amber-800">
@@ -573,7 +516,7 @@ export function ApplicationDetailSecretary() {
                 </button>
                 <button
                   type="button"
-                  onClick={() => void submitDecision(true)}
+                  onClick={() => void SubmitDecision(true)}
                   disabled={is_submitting}
                   className="rounded-lg bg-amber-700 px-3 py-2 text-xs font-bold text-white hover:bg-amber-800 disabled:opacity-60"
                 >
@@ -586,32 +529,32 @@ export function ApplicationDetailSecretary() {
           {/* Botón de confirmar */}
           <button
             type="button"
-            onClick={handleSubmitDecision}
+            onClick={HandleSubmitDecision}
             disabled={
               is_submitting ||
               signature_loading ||
               !decision ||
               confirm_unvalidated_signature ||
-              (decision === 'aprobar' && !all_checked)
+              (decision === 'approve' && !all_checked)
             }
             className={
               !decision ||
               signature_loading ||
               confirm_unvalidated_signature ||
-              (decision === 'aprobar' && !all_checked)
+              (decision === 'approve' && !all_checked)
                 ? 'flex w-full items-center justify-center gap-2 rounded-xl bg-slate-200 py-3.5 font-bold text-slate-400'
-                : decision === 'aprobar'
+                : decision === 'approve'
                   ? 'flex w-full items-center justify-center gap-2 rounded-xl bg-success-default py-3.5 font-bold text-white hover:bg-success-dark'
                   : 'flex w-full items-center justify-center gap-2 rounded-xl bg-error-default py-3.5 font-bold text-white hover:bg-red-700'
             }
           >
             {is_submitting ? (
               <span>Guardando...</span>
-            ) : decision === 'aprobar' ? (
+            ) : decision === 'approve' ? (
               <>
                 <CheckCircle2 size={18} /> Aprobar y enviar al Técnico
               </>
-            ) : decision === 'devolver' ? (
+            ) : decision === 'return' ? (
               <>
                 <XCircle size={18} /> Devolver al Ciudadano con observaciones
               </>
@@ -642,7 +585,7 @@ export function ApplicationDetailSecretary() {
               </h2>
               {application.secretary_decision?.created_at && (
                 <p className="text-slate-400 text-xs">
-                  {formatDateTime(application.secretary_decision.created_at)}
+                  {FormatDateTime(application.secretary_decision.created_at)}
                 </p>
               )}
             </div>

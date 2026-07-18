@@ -4,14 +4,14 @@ import { BaseModal } from '@/components/logic/base.modal';
 import { useAuthStore } from '@/stores/auth.store';
 
 interface Props {
-  onSuccess?: () => void;
-  onClose?: () => void;
-  allowClose?: boolean;
+  OnSuccess?: () => void;
+  OnClose?: () => void;
+  allow_close?: boolean;
 }
 
-export function CompleteProfileModal({ onSuccess, onClose, allowClose = false }: Props) {
-  const { completeProfile, is_loading, error, clearError, user } = useAuthStore();
-  const [form, setForm] = useState({
+export function CompleteProfileModal({ OnSuccess, OnClose, allow_close = false }: Props) {
+  const { CompleteProfile, is_loading, error, ClearError, user } = useAuthStore();
+  const [form, set_form] = useState({
     first_name: user?.first_name ?? '',
     last_name: user?.last_name ?? '',
     national_id: user?.national_id ?? '',
@@ -19,38 +19,38 @@ export function CompleteProfileModal({ onSuccess, onClose, allowClose = false }:
     password: '',
     confirm_password: '',
   });
-  const [localError, setLocalError] = useState<string | null>(null);
+  const [local_error, set_local_error] = useState<string | null>(null);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const HandleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLocalError(null);
-    clearError();
+    set_local_error(null);
+    ClearError();
 
     if (form.password !== form.confirm_password) {
-      setLocalError('Las contraseñas no coinciden');
+      set_local_error('Las contraseñas no coinciden');
       return;
     }
 
     try {
-      await completeProfile({
+      await CompleteProfile({
         first_name: form.first_name.trim(),
         last_name: form.last_name.trim(),
         national_id: form.national_id.trim(),
         password: form.password,
         phone: form.phone.trim() || undefined,
       });
-      onSuccess?.();
+      OnSuccess?.();
     } catch {
       // Error handled by store
     }
   };
 
-  const displayError = localError || error;
+  const display_error = local_error || error;
 
   return (
     <BaseModal
-      isOpen
-      onClose={allowClose ? () => onClose?.() : () => {}}
+      is_open
+      OnClose={allow_close ? () => OnClose?.() : () => {}}
       title="Completa tu perfil profesional"
       size="md"
     >
@@ -63,14 +63,14 @@ export function CompleteProfileModal({ onSuccess, onClose, allowClose = false }:
           </p>
         </div>
 
-        {displayError && (
+        {display_error && (
           <div className="flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-600">
             <AlertCircle size={16} className="flex-shrink-0" />
-            {displayError}
+            {display_error}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={HandleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="input-label">Nombres *</label>
@@ -79,7 +79,7 @@ export function CompleteProfileModal({ onSuccess, onClose, allowClose = false }:
                 type="text"
                 className="input-field"
                 value={form.first_name}
-                onChange={(e) => setForm({ ...form, first_name: e.target.value })}
+                onChange={(e) => set_form({ ...form, first_name: e.target.value })}
               />
             </div>
             <div>
@@ -89,7 +89,7 @@ export function CompleteProfileModal({ onSuccess, onClose, allowClose = false }:
                 type="text"
                 className="input-field"
                 value={form.last_name}
-                onChange={(e) => setForm({ ...form, last_name: e.target.value })}
+                onChange={(e) => set_form({ ...form, last_name: e.target.value })}
               />
             </div>
           </div>
@@ -103,7 +103,7 @@ export function CompleteProfileModal({ onSuccess, onClose, allowClose = false }:
                 maxLength={10}
                 className="input-field"
                 value={form.national_id}
-                onChange={(e) => setForm({ ...form, national_id: e.target.value })}
+                onChange={(e) => set_form({ ...form, national_id: e.target.value })}
               />
             </div>
             <div>
@@ -112,7 +112,7 @@ export function CompleteProfileModal({ onSuccess, onClose, allowClose = false }:
                 type="text"
                 className="input-field"
                 value={form.phone}
-                onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                onChange={(e) => set_form({ ...form, phone: e.target.value })}
               />
             </div>
           </div>
@@ -125,7 +125,7 @@ export function CompleteProfileModal({ onSuccess, onClose, allowClose = false }:
                 type="password"
                 className="input-field"
                 value={form.password}
-                onChange={(e) => setForm({ ...form, password: e.target.value })}
+                onChange={(e) => set_form({ ...form, password: e.target.value })}
               />
             </div>
             <div>
@@ -135,14 +135,14 @@ export function CompleteProfileModal({ onSuccess, onClose, allowClose = false }:
                 type="password"
                 className="input-field"
                 value={form.confirm_password}
-                onChange={(e) => setForm({ ...form, confirm_password: e.target.value })}
+                onChange={(e) => set_form({ ...form, confirm_password: e.target.value })}
               />
             </div>
           </div>
 
           <div className="flex justify-end gap-3 pt-2">
-            {allowClose && (
-              <button type="button" onClick={onClose} className="btn-secondary">
+            {allow_close && (
+              <button type="button" onClick={OnClose} className="btn-secondary">
                 Cancelar
               </button>
             )}

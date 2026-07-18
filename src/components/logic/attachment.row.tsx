@@ -1,41 +1,55 @@
 import { useState } from 'react';
+
 import { Database, Download, Eye, FileText, Loader2, ShieldCheck } from 'lucide-react';
+
 import {
-  sendAttachmentToIpfs,
-  verifyRequestAttachment,
+  SendAttachmentToIpfs,
+  VerifyRequestAttachment,
   type AttachmentIntegrityResult,
   type RequestAttachment,
 } from '@/lib/api.calls';
-import { openRequestAttachment, saveRequestAttachment } from '@/lib/files';
-import { getApiError } from '@/lib/errors';
+
+import { OpenRequestAttachment, SaveRequestAttachment } from '@/lib/files';
+
+import { GetApiError } from '@/lib/errors';
 
 interface AttachmentRowProps {
-  requestId: string;
+  request_id: string;
+
   attachment: RequestAttachment;
-  allowedIpfs?: boolean;
-  onError?: (message: string) => void;
+
+  allowed_ipfs?: boolean;
+
+  OnError?: (message: string) => void;
 }
 
 export function AttachmentRow({
-  requestId,
+  request_id,
+
   attachment,
-  allowedIpfs = false,
-  onError,
+
+  allowed_ipfs = false,
+
+  OnError,
 }: AttachmentRowProps) {
-  const [verification, setVerification] = useState<AttachmentIntegrityResult | null>(null);
-  const [ipfsStatus, setIpfsStatus] = useState(attachment.ipfs_status || 'PENDING');
-  const [loadingAction, setLoadingAction] = useState<string | null>(null);
-  const isPdf =
+  const [verification, set_verification] = useState<AttachmentIntegrityResult | null>(null);
+
+  const [ipfs_status, set_ipfs_status] = useState(attachment.ipfs_status || 'PENDING');
+
+  const [loading_action, set_loading_action] = useState<string | null>(null);
+
+  const is_pdf =
     attachment.type === 'application/pdf' || attachment.name.toLowerCase().endsWith('.pdf');
 
-  const run = async (action: string, callback: () => Promise<void>) => {
-    setLoadingAction(action);
+  const Run = async (action: string, callback: () => Promise<void>) => {
+    set_loading_action(action);
+
     try {
       await callback();
     } catch (error) {
-      onError?.(getApiError(error, 'No se pudo completar la operación documental.'));
+      OnError?.(GetApiError(error, 'No se pudo completar la operación documental.'));
     } finally {
-      setLoadingAction(null);
+      set_loading_action(null);
     }
   };
 
@@ -44,75 +58,84 @@ export function AttachmentRow({
       <div className="flex items-center gap-3">
         <div
           className={
-            isPdf ? 'rounded-xl bg-error-light/10 p-2.5' : 'rounded-xl bg-primary-light/10 p-2.5'
+            is_pdf ? 'rounded-xl bg-error-light/10 p-2.5' : 'rounded-xl bg-primary-light/10 p-2.5'
           }
         >
-          <FileText size={18} className={isPdf ? 'text-error-default' : 'text-primary-default'} />
+          <FileText size={18} className={is_pdf ? 'text-error-default' : 'text-primary-default'} />
         </div>
+
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-semibold text-blue-955">{attachment.name}</p>
+
           <p className="mt-0.5 text-xs text-slate-400">
             {attachment.folder} · {((attachment.size || 0) / 1024).toFixed(1)} KB
           </p>
+
           {attachment.hash && (
             <p className="mt-1 truncate font-mono text-[10px] text-slate-400">
               SHA-256: {attachment.hash}
             </p>
           )}
         </div>
+
         <div className="flex items-center gap-1">
           <button
             title="Ver documento"
             className="rounded-lg p-2 text-blue-600 hover:bg-blue-50"
-            onClick={() => run('view', () => openRequestAttachment(requestId, attachment.id))}
+            onClick={() => Run('view', () => OpenRequestAttachment(request_id, attachment.id))}
           >
-            {loadingAction === 'view' ? (
+            {loading_action === 'view' ? (
               <Loader2 size={16} className="animate-spin" />
             ) : (
               <Eye size={16} />
             )}
           </button>
+
           <button
             title="Descargar documento"
             className="rounded-lg p-2 text-slate-500 hover:bg-slate-100"
             onClick={() =>
-              run('download', () =>
-                saveRequestAttachment(requestId, attachment.id, attachment.name)
+              Run('download', () =>
+                SaveRequestAttachment(request_id, attachment.id, attachment.name)
               )
             }
           >
-            {loadingAction === 'download' ? (
+            {loading_action === 'download' ? (
               <Loader2 size={16} className="animate-spin" />
             ) : (
               <Download size={16} />
             )}
           </button>
+
           <button
             title="Verificar integridad"
             className="rounded-lg p-2 text-green-700 hover:bg-green-50"
             onClick={() =>
-              run('verify', async () =>
-                setVerification(await verifyRequestAttachment(requestId, attachment.id))
+              Run('verify', async () =>
+                set_verification(await VerifyRequestAttachment(request_id, attachment.id))
               )
             }
           >
-            {loadingAction === 'verify' ? (
+            {loading_action === 'verify' ? (
               <Loader2 size={16} className="animate-spin" />
             ) : (
               <ShieldCheck size={16} />
             )}
           </button>
-          {allowedIpfs && (
+
+          {allowed_ipfs && (
             <button
               title="Enviar a IPFS"
               className="rounded-lg p-2 text-violet-700 hover:bg-violet-50"
               onClick={() =>
-                run('ipfs', async () =>
-                  setIpfsStatus((await sendAttachmentToIpfs(requestId, attachment.id)).ipfs_status)
+                Run('ipfs', async () =>
+                  set_ipfs_status(
+                    (await SendAttachmentToIpfs(request_id, attachment.id)).ipfs_status
+                  )
                 )
               }
             >
-              {loadingAction === 'ipfs' ? (
+              {loading_action === 'ipfs' ? (
                 <Loader2 size={16} className="animate-spin" />
               ) : (
                 <Database size={16} />
@@ -121,10 +144,12 @@ export function AttachmentRow({
           )}
         </div>
       </div>
+
       <div className="mt-2 flex flex-wrap gap-2 text-[11px]">
         <span className="rounded-full bg-slate-100 px-2 py-1 text-slate-600">
-          IPFS: {ipfsStatus}
+          IPFS: {ipfs_status}
         </span>
+
         {verification && (
           <span
             className={`rounded-full px-2 py-1 ${verification.valid ? 'bg-green-50 text-green-700' : verification.verifiable ? 'bg-red-50 text-red-700' : 'bg-amber-50 text-amber-700'}`}

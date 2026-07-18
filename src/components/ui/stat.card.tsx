@@ -1,13 +1,13 @@
 import type { LucideIcon } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { Cn } from '@/lib/utils';
 
 export interface StatCardProps {
   label: string;
   value: string | number;
   icon: LucideIcon;
-  iconClassName?: string;
-  iconWrapperClassName?: string;
-  isLoading?: boolean;
+  icon_class_name?: string;
+  icon_wrapper_class_name?: string;
+  is_loading?: boolean;
   className?: string;
 }
 
@@ -15,27 +15,27 @@ export function StatCard({
   label,
   value,
   icon: Icon,
-  iconClassName = 'text-primary-default',
-  iconWrapperClassName = 'bg-primary-light/10',
-  isLoading = false,
+  icon_class_name = 'text-primary-default',
+  icon_wrapper_class_name = 'bg-primary-light/10',
+  is_loading = false,
   className,
 }: StatCardProps) {
   return (
-    <div className={cn('stat-card', className)}>
-      {isLoading ? (
+    <div className={Cn('stat-card', className)}>
+      {is_loading ? (
         <div className="h-10 w-10 rounded-xl shimmer" />
       ) : (
         <div
-          className={cn(
+          className={Cn(
             'flex h-10 w-10 items-center justify-center rounded-xl',
-            iconWrapperClassName
+            icon_wrapper_class_name
           )}
         >
-          <Icon size={20} className={iconClassName} />
+          <Icon size={20} className={icon_class_name} />
         </div>
       )}
       <div>
-        {isLoading ? (
+        {is_loading ? (
           <>
             <div className="mb-2 h-7 w-16 rounded-lg shimmer" />
             <div className="h-3 w-24 rounded-lg shimmer" />
@@ -58,12 +58,12 @@ interface KpiGridProps {
 }
 
 export function KpiGrid({ children, columns = '2-4', className }: KpiGridProps) {
-  const gridClass =
+  const grid_class =
     columns === '3'
       ? 'grid grid-cols-3 gap-4'
       : columns === '1-3'
         ? 'grid grid-cols-1 md:grid-cols-3 gap-4'
         : 'grid grid-cols-2 lg:grid-cols-4 gap-4';
 
-  return <div className={cn(gridClass, className)}>{children}</div>;
+  return <div className={Cn(grid_class, className)}>{children}</div>;
 }

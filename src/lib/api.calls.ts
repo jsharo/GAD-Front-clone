@@ -4,18 +4,31 @@ export type AttachmentFolder = 'PLANOS' | 'DOCUMENTOS_LEGALES' | 'INFORMES' | 'O
 
 export interface RequestAttachment {
   id: string;
+
   name: string;
+
   type: string;
+
   size: number | null;
+
   hash: string | null;
+
   folder: string;
+
   ipfs_cid: string | null;
+
   ipfs_status: string | null;
+
   ipfs_uploaded_at: string | null;
+
   ipfs_provider: string | null;
+
   signature_status?: SignatureVerificationStatus | 'PENDING';
+
   signature_verified_at?: string | null;
+
   signature_verifier?: string | null;
+
   created_at: string;
 }
 
@@ -40,333 +53,541 @@ export type SignatureTrustStatus =
 
 export interface ExpectedSigner {
   id: string | null;
+
   role: 'PROFESSIONAL' | 'CITIZEN' | 'UNKNOWN';
+
   full_name: string;
+
   national_id: string | null;
 }
 
 export interface VerifiedPdfSignature {
   index: number;
+
   field_name: string | null;
+
   common_name: string | null;
+
   given_name: string | null;
+
   surname: string | null;
+
   national_id: string | null;
+
   issuer_common_name: string | null;
+
   signing_time: string | null;
+
   integrity_valid: boolean;
+
   identity_status: SignatureIdentityStatus;
+
   identity_message: string;
+
   trust_status: SignatureTrustStatus;
+
   certificate_fingerprint_sha256: string;
 }
 
 export interface AttachmentSignatureReport {
   attachment_id: string;
+
   attachment_name: string;
+
   document_hash: string;
+
   stored_hash: string | null;
+
   storage_integrity_valid: boolean;
+
   verified_at: string;
+
   verifier: string;
+
   status: SignatureVerificationStatus;
+
   signature_count: number;
+
   has_valid_expected_signature: boolean;
+
   trust_configured: boolean;
+
   signatures: VerifiedPdfSignature[];
+
   warnings: string[];
 }
 
 export interface RequestSignatureSummary {
   status: SignatureVerificationStatus;
+
   has_valid_expected_signature: boolean;
+
   requires_acknowledgement: boolean;
+
   expected_signer: ExpectedSigner;
+
   pdf_count: number;
+
   signature_count: number;
+
   verified_at: string;
+
   attachments: AttachmentSignatureReport[];
+
   warnings: string[];
 }
 
 export interface AttachmentIntegrityResult {
   success: boolean;
+
   valid: boolean;
+
   verifiable: boolean;
+
   attachment_id: string;
+
   stored_hash: string | null;
+
   current_hash: string;
+
   message: string;
 }
 
 export interface AttachmentIpfsResult {
   success: boolean;
+
   enabled: boolean;
+
   uploaded: boolean;
+
   ipfs_status: string;
+
   message: string;
 }
 
 export interface SecretaryReviewInput {
   approved: boolean;
+
   acknowledge_signature_warning?: boolean;
+
   remarks?: string;
 }
 
 export interface SecretaryReviewResult {
   id: string;
+
   status: string;
+
   signature_validated: boolean;
+
   signature_status: SignatureVerificationStatus;
+
   approved: boolean;
 }
 
 interface ApiEnvelope<T> {
   success: boolean;
+
   data: T;
 }
 
-function toLegacyRequestShape(request: any) {
+/** Normalizes a backend request into English field names for UI consumption. */
+
+function ToApplicationView(request: any) {
+  const citizen = request.citizen
+    ? {
+        id: request.citizen.id,
+
+        first_name: request.citizen.name || request.citizen.first_name || '',
+
+        last_name: request.citizen.lastname || request.citizen.last_name || '',
+
+        national_id: request.citizen.cedula || request.citizen.national_id || null,
+
+        email: request.citizen.email || null,
+
+        phone: request.citizen.phone || null,
+      }
+    : null;
+
+  const architect = request.architect
+    ? {
+        id: request.architect.id,
+
+        first_name: request.architect.name || request.architect.first_name || '',
+
+        last_name: request.architect.lastname || request.architect.last_name || '',
+
+        national_id: request.architect.cedula || request.architect.national_id || null,
+
+        email: request.architect.email || null,
+
+        phone: request.architect.phone || null,
+
+        title: request.architect.title || null,
+
+        registration_number: request.architect.registration_number || null,
+      }
+    : null;
+
+  const property = request.property
+    ? {
+        address: request.property.address || '',
+
+        location: request.property.zone || '',
+
+        area: request.property.area ?? null,
+
+        description: request.property.coordinates || request.property.description || null,
+      }
+    : null;
+
+  const schedule = request.inspection
+    ? {
+        date: request.inspection.date,
+
+        notes: request.inspection.comments,
+
+        is_confirmed: true,
+      }
+    : null;
+
+  const technician = request.inspection?.technician
+    ? {
+        first_name:
+          typeof request.inspection.technician === 'string'
+            ? request.inspection.technician
+            : request.inspection.technician.name || request.inspection.technician.first_name || '',
+
+        last_name:
+          typeof request.inspection.technician === 'string'
+            ? ''
+            : request.inspection.technician.lastname ||
+              request.inspection.technician.last_name ||
+              '',
+
+        email:
+          typeof request.inspection.technician === 'string'
+            ? ''
+            : request.inspection.technician.email || '',
+      }
+    : null;
+
+  const secretary_decision = request.secretary_decision
+    ? {
+        is_approved: request.secretary_decision.approved,
+
+        signature_validated: Boolean(request.secretary_decision.signature_validated),
+
+        observations: request.secretary_decision.remarks,
+
+        created_at: request.secretary_decision.created_at,
+      }
+    : null;
+
+  const attachments = (request.attachments || []).map((attachment: RequestAttachment) => ({
+    id: attachment.id,
+
+    name: attachment.name,
+
+    size: attachment.size,
+
+    hash: attachment.hash,
+
+    type: attachment.type,
+  }));
+
+  const payments = request.resolution?.payment_amount
+    ? [
+        {
+          id: request.resolution.id,
+
+          amount: request.resolution.payment_amount,
+
+          concept: request.resolution.comments,
+
+          status: request.status === 'PAID' ? 'PAID' : 'PENDING',
+        },
+      ]
+    : [];
+
   return {
-    ...request,
-    createdAt: request.created_at,
-    updatedAt: request.updated_at,
-    estado: request.status,
-    tipoTramite: request.request_type,
-    motivoRechazo: request.status === 'REJECTED' ? request.resolution?.comments : null,
-    observaciones: request.resolution?.comments ?? request.inspection?.comments ?? null,
-    ciudadano: request.citizen
-      ? { ...request.citizen, nombre: request.citizen.name, apellido: request.citizen.lastname }
-      : null,
-    usuario: request.citizen
-      ? { ...request.citizen, nombre: request.citizen.name, apellido: request.citizen.lastname }
-      : null,
-    arquitecto: request.architect
-      ? {
-          ...request.architect,
-          nombre: request.architect.name,
-          apellido: request.architect.lastname,
-        }
-      : null,
-    predio: request.property
-      ? {
-          direccion: request.property.address,
-          ubicacion: request.property.zone,
-          area: request.property.area,
-          descripcion: request.property.coordinates,
-        }
-      : null,
-    agenda: request.inspection
-      ? {
-          fecha: request.inspection.date,
-          notas: request.inspection.comments,
-          confirmada: true,
-        }
-      : null,
-    tecnico: request.inspection?.technician
-      ? { nombre: request.inspection.technician, apellido: '', email: '' }
-      : null,
-    dictamenSecretaria: request.secretary_decision
-      ? {
-          aprobada: request.secretary_decision.approved,
-          firmaValidada: request.secretary_decision.signature_validated,
-          observaciones: request.secretary_decision.remarks,
-          creadoEn: request.secretary_decision.created_at,
-        }
-      : null,
-    anexos: (request.attachments || []).map((attachment: RequestAttachment) => ({
-      id: attachment.id,
-      nombre: attachment.name,
-      tamano: attachment.size,
-      hash: attachment.hash,
-      tipoMime: attachment.type,
-    })),
-    pagos: request.resolution?.payment_amount
-      ? [
-          {
-            id: request.resolution.id,
-            monto: request.resolution.payment_amount,
-            concepto: request.resolution.comments,
-            estado: request.status === 'PAID' ? 'PAGADO' : 'PENDIENTE',
-          },
-        ]
-      : [],
+    id: request.id,
+
+    created_at: request.created_at,
+
+    updated_at: request.updated_at,
+
+    status: request.status,
+
+    procedure_type: request.request_type,
+
+    rejection_reason: request.status === 'REJECTED' ? request.resolution?.comments : null,
+
+    observations: request.resolution?.comments ?? request.inspection?.comments ?? null,
+
+    citizen,
+
+    user: citizen,
+
+    architect,
+
+    property,
+
+    schedule,
+
+    technician,
+
+    secretary_decision,
+
+    attachments,
+
+    payments,
+
+    citizen_documents:
+      request.citizen_documents ??
+      attachments.filter((a: { type?: string }) => a.type !== 'INSPECTION_PHOTO'),
+
+    inspection_photos:
+      request.inspection_photos ??
+      attachments.filter((a: { type?: string }) => a.type === 'INSPECTION_PHOTO'),
   };
 }
 
-export async function getRequests(params?: object) {
+export async function GetRequests(params?: object) {
   const response = await api.get<ApiEnvelope<any[]>>('/requests', { params });
+
   return response.data.data;
 }
 
-export async function getRequestById(requestId: string) {
-  const response = await api.get<ApiEnvelope<any>>(`/requests/${requestId}`);
+export async function GetRequestById(request_id: string) {
+  const response = await api.get<ApiEnvelope<any>>(`/requests/${request_id}`);
+
   return response.data.data;
 }
 
-export async function submitSecretaryReview(requestId: string, review: SecretaryReviewInput) {
+export async function SubmitSecretaryReview(request_id: string, review: SecretaryReviewInput) {
   const response = await api.post<ApiEnvelope<SecretaryReviewResult>>(
-    `/requests/${requestId}/secretary-review`,
+    `/requests/${request_id}/secretary-review`,
+
     review
   );
+
   return response.data.data;
 }
 
-export async function getRequestAttachments(requestId: string) {
+export async function GetRequestAttachments(request_id: string) {
   const response = await api.get<ApiEnvelope<RequestAttachment[]>>(
-    `/requests/${requestId}/attachments`
+    `/requests/${request_id}/attachments`
   );
+
   return response.data.data;
 }
 
-export async function uploadRequestAttachment(requestId: string, formData: FormData) {
+export async function UploadRequestAttachment(request_id: string, form_data: FormData) {
   const response = await api.post<ApiEnvelope<RequestAttachment>>(
-    `/requests/${requestId}/attachments`,
-    formData
+    `/requests/${request_id}/attachments`,
+
+    form_data
   );
+
   return response.data.data;
 }
 
-export function downloadRequestAttachment(requestId: string, attachmentId: string) {
-  return api.get<Blob>(`/requests/${requestId}/attachments/${attachmentId}/download`, {
+export function DownloadRequestAttachment(request_id: string, attachment_id: string) {
+  return api.get<Blob>(`/requests/${request_id}/attachments/${attachment_id}/download`, {
     responseType: 'blob',
   });
 }
 
-export async function verifyRequestAttachment(requestId: string, attachmentId: string) {
+export async function VerifyRequestAttachment(request_id: string, attachment_id: string) {
   const response = await api.get<AttachmentIntegrityResult>(
-    `/requests/${requestId}/attachments/${attachmentId}/verify`
+    `/requests/${request_id}/attachments/${attachment_id}/verify`
   );
+
   return response.data;
 }
 
-export async function getRequestSignatureVerification(requestId: string, refresh = false) {
+export async function GetRequestSignatureVerification(request_id: string, refresh = false) {
   const response = await api.get<ApiEnvelope<RequestSignatureSummary>>(
-    `/requests/${requestId}/signature-verification`,
+    `/requests/${request_id}/signature-verification`,
+
     { params: refresh ? { refresh: true } : undefined }
   );
+
   return response.data.data;
 }
 
-export async function getAttachmentSignatureVerification(
-  requestId: string,
-  attachmentId: string,
+export async function GetAttachmentSignatureVerification(
+  request_id: string,
+
+  attachment_id: string,
+
   refresh = false
 ) {
   const response = await api.get<ApiEnvelope<AttachmentSignatureReport>>(
-    `/requests/${requestId}/attachments/${attachmentId}/signatures`,
+    `/requests/${request_id}/attachments/${attachment_id}/signatures`,
+
     { params: refresh ? { refresh: true } : undefined }
   );
+
   return response.data.data;
 }
 
-export async function sendAttachmentToIpfs(requestId: string, attachmentId: string) {
+export async function SendAttachmentToIpfs(request_id: string, attachment_id: string) {
   const response = await api.post<AttachmentIpfsResult>(
-    `/requests/${requestId}/attachments/${attachmentId}/ipfs`
+    `/requests/${request_id}/attachments/${attachment_id}/ipfs`
   );
+
   return response.data;
 }
 
-export async function verifyAuditChain() {
+export async function VerifyAuditChain() {
   const response = await api.get<{
     success: boolean;
+
     valid: boolean;
+
     message: string;
+
     checked_logs: number;
+
     legacy_logs: number;
   }>('/audit/verify');
+
   return response.data;
 }
 
 // ---- Auth ----
+
 export const auth_api = {
-  login: (email: string, password: string) => api.post('/auth/login', { email, password }),
-  register: (data: object) => api.post('/auth/register', data),
-  requestTrackedAccess: (email: string) => api.post('/auth/registro-rapido', { email }),
-  completeProfile: (data: object) => api.post('/auth/completar-perfil', data),
-  me: () => api.get('/auth/me'),
-  refresh: () => api.post('/auth/refresh'),
+  Login: (email: string, password: string) => api.post('/auth/login', { email, password }),
+
+  Register: (data: object) => api.post('/users/register', data),
+
+  RequestTrackedAccess: (email: string) => api.post('/users/register-architect', { email }),
+
+  CompleteProfile: (user_id: string, data: object) => api.patch(`/users/${user_id}`, data),
+
+  Refresh: () => api.post('/auth/refresh'),
 };
 
 // ---- Applications ----
+
 export const applications_api = {
-  // TODO legacy: migrate remaining screens to /requests backend contract
-  create: (data: object) => api.post('/solicitudes', data),
-  list: async (params?: object) => {
-    const legacy_params = (params ?? {}) as Record<string, string | number>;
+  Create: (data: object) => api.post('/requests', data),
+
+  List: async (params?: object) => {
+    const query = (params ?? {}) as Record<string, string | number>;
+
+    const status = query.status;
+
+    const request_type = query.request_type || query.procedure_type;
+
     const response = await api.get<ApiEnvelope<any[]>>('/requests', {
-      params: legacy_params.estado ? { status: legacy_params.estado } : undefined,
+      params: status ? { status } : undefined,
     });
-    const request_type = legacy_params.tipoTramite;
+
     const requests = request_type
       ? response.data.data.filter((request) => request.request_type === request_type)
       : response.data.data;
 
     return {
       ...response,
+
       data: {
         ...response.data,
-        data: requests.map(toLegacyRequestShape),
+
+        data: requests.map(ToApplicationView),
       },
     };
   },
-  myApplications: async (params?: object) => {
-    const legacy_params = (params ?? {}) as Record<string, string | number>;
+
+  MyApplications: async (params?: object) => {
+    const query = (params ?? {}) as Record<string, string | number>;
+
     const response = await api.get<ApiEnvelope<any[]>>('/requests/my-filings');
+
     const requests = response.data.data.filter((request) => {
-      if (legacy_params.estado && request.status !== legacy_params.estado) return false;
-      if (legacy_params.tipoTramite && request.request_type !== legacy_params.tipoTramite) {
-        return false;
-      }
+      if (query.status && request.status !== query.status) return false;
+
+      const request_type = query.request_type || query.procedure_type;
+
+      if (request_type && request.request_type !== request_type) return false;
+
       return true;
     });
 
     return {
       ...response,
+
       data: {
         ...response.data,
-        data: requests.map(toLegacyRequestShape),
+
+        data: requests.map(ToApplicationView),
       },
     };
   },
-  stats: () => api.get('/solicitudes/stats'),
-  getById: async (id: string) => {
+
+  Stats: () => api.get('/users/dashboard/stats'),
+
+  GetById: async (id: string) => {
     const response = await api.get<ApiEnvelope<any>>(`/requests/${id}`);
-    return { ...response, data: toLegacyRequestShape(response.data.data) };
+
+    return { ...response, data: ToApplicationView(response.data.data) };
   },
-  send: (id: string) => api.post(`/solicitudes/${id}/enviar`),
-  updateStatus: (id: string, data: object) => api.patch(`/solicitudes/${id}/estado`, data),
-  schedule: (id: string, data: object) => api.post(`/solicitudes/${id}/agenda`, data),
-  resolve: (
+
+  Send: (id: string) => api.patch(`/requests/${id}/status`, { status: 'PENDING_SECRETARY' }),
+
+  UpdateStatus: (id: string, data: { status: string; comment?: string }) =>
+    api.patch(`/requests/${id}/status`, data),
+
+  Schedule: (id: string, data: object) => api.post(`/requests/${id}/schedule`, data),
+
+  Resolve: (
     id: string,
-    data: { resolucion?: string; observaciones?: string; motivoRechazo?: string }
+    data: { approved?: boolean; comments?: string; rejection_reason?: string }
   ) =>
     api.post(`/requests/${id}/resolve`, {
-      approved: data.resolucion !== 'NEGADO',
-      comments: data.observaciones || data.motivoRechazo || '',
+      approved: data.approved,
+
+      comments: data.comments || data.rejection_reason || '',
     }),
-  charge: (id: string, data: { amount: number; concept: string; notes?: string }) =>
-    api.post(`/solicitudes/${id}/cobrar`, {
-      monto: data.amount,
-      concepto: data.concept,
-      notas: data.notes,
+
+  Charge: (id: string, data: { amount: number; concept: string; notes?: string }) =>
+    api.post(`/requests/${id}/resolve`, {
+      approved: true,
+
+      comments: `${data.concept} — ${data.amount}${data.notes ? ` (${data.notes})` : ''}`,
     }),
-  pay: (id: string) => api.patch(`/solicitudes/${id}/cobros/pagar`),
-  publicTracking: (params: { email?: string; national_id?: string }) => {
+
+  Pay: (id: string) => api.patch(`/requests/${id}/status`, { status: 'PAID' }),
+
+  PublicTracking: (params: { email?: string; national_id?: string }) => {
+    // Backend wire field for national ID remains `cedula`
+
     const query_params = {
       email: params.email,
+
       cedula: params.national_id,
     };
-    return api.get('/solicitudes/seguimiento-publico', { params: query_params });
+
+    return api.get('/requests/my-requests', { params: query_params });
   },
 
   /**
+
    * Upload technical inspection report (JPEG/PNG photos + comments)
+
    */
-  uploadReport: (id: string, comments: string, photos: File[]) => {
+
+  UploadReport: (id: string, comments: string, photos: File[]) => {
     const form_data = new FormData();
+
     form_data.append('comments', comments);
+
     photos.forEach((f) => form_data.append('photos', f));
+
     return api.post(`/requests/${id}/inspection-report`, form_data, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
@@ -374,59 +595,82 @@ export const applications_api = {
 };
 
 // ---- Attachments ----
+
 export const attachments_api = {
-  upload: (
+  Upload: (
     application_id: string,
+
     file: File,
+
     folder: AttachmentFolder = 'OTROS',
+
     name = file.name
   ) => {
     const form_data = new FormData();
+
     form_data.append('file', file);
+
     form_data.append('folder', folder);
+
     form_data.append('name', name);
+
     return api.post(`/requests/${application_id}/attachments`, form_data, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
   },
-  list: (application_id: string) => api.get(`/requests/${application_id}/attachments`),
-  delete: (application_id: string, attachment_id: string) =>
+
+  List: (application_id: string) => api.get(`/requests/${application_id}/attachments`),
+
+  Delete: (application_id: string, attachment_id: string) =>
     api.delete(`/requests/${application_id}/attachments/${attachment_id}`),
-  getUrl: (application_id: string, attachment_id: string) =>
+
+  GetUrl: (application_id: string, attachment_id: string) =>
     `/requests/${encodeURIComponent(application_id)}/attachments/${encodeURIComponent(
       attachment_id
     )}/download`,
 };
 
 // ---- Notifications ----
+
 export const notifications_api = {
-  list: (only_unread = false) =>
-    api.get('/notificaciones', { params: { soloNoLeidas: only_unread } }),
-  count: () => api.get('/notificaciones/contador'),
-  markRead: (id: string) => api.patch(`/notificaciones/${id}/leer`),
-  markAllRead: () => api.patch('/notificaciones/leer-todas'),
+  List: (only_unread = false) => api.get('/notifications', { params: { only_unread } }),
+
+  Count: () => api.get('/notifications/count'),
+
+  MarkRead: (id: string) => api.patch(`/notifications/${id}/read`),
+
+  MarkAllRead: () => api.patch('/notifications/read-all'),
 };
 
 // ---- Users ----
+
 export const users_api = {
-  list: (params?: object) => api.get('/users', { params }),
-  technicians: () => api.get('/users/tecnicos'),
-  createStaff: (data: object) => api.post('/users/institucional', data),
-  update: (id: string, data: object) => api.patch(`/users/${id}`, data),
-  updateTechnicianZone: (id: string, zone: 'URBAN' | 'RURAL' | null) => {
-    const zona = zone === 'URBAN' ? 'URBANO' : zone === 'RURAL' ? 'RURAL' : null;
-    return api.patch(`/users/${id}/zona`, { zona });
-  },
-  dashboardStats: () => api.get('/users/dashboard/stats'),
-  toggleActive: (id: string, is_active: boolean) =>
-    api.patch(`/users/${id}/toggle-activo`, { activo: is_active }),
-  pendingArchitects: () => api.get('/users/arquitectos/pendientes'),
-  approveArchitect: (id: string, approved: boolean) =>
-    api.patch(`/users/${id}/habilitar-arquitecto`, { habilitado: approved }),
+  List: (params?: object) => api.get('/users', { params }),
+
+  Technicians: () => api.get('/users/technicians'),
+
+  CreateStaff: (data: object) => api.post('/users/institutional', data),
+
+  Update: (id: string, data: object) => api.patch(`/users/${id}`, data),
+
+  UpdateTechnicianZone: (id: string, zone: 'URBAN' | 'RURAL' | null) =>
+    api.patch(`/users/${id}`, { zone }),
+
+  DashboardStats: () => api.get('/users/dashboard/stats'),
+
+  ToggleActive: (id: string, is_active: boolean) =>
+    api.patch(`/users/${id}/status`, { status: is_active ? 'ACTIVE' : 'INACTIVE' }),
+
+  PendingArchitects: () => api.get('/users', { params: { role: 'USER' } }),
+
+  ApproveArchitect: (id: string, approved: boolean) =>
+    api.patch(`/users/${id}/status`, { status: approved ? 'ACTIVE' : 'INACTIVE' }),
 };
 
 // ---- Audit ----
+
 export const audit_api = {
-  list: (params?: object) => api.get('/audit', { params }),
-  verify: () => api.get('/audit/verify'),
+  List: (params?: object) => api.get('/audit', { params }),
+
+  Verify: () => api.get('/audit/verify'),
 };

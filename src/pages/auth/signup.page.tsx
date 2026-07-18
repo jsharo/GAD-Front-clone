@@ -5,7 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Eye, EyeOff, AlertCircle } from 'lucide-react';
 import api from '@/lib/api';
-import { getApiError } from '@/lib/errors';
+import { GetApiError } from '@/lib/errors';
 import { AlertBanner } from '@/components/ui/alert.banner';
 
 const SignUpSchema = z
@@ -20,8 +20,8 @@ const SignUpSchema = z
   });
 type SignUpForm = z.infer<typeof SignUpSchema>;
 
-/** Placeholder until cedula is collected in a later step (backend requires 10 digits). */
-function tempCedula(): string {
+/** Placeholder until national ID is collected in a later step (backend requires 10 digits). */
+function GenerateTempNationalId(): string {
   const raw = `${Date.now()}${Math.floor(Math.random() * 1000)}`;
   return raw.replace(/\D/g, '').slice(-10).padStart(10, '0');
 }
@@ -41,21 +41,22 @@ export function SignUpPage() {
     resolver: zodResolver(SignUpSchema),
   });
 
-  const onSubmit = async (data: SignUpForm) => {
+  const OnSubmit = async (data: SignUpForm) => {
     set_error(null);
     set_is_loading(true);
     try {
       await api.post('/users/register', {
         email: data.email,
         password: data.password,
-        cedula: tempCedula(),
+        // Backend wire field for Ecuadorian ID remains `cedula`
+        cedula: GenerateTempNationalId(),
       });
 
       navigate('/auth/signup/email-code', {
-        state: { fromSignup: true, email: data.email },
+        state: { from_signup: true, email: data.email },
       });
     } catch (err) {
-      set_error(getApiError(err, 'Error registering'));
+      set_error(GetApiError(err, 'Error registering'));
     } finally {
       set_is_loading(false);
     }
@@ -84,11 +85,11 @@ export function SignUpPage() {
 
         {/* Global error */}
         {error && (
-          <AlertBanner message={error} onDismiss={() => set_error(null)} className="mb-6" />
+          <AlertBanner message={error} OnDismiss={() => set_error(null)} className="mb-6" />
         )}
 
         {/* Form */}
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        <form onSubmit={handleSubmit(OnSubmit)} className="space-y-4">
           {/* Email */}
           <div>
             <label className="block text-xs font-bold text-neutral-500 tracking-widest mb-2">

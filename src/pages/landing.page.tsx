@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   ArrowRight,
@@ -30,70 +30,70 @@ const FEATURES = [
     icon: FileText,
     title: 'Línea de Fábrica Digital',
     desc: 'Obtención rápida de informes de regulación urbana y compatibilidad de uso de suelo.',
-    iconWrapperClass: 'bg-primary-light/10 border border-primary-light/20',
-    iconClass: 'text-primary-default',
+    icon_wrapper_class: 'bg-primary-light/10 border border-primary-light/20',
+    icon_class: 'text-primary-default',
   },
   {
     icon: Shield,
     title: 'Aprobación de Planos',
     desc: 'Envío técnico de proyectos arquitectónicos y estructurales para revisión ágil de los analistas.',
-    iconWrapperClass: 'bg-error-light/20 border border-error-light',
-    iconClass: 'text-error-default',
+    icon_wrapper_class: 'bg-error-light/20 border border-error-light',
+    icon_class: 'text-error-default',
   },
   {
     icon: MapPin,
     title: 'Permisos de Construcción',
     desc: 'Licenciamiento de edificación 100% en línea para áreas urbanas y rurales del cantón.',
-    iconWrapperClass: 'bg-success-light/20 border border-success-light',
-    iconClass: 'text-success-dark',
+    icon_wrapper_class: 'bg-success-light/20 border border-success-light',
+    icon_class: 'text-success-dark',
   },
 ];
 
 const PROCEDURE_TYPE_LABELS: Record<string, string> = {
-  LINEA_FABRICAS: 'Línea de Fábricas',
-  APROBACION_PLANOS: 'Aprobación de Planos',
-  PERMISO_CONSTRUCCION: 'Permiso de Construcción',
+  BUILDING_LINE: 'Línea de Fábricas',
+  PLAN_APPROVAL: 'Aprobación de Planos',
+  CONSTRUCTION_PERMIT: 'Permiso de Construcción',
 };
 
-const STATUS_INFO: Record<string, { label: string; badgeClass: string; step: number }> = {
-  BORRADOR: {
+const STATUS_INFO: Record<string, { label: string; badge_class: string; step: number }> = {
+  DRAFT: {
     label: 'Borrador (Pendiente Envío)',
-    badgeClass: 'bg-neutral-200 text-neutral-700 border border-neutral-300',
+    badge_class: 'bg-neutral-200 text-neutral-700 border border-neutral-300',
     step: 1,
   },
-  PENDIENTE_SECRETARIA: {
+  PENDING_SECRETARY: {
     label: 'Enviado (Espera Validación Documental)',
-    badgeClass: 'bg-warning-light/20 text-warning-dark border border-warning-light',
+    badge_class: 'bg-warning-light/20 text-warning-dark border border-warning-light',
     step: 1,
   },
-  OBSERVADO: {
+  OBSERVED: {
     label: 'Observado por Secretaría (Devuelto)',
-    badgeClass: 'bg-error-light/20 text-error-dark border border-error-light',
+    badge_class: 'bg-error-light/20 text-error-dark border border-error-light',
     step: 2,
   },
-  EN_REVISION_TECNICA: {
+  PENDING_TECHNICIAN: {
     label: 'En Revisión Técnica',
-    badgeClass: 'bg-primary-light/10 text-primary-default border border-primary-light/30',
+    badge_class: 'bg-primary-light/10 text-primary-default border border-primary-light/30',
     step: 2,
   },
-  PENDIENTE_PAGO: {
+  PENDING_PAYMENT: {
     label: 'Aprobado (Pendiente de Pago)',
-    badgeClass: 'bg-warning-light/20 text-warning-dark border border-warning-light',
+    badge_class: 'bg-warning-light/20 text-warning-dark border border-warning-light',
     step: 3,
   },
-  PAGADO: {
+  PAID: {
     label: 'Pago Registrado (En Firma Final)',
-    badgeClass: 'bg-success-light/20 text-success-dark border border-success-light',
+    badge_class: 'bg-success-light/20 text-success-dark border border-success-light',
     step: 3,
   },
-  APROBADO: {
+  APPROVED: {
     label: 'Aprobado y Concluido',
-    badgeClass: 'bg-success-light/20 text-success-dark border border-success-light',
+    badge_class: 'bg-success-light/20 text-success-dark border border-success-light',
     step: 4,
   },
-  RECHAZADO: {
+  REJECTED: {
     label: 'Rechazado Definitivamente',
-    badgeClass: 'bg-error-light/20 text-error-dark border border-error-light',
+    badge_class: 'bg-error-light/20 text-error-dark border border-error-light',
     step: 4,
   },
 };
@@ -105,7 +105,7 @@ export function LandingPage() {
   const [tracking_result, set_tracking_result] = useState<any>(null);
   const [is_modal_open, set_is_modal_open] = useState(false);
 
-  const handleTrack = async (e: React.FormEvent) => {
+  const HandleTrack = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!search_val.trim()) return;
 
@@ -117,14 +117,18 @@ export function LandingPage() {
       const is_email = search_val.includes('@');
       const params = is_email ? { email: search_val.trim() } : { national_id: search_val.trim() };
 
-      const { data } = await applications_api.publicTracking(params);
+      const { data } = await applications_api.PublicTracking(params);
+      const tracked_applications = data.applications || data.data || [];
 
-      if (!data.solicitudes || data.solicitudes.length === 0) {
+      if (!tracked_applications.length) {
         set_error_msg(
           'El ciudadano se encuentra registrado, pero aún no tiene ningún trámite ingresado.'
         );
       } else {
-        set_tracking_result(data);
+        set_tracking_result({
+          citizen: data.citizen,
+          applications: tracked_applications,
+        });
         set_is_modal_open(true);
       }
     } catch (err: any) {
@@ -137,29 +141,33 @@ export function LandingPage() {
     }
   };
 
-  // Map backend response properties to snake_case English for template use
-  const citizen = tracking_result?.ciudadano
+  const citizen = tracking_result?.citizen
     ? {
-        first_name: tracking_result.ciudadano.nombre,
-        last_name: tracking_result.ciudadano.apellido,
+        first_name: tracking_result.citizen.first_name || tracking_result.citizen.name || '',
+        last_name: tracking_result.citizen.last_name || tracking_result.citizen.lastname || '',
       }
     : null;
 
-  const applications = (tracking_result?.solicitudes || []).map((sol: any) => ({
-    id: sol.id,
-    procedure_type: sol.tipoTramite,
-    address: sol.direccion,
-    location: sol.ubicacion,
-    status: sol.estado,
-    observations: sol.observaciones,
-    rejection_reason: sol.motivoRechazo,
-    payment: sol.cobro
+  const applications = (tracking_result?.applications || []).map((application: any) => ({
+    id: application.id,
+    procedure_type: application.procedure_type || application.request_type,
+    address: application.address || application.property?.address,
+    location: application.location || application.property?.location || application.property?.zone,
+    status: application.status,
+    observations: application.observations,
+    rejection_reason: application.rejection_reason,
+    payment: application.payments?.[0]
       ? {
-          concept: sol.cobro.concepto,
-          amount: sol.cobro.monto,
+          concept: application.payments[0].concept,
+          amount: application.payments[0].amount,
         }
-      : null,
-    updated_at: sol.updatedAt,
+      : application.payment
+        ? {
+            concept: application.payment.concept,
+            amount: application.payment.amount,
+          }
+        : null,
+    updated_at: application.updated_at,
   }));
 
   return (
@@ -234,21 +242,21 @@ export function LandingPage() {
         <div className="border-t border-neutral-100 bg-neutral-50/95">
           <div className="max-w-7xl mx-auto px-6 py-2.5 flex items-center justify-start gap-8 overflow-x-auto text-xs font-bold tracking-wider text-neutral-600">
             <a
-              href="#inicio"
+              href="#home"
               className="text-primary-default border-b-2 border-secondary-light pb-1 hover:text-primary-dark"
             >
               INICIO
             </a>
-            <a href="#servicios" className="hover:text-primary-dark">
+            <a href="#services" className="hover:text-primary-dark">
               TRÁMITES TÉCNINES
             </a>
-            <a href="#seguimiento" className="hover:text-primary-dark">
+            <a href="#tracking" className="hover:text-primary-dark">
               CONSULTA EXPEDIENTES
             </a>
-            <a href="#registro-profesional" className="hover:text-primary-dark">
+            <a href="#professional-registration" className="hover:text-primary-dark">
               HABILITACIÓN PROFESIONAL
             </a>
-            <a href="#noticias" className="hover:text-primary-dark">
+            <a href="#news" className="hover:text-primary-dark">
               NOTICIAS GAD
             </a>
           </div>
@@ -257,7 +265,7 @@ export function LandingPage() {
 
       {/* HERO SECTION CLARO */}
       <section
-        id="inicio"
+        id="home"
         className="relative overflow-hidden bg-neutral-50 py-16 lg:py-24 border-b border-neutral-200"
       >
         {/* Glow de fondo */}
@@ -291,7 +299,7 @@ export function LandingPage() {
                 <ArrowRight size={18} />
               </Link>
               <a
-                href="#registro-profesional"
+                href="#professional-registration"
                 className="inline-flex items-center justify-center gap-2 text-base px-8 py-3.5 rounded-xl border border-primary-default/30 text-primary-default font-semibold hover:bg-primary-dark hover:text-neutral-50 hover:border-primary-dark"
               >
                 Registrarme como Profesional
@@ -355,7 +363,7 @@ export function LandingPage() {
       </section>
 
       {/* SECCIÓN: SEGUIMIENTO DE TRÁMITES */}
-      <section id="seguimiento" className="py-12 bg-neutral-50 border-b border-neutral-100">
+      <section id="tracking" className="py-12 bg-neutral-50 border-b border-neutral-100">
         <div className="max-w-4xl mx-auto px-6">
           <div className="bg-neutral-100 border border-neutral-200/80 p-6 sm:p-8 rounded-3xl relative overflow-hidden">
             <div className="absolute top-0 left-0 right-0 h-1 bg-primary-default" />
@@ -372,7 +380,7 @@ export function LandingPage() {
               </div>
 
               <div className="md:col-span-7">
-                <form onSubmit={handleTrack} className="space-y-3">
+                <form onSubmit={HandleTrack} className="space-y-3">
                   <div className="relative">
                     <input
                       id="tracking-input"
@@ -412,7 +420,7 @@ export function LandingPage() {
       </section>
 
       {/* PORTAL PROFESIONALES: CLARO */}
-      <section id="registro-profesional" className="py-16 max-w-7xl mx-auto px-6">
+      <section id="professional-registration" className="py-16 max-w-7xl mx-auto px-6">
         <div className="text-center mb-12">
           <div className="inline-flex p-3 bg-primary-light/10 text-primary-default rounded-2xl mb-4">
             <HardHat size={28} />
@@ -475,7 +483,7 @@ export function LandingPage() {
       </section>
 
       {/* FEATURES CLARAS */}
-      <section id="servicios" className="py-20 max-w-7xl mx-auto px-6">
+      <section id="services" className="py-20 max-w-7xl mx-auto px-6">
         <div className="text-center mb-16">
           <h2 className="text-3xl font-extrabold text-neutral-900">
             Trámites Técnicos Habilitados
@@ -491,8 +499,8 @@ export function LandingPage() {
               key={f.title}
               className="p-6 rounded-3xl bg-neutral-50 border border-neutral-200/60 flex flex-col items-start space-y-4 text-left hover:border-primary-default"
             >
-              <div className={`p-3 rounded-2xl ${f.iconWrapperClass}`}>
-                <f.icon size={20} className={f.iconClass} />
+              <div className={`p-3 rounded-2xl ${f.icon_wrapper_class}`}>
+                <f.icon size={20} className={f.icon_class} />
               </div>
               <h3 className="font-bold text-neutral-800 text-lg">{f.title}</h3>
               <p className="text-neutral-600 text-sm leading-relaxed">{f.desc}</p>
@@ -518,8 +526,8 @@ export function LandingPage() {
       </footer>
 
       <BaseModal
-        isOpen={is_modal_open && !!tracking_result}
-        onClose={() => set_is_modal_open(false)}
+        is_open={is_modal_open && !!tracking_result}
+        OnClose={() => set_is_modal_open(false)}
         title="Estado de Trámites"
         size="xl"
       >
@@ -530,10 +538,10 @@ export function LandingPage() {
         )}
 
         <div className="space-y-6 pr-1">
-          {applications.map((sol: any) => {
-            const info = STATUS_INFO[sol.status] || {
-              label: sol.status,
-              badgeClass: 'bg-neutral-200 text-neutral-700 border border-neutral-300',
+          {applications.map((application: any) => {
+            const info = STATUS_INFO[application.status] || {
+              label: application.status,
+              badge_class: 'bg-neutral-200 text-neutral-700 border border-neutral-300',
               step: 1,
             };
             const steps = [
@@ -545,23 +553,24 @@ export function LandingPage() {
 
             return (
               <div
-                key={sol.id}
+                key={application.id}
                 className="p-5 rounded-2xl bg-neutral-100 border border-neutral-200/60 space-y-4"
               >
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                   <div>
                     <span className="text-[10px] bg-neutral-200 text-neutral-700 font-bold px-2 py-1 rounded">
-                      ID: #{sol.id.slice(0, 8).toUpperCase()}
+                      ID: #{application.id.slice(0, 8).toUpperCase()}
                     </span>
                     <h4 className="font-bold text-neutral-800 text-base mt-1">
-                      {PROCEDURE_TYPE_LABELS[sol.procedure_type] || sol.procedure_type}
+                      {PROCEDURE_TYPE_LABELS[application.procedure_type] ||
+                        application.procedure_type}
                     </h4>
                     <p className="text-xs text-neutral-500 flex items-center gap-1 mt-0.5">
-                      <MapPin size={12} /> {sol.address} ({sol.location})
+                      <MapPin size={12} /> {application.address} ({application.location})
                     </p>
                   </div>
                   <span
-                    className={`text-xs font-bold px-3 py-1.5 rounded-full w-max text-center ${info.badgeClass}`}
+                    className={`text-xs font-bold px-3 py-1.5 rounded-full w-max text-center ${info.badge_class}`}
                   >
                     {info.label}
                   </span>
@@ -606,39 +615,40 @@ export function LandingPage() {
                   </div>
                 </div>
 
-                {sol.status === 'OBSERVADO' && sol.observations && (
+                {application.status === 'OBSERVED' && application.observations && (
                   <div className="p-3.5 rounded-xl bg-error-light/20 border border-error-light text-error-dark text-xs">
                     <p className="font-bold flex items-center gap-1.5 mb-1 text-error-dark">
                       <AlertCircle size={14} /> Observación documental a subsanar:
                     </p>
-                    <p>{sol.observations}</p>
+                    <p>{application.observations}</p>
                   </div>
                 )}
 
-                {sol.status === 'RECHAZADO' && sol.rejection_reason && (
+                {application.status === 'REJECTED' && application.rejection_reason && (
                   <div className="p-3.5 rounded-xl bg-error-light/20 border border-error-light text-error-dark text-xs">
                     <p className="font-bold flex items-center gap-1.5 mb-1 text-error-dark">
                       <XCircle size={14} /> Motivo del rechazo técnico:
                     </p>
-                    <p>{sol.rejection_reason}</p>
+                    <p>{application.rejection_reason}</p>
                   </div>
                 )}
 
-                {sol.status === 'PENDIENTE_PAGO' && sol.payment && (
+                {application.status === 'PENDING_PAYMENT' && application.payment && (
                   <div className="p-3.5 rounded-xl bg-warning-light/20 border border-warning-light text-warning-dark text-xs flex justify-between items-center">
                     <div>
                       <p className="font-bold text-warning-dark">Monto Liquidado a Pagar:</p>
-                      <p className="text-neutral-500">{sol.payment.concept}</p>
+                      <p className="text-neutral-500">{application.payment.concept}</p>
                     </div>
                     <span className="text-lg font-black text-warning-default">
-                      ${sol.payment.amount}
+                      ${application.payment.amount}
                     </span>
                   </div>
                 )}
 
                 <div className="text-[10px] text-neutral-400 text-right">
-                  Última actualización: {new Date(sol.updated_at).toLocaleDateString('es-EC')} a las{' '}
-                  {new Date(sol.updated_at).toLocaleTimeString('es-EC', {
+                  Última actualización:{' '}
+                  {new Date(application.updated_at).toLocaleDateString('es-EC')} a las{' '}
+                  {new Date(application.updated_at).toLocaleTimeString('es-EC', {
                     hour: '2-digit',
                     minute: '2-digit',
                   })}

@@ -1,4 +1,4 @@
-export function getApiError(err: unknown, fallback: string): string {
+export function GetApiError(err: unknown, fallback: string): string {
   if (typeof err === 'object' && err !== null && 'response' in err) {
     const response = (
       err as {

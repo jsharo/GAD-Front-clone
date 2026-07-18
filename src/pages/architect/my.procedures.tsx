@@ -2,10 +2,10 @@ import { useEffect, useState, useCallback, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { FileText, ArrowRight, User } from 'lucide-react';
 import { applications_api } from '@/lib/api.calls';
-import { formatDateTime } from '@/lib/utils';
+import { FormatDateTime } from '@/lib/utils';
 import { ApplicationTimeline } from '@/components/ui/application.timeline';
-import { ApplicationFilterBar } from '@/components/logic/application.filter-bar';
-import { DEFAULT_STATUS_OPTIONS, type FilterState } from '@/lib/constants/application-filters';
+import { ApplicationFilterBar } from '@/components/logic/application.filter.bar';
+import { DEFAULT_STATUS_OPTIONS, type FilterState } from '@/lib/constants/application.filters';
 import { StatusBadge } from '@/components/ui/status.badge';
 import { PageHeader } from '@/components/ui/page.header';
 import { LoadingSkeleton } from '@/components/ui/loading.skeleton';
@@ -27,50 +27,31 @@ export function MyProcedures() {
   const [is_loading, set_is_loading] = useState(true);
   const [filters, set_filters] = useState<FilterState>({
     search: '',
-    procedureType: '',
+    procedure_type: '',
     status: '',
-    dateFrom: '',
-    dateTo: '',
+    date_from: '',
+    date_to: '',
   });
 
-  const handleFilterChange = useCallback((next: FilterState) => {
+  const HandleFilterChange = useCallback((next: FilterState) => {
     set_filters(next);
   }, []);
 
   useEffect(() => {
     set_is_loading(true);
     const params: Record<string, string> = {};
-    if (filters.status) params.estado = filters.status;
-    if (filters.procedureType) params.tipoTramite = filters.procedureType;
+    if (filters.status) params.status = filters.status;
+    if (filters.procedure_type) params.request_type = filters.procedure_type;
     applications_api
-      .myApplications(params)
+      .MyApplications(params)
       .then(({ data }) => {
-        const mapped = (data.data || []).map((s: any) => ({
-          id: s.id,
-          status: s.estado,
-          procedure_type: s.tipoTramite,
-          property: s.predio
-            ? {
-                address: s.predio.direccion,
-              }
-            : null,
-          citizen: s.ciudadano
-            ? {
-                first_name: s.ciudadano.nombre,
-                last_name: s.ciudadano.apellido,
-                national_id: s.ciudadano.cedula,
-              }
-            : null,
-          created_at: s.createdAt,
-          updated_at: s.updatedAt,
-        }));
-        set_applications(mapped);
+        set_applications(data.data || []);
       })
       .catch(() => {
         set_applications([]);
       })
       .finally(() => set_is_loading(false));
-  }, [filters.status, filters.procedureType]);
+  }, [filters.status, filters.procedure_type]);
 
   const filtered_applications = useMemo(() => {
     return applications.filter((s) => {
@@ -97,8 +78,8 @@ export function MyProcedures() {
       />
 
       <ApplicationFilterBar
-        onFilterChange={handleFilterChange}
-        statusOptions={DEFAULT_STATUS_OPTIONS}
+        OnFilterChange={HandleFilterChange}
+        status_options={DEFAULT_STATUS_OPTIONS}
       />
 
       <PanelCard variant="glass">
@@ -121,10 +102,10 @@ export function MyProcedures() {
           />
         ) : (
           <div className="divide-y divide-surface-border">
-            {filtered_applications.map((sol) => (
+            {filtered_applications.map((application) => (
               <Link
-                key={sol.id}
-                to={`/architect/procedures/${sol.id}`}
+                key={application.id}
+                to={`/architect/procedures/${application.id}`}
                 className="group block p-5 hover:bg-neutral-100"
               >
                 <div className="flex items-start justify-between mb-3">
@@ -135,24 +116,26 @@ export function MyProcedures() {
                     <div>
                       <div className="flex items-center gap-2 flex-wrap mb-1">
                         <p className="text-blue-955 font-bold text-sm">
-                          {sol.procedure_type || 'Trámite'}
+                          {application.procedure_type || 'Trámite'}
                         </p>
-                        <StatusBadge status={sol.status} />
+                        <StatusBadge status={application.status} />
                       </div>
-                      {sol.citizen && (
+                      {application.citizen && (
                         <div className="flex items-center gap-1.5 text-xs text-slate-500 mb-0.5">
                           <User size={11} />
                           <span>
-                            {sol.citizen.first_name} {sol.citizen.last_name}
+                            {application.citizen.first_name} {application.citizen.last_name}
                           </span>
-                          {sol.citizen.national_id && (
-                            <span className="text-slate-400">• CI: {sol.citizen.national_id}</span>
+                          {application.citizen.national_id && (
+                            <span className="text-slate-400">
+                              • CI: {application.citizen.national_id}
+                            </span>
                           )}
                         </div>
                       )}
                       <p className="text-xs text-slate-400">
-                        #{sol.id.slice(0, 8)} • {sol.property?.address || '—'} •{' '}
-                        {formatDateTime(sol.updated_at)}
+                        #{application.id.slice(0, 8)} • {application.property?.address || '—'} •{' '}
+                        {FormatDateTime(application.updated_at)}
                       </p>
                     </div>
                   </div>
@@ -162,7 +145,7 @@ export function MyProcedures() {
                   />
                 </div>
                 <div className="px-2 sm:px-14">
-                  <ApplicationTimeline current_status={sol.status} />
+                  <ApplicationTimeline current_status={application.status} />
                 </div>
               </Link>
             ))}

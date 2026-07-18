@@ -4,32 +4,32 @@ import { Database, ChevronDown, ChevronUp, Link as LinkIcon, Cpu } from 'lucide-
 export interface AuditEvent {
   id: string;
   action: string;
-  performerName: string;
+  performer_name: string;
   role: string;
   timestamp: string;
-  blockIndex: number;
-  blockHash: string;
-  previousHash: string;
+  block_index: number;
+  block_hash: string;
+  previous_hash: string;
   metadata?: Record<string, any>;
 }
 
 export interface BlockchainAuditTrailProps {
-  historyEvents: AuditEvent[];
+  history_events: AuditEvent[];
 }
 
-export function BlockchainAuditTrail({ historyEvents }: BlockchainAuditTrailProps) {
-  const [expandedEvents, setExpandedEvents] = useState<Record<string, boolean>>({});
+export function BlockchainAuditTrail({ history_events }: BlockchainAuditTrailProps) {
+  const [expanded_events, set_expanded_events] = useState<Record<string, boolean>>({});
 
-  const toggleEvent = (id: string) => {
-    setExpandedEvents((prev) => ({
+  const ToggleEvent = (id: string) => {
+    set_expanded_events((prev) => ({
       ...prev,
       [id]: !prev[id],
     }));
   };
 
-  const sortedEvents = [...historyEvents].sort((a, b) => b.blockIndex - a.blockIndex);
+  const sorted_events = [...history_events].sort((a, b) => b.block_index - a.block_index);
 
-  if (!sortedEvents || sortedEvents.length === 0) {
+  if (!sorted_events || sorted_events.length === 0) {
     return (
       <div className="text-center py-10 bg-slate-50 rounded-2xl border border-slate-200/50">
         <Database className="mx-auto text-slate-300 mb-3" size={40} />
@@ -60,21 +60,21 @@ export function BlockchainAuditTrail({ historyEvents }: BlockchainAuditTrailProp
 
       {/* Vertical Timeline container */}
       <div className="relative border-l border-dashed border-slate-300/80 ml-6 pl-8 space-y-6 py-2">
-        {sortedEvents.map((event, index) => {
-          const isExpanded = !!expandedEvents[event.id];
-          const isFirst = index === 0;
+        {sorted_events.map((event, index) => {
+          const is_expanded = !!expanded_events[event.id];
+          const is_first = index === 0;
 
           return (
             <div key={event.id} className="relative group text-left">
               {/* Connector Dot */}
               <div
                 className={`absolute -left-[45px] top-1.5 w-8 h-8 rounded-full border-2 flex items-center justify-center text-xs font-bold font-mono transition-all z-10 ${
-                  isFirst
+                  is_first
                     ? 'bg-blue-600 text-white border-blue-500 shadow-md ring-4 ring-blue-500/10'
                     : 'bg-white text-slate-500 border-slate-350 shadow-xs'
                 }`}
               >
-                #{event.blockIndex}
+                #{event.block_index}
               </div>
 
               {/* Event Body Card */}
@@ -86,7 +86,7 @@ export function BlockchainAuditTrail({ historyEvents }: BlockchainAuditTrailProp
 
                     {/* Performer info */}
                     <div className="flex flex-wrap items-center gap-2 mt-1.5 text-xs">
-                      <span className="font-semibold text-slate-700">{event.performerName}</span>
+                      <span className="font-semibold text-slate-700">{event.performer_name}</span>
                       <span className="px-2 py-0.5 rounded-md text-[10px] font-bold uppercase bg-blue-50 text-blue-700 border border-blue-100/50">
                         {event.role}
                       </span>
@@ -102,18 +102,18 @@ export function BlockchainAuditTrail({ historyEvents }: BlockchainAuditTrailProp
                 {/* Accordion trigger */}
                 <div className="mt-4 border-t border-slate-100 pt-3">
                   <button
-                    onClick={() => toggleEvent(event.id)}
+                    onClick={() => ToggleEvent(event.id)}
                     className="flex items-center justify-between w-full text-slate-500 hover:text-blue-600 text-xs font-semibold uppercase tracking-wider cursor-pointer transition-colors"
                   >
                     <span className="flex items-center gap-1.5">
                       <LinkIcon size={12} className="text-blue-500" />
                       Detalles Técnicos del Bloque
                     </span>
-                    {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                    {is_expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
                   </button>
 
                   {/* Expanded cryptographic and JSON block information */}
-                  {isExpanded && (
+                  {is_expanded && (
                     <div className="mt-3.5 space-y-3 animate-fade-in">
                       {/* Block information */}
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-[10px] font-semibold text-slate-500 bg-slate-50 p-3 rounded-xl border border-slate-100">
@@ -122,7 +122,7 @@ export function BlockchainAuditTrail({ historyEvents }: BlockchainAuditTrailProp
                             Hash del Bloque:
                           </span>
                           <span className="font-mono text-slate-700 bg-slate-100 px-1 py-0.5 rounded select-all">
-                            {event.blockHash}
+                            {event.block_hash}
                           </span>
                         </div>
                         <div className="truncate">
@@ -130,7 +130,7 @@ export function BlockchainAuditTrail({ historyEvents }: BlockchainAuditTrailProp
                             Hash Previo:
                           </span>
                           <span className="font-mono text-slate-700 bg-slate-100 px-1 py-0.5 rounded select-all">
-                            {event.previousHash}
+                            {event.previous_hash}
                           </span>
                         </div>
                       </div>
@@ -141,15 +141,15 @@ export function BlockchainAuditTrail({ historyEvents }: BlockchainAuditTrailProp
                           <code>
                             {JSON.stringify(
                               {
-                                blockIndex: event.blockIndex,
+                                block_index: event.block_index,
                                 action: event.action,
                                 actor: {
-                                  name: event.performerName,
+                                  name: event.performer_name,
                                   role: event.role,
                                 },
                                 timestamp: event.timestamp,
-                                cryptographicVerification: 'VALID_SHA256_INTEGRITY',
-                                dataPayload: event.metadata || {
+                                cryptographic_verification: 'VALID_SHA256_INTEGRITY',
+                                data_payload: event.metadata || {
                                   status: 'APPROVED',
                                   note: 'No additional metadata registered.',
                                 },

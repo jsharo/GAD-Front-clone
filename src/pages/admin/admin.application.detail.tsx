@@ -1,18 +1,18 @@
-import { useEffect, useState, useCallback } from 'react';
+﻿import { useEffect, useState, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import { FileText, Calendar, User, MapPin, XCircle, AlertCircle } from 'lucide-react';
 import { applications_api } from '@/lib/api.calls';
-import { formatDateTime, cn } from '@/lib/utils';
-import { getProcedureTypeLabel } from '@/lib/constants/procedure-types';
+import { FormatDateTime, Cn } from '@/lib/utils';
+import { GetProcedureTypeLabel } from '@/lib/constants/procedure.types';
 import { ApplicationTimeline } from '@/components/ui/application.timeline';
 import { AttachmentRow } from '@/components/logic/attachment.row';
-import { DocumentPanel } from '@/components/documents/DocumentPanel';
+import { DocumentPanel } from '@/components/documents/document.panel';
 import { LoadingSkeleton } from '@/components/ui/loading.skeleton';
 import { EmptyState } from '@/components/ui/empty.state';
 import { AlertBanner } from '@/components/ui/alert.banner';
 import { DetailSection } from '@/components/ui/detail.section';
 import { InfoGrid } from '@/components/ui/info.grid';
-import { DetailPageHeader } from '@/components/ui/detail-page.header';
+import { DetailPageHeader } from '@/components/ui/detail.page.header';
 
 interface Attachment {
   id: string;
@@ -54,53 +54,11 @@ export function AdminApplicationDetail() {
   const [is_loading, set_is_loading] = useState(true);
   const [error, set_error] = useState<string | null>(null);
 
-  const mapApplicationObj = (s: any): ApplicationDetail | null => {
-    if (!s) return null;
-    return {
-      id: s.id,
-      created_at: s.createdAt,
-      status: s.estado,
-      procedure_type: s.tipoTramite,
-      rejection_reason: s.motivoRechazo,
-      observations: s.observaciones,
-      property: s.predio
-        ? {
-            address: s.predio.direccion,
-            location: s.predio.ubicacion,
-            area: s.predio.area,
-            description: s.predio.descripcion,
-          }
-        : null,
-      technician: s.tecnico
-        ? {
-            first_name: s.tecnico.nombre,
-            last_name: s.tecnico.apellido,
-            email: s.tecnico.email,
-          }
-        : null,
-      schedule: s.agenda
-        ? {
-            date: s.agenda.fecha,
-            notes: s.agenda.notas,
-            is_confirmed: s.agenda.confirmada,
-          }
-        : null,
-      attachments: (s.anexos || []).map((anexo: any) => ({
-        id: anexo.id,
-        name: anexo.nombre,
-        size: anexo.tamano,
-        hash: anexo.hash,
-        key: anexo.key,
-      })),
-    };
-  };
-
-  const loadApplication = useCallback(async () => {
+  const LoadApplication = useCallback(async () => {
     if (!id) return;
     try {
-      const { data } = await applications_api.getById(id);
-      const mapped = mapApplicationObj(data);
-      set_application(mapped);
+      const { data } = await applications_api.GetById(id);
+      set_application(data as ApplicationDetail);
     } catch (e: any) {
       set_error(e.response?.data?.message || 'Error al cargar la solicitud');
     } finally {
@@ -109,8 +67,8 @@ export function AdminApplicationDetail() {
   }, [id]);
 
   useEffect(() => {
-    loadApplication();
-  }, [loadApplication]);
+    LoadApplication();
+  }, [LoadApplication]);
 
   if (is_loading) return <LoadingSkeleton className="max-w-3xl mx-auto" />;
 
@@ -123,19 +81,19 @@ export function AdminApplicationDetail() {
       />
     );
 
-  const is_rejected = application.status === 'RECHAZADO';
+  const is_rejected = application.status === 'REJECTED';
 
   return (
     <div className="animate-fade-in space-y-6 max-w-3xl mx-auto">
       <DetailPageHeader
-        backTo="/admin/applications"
-        title={getProcedureTypeLabel(application.procedure_type) || 'Trámite de Ordenamiento'}
-        subtitle={`ID: #${id?.slice(0, 8)}... • Creado ${formatDateTime(application.created_at)}`}
+        back_to="/admin/applications"
+        title={GetProcedureTypeLabel(application.procedure_type) || 'Trámite de Ordenamiento'}
+        subtitle={`ID: #${id?.slice(0, 8)}... • Creado ${FormatDateTime(application.created_at)}`}
         status={application.status}
       />
 
       {/* Error */}
-      {error && <AlertBanner message={error} onDismiss={() => set_error(null)} />}
+      {error && <AlertBanner message={error} OnDismiss={() => set_error(null)} />}
 
       {!is_rejected && (
         <DetailSection title="Progreso del Trámite">
@@ -181,14 +139,14 @@ export function AdminApplicationDetail() {
 
       {application.schedule && (
         <DetailSection title="Inspección Programada" icon={Calendar}>
-          <p className="text-blue-955 font-medium">{formatDateTime(application.schedule.date)}</p>
+          <p className="text-blue-955 font-medium">{FormatDateTime(application.schedule.date)}</p>
           {application.schedule.notes && (
             <p className="text-blue-800 text-sm mt-1">{application.schedule.notes}</p>
           )}
           <span
-            className={cn(
+            className={Cn(
               'badge mt-2',
-              application.schedule.is_confirmed ? 'badge-aprobado' : 'badge-revision'
+              application.schedule.is_confirmed ? 'badge-approved' : 'badge-review'
             )}
           >
             {application.schedule.is_confirmed ? 'Confirmada' : 'Pendiente de confirmación'}
@@ -196,7 +154,7 @@ export function AdminApplicationDetail() {
         </DetailSection>
       )}
 
-      {id && <DocumentPanel requestId={id} allowedUpload allowedIpfs />}
+      {id && <DocumentPanel request_id={id} allowed_upload allowed_ipfs />}
     </div>
   );
 }

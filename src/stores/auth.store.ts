@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import api from '@/lib/api';
+import { auth_api } from '@/lib/api.calls';
 
 export type Role = 'ADMINISTRATOR' | 'SECRETARY' | 'TECHNICIAN' | 'FINANCIAL' | 'USER' | 'CITIZEN';
 
@@ -13,7 +14,7 @@ const SUPPORTED_ROLE_MAP: Record<string, Role> = {
   CITIZEN: 'CITIZEN',
 };
 
-export function normalizeRole(role: unknown): Role {
+export function NormalizeRole(role: unknown): Role {
   if (typeof role !== 'string') return 'USER';
   return SUPPORTED_ROLE_MAP[role] ?? 'USER';
 }
@@ -48,12 +49,12 @@ interface AuthState {
   is_loading: boolean;
   error: string | null;
 
-  login: (email: string, password: string) => Promise<void>;
-  register: (data: RegisterData) => Promise<void>;
-  requestTrackedAccess: (email: string) => Promise<void>;
-  completeProfile: (data: CompleteProfileData) => Promise<void>;
-  logout: () => void;
-  clearError: () => void;
+  Login: (email: string, password: string) => Promise<void>;
+  Register: (data: RegisterData) => Promise<void>;
+  RequestTrackedAccess: (email: string) => Promise<void>;
+  CompleteProfile: (data: CompleteProfileData) => Promise<void>;
+  Logout: () => void;
+  ClearError: () => void;
 }
 
 interface RegisterData {
@@ -73,39 +74,41 @@ export interface CompleteProfileData {
   phone?: string;
 }
 
-export const mapUser = (u: any): User | null => {
+/** Maps backend user payload to the English frontend User model. */
+export const MapUser = (u: any): User | null => {
   if (!u) return null;
   return {
     id: u.id,
     email: u.email,
-    first_name: u.nombre || u.first_name || '',
-    last_name: u.apellido || u.last_name || '',
+    first_name: u.name || u.first_name || '',
+    last_name: u.lastname || u.last_name || '',
+    // Backend wire field for Ecuadorian ID remains `cedula`
     national_id: u.cedula || u.national_id,
-    phone: u.telefono || u.phone,
-    role: normalizeRole(u.role),
-    zone: u.zona === 'RURAL' ? 'RURAL' : u.zona === 'URBANO' ? 'URBAN' : u.zone || null,
-    is_active: u.activo !== undefined ? u.activo : u.is_active,
-    is_enabled: u.habilitado !== undefined ? u.habilitado : u.is_enabled,
-    title: u.titulo || u.title,
-    registration_number: u.numeroRegistro || u.registration_number,
+    phone: u.phone || null,
+    role: NormalizeRole(u.role?.name || u.role),
+    zone: u.zone === 'RURAL' ? 'RURAL' : u.zone === 'URBAN' ? 'URBAN' : u.zone || null,
+    is_active: u.status ? u.status === 'ACTIVE' : u.is_active !== false,
+    is_enabled: u.is_enabled !== undefined ? u.is_enabled : u.status === 'ACTIVE',
+    title: u.title,
+    registration_number: u.registration_number,
     created_at: u.createdAt || u.created_at,
   };
 };
 
 export const useAuthStore = create<AuthState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       user: null,
       is_loading: false,
       error: null,
 
-      login: async (email, password) => {
+      Login: async (email, password) => {
         set({ is_loading: true, error: null });
         try {
           const response = await api.post('/auth/login', { email, password });
           const data = response.data.data;
           set({
-            user: mapUser(data.user),
+            user: MapUser(data.user),
             is_loading: false,
           });
         } catch (err: unknown) {
@@ -118,20 +121,21 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
-      register: async (data) => {
+      Register: async (data) => {
         set({ is_loading: true, error: null });
         try {
+          // Backend user DTO uses name/lastname/cedula
           const payload = {
             email: data.email,
             password: data.password,
-            nombre: data.first_name,
-            apellido: data.last_name,
+            name: data.first_name,
+            lastname: data.last_name,
             cedula: data.national_id,
-            telefono: data.phone,
+            phone: data.phone,
           };
-          const { data: res } = await api.post('/auth/register', payload);
+          const { data: res } = await auth_api.Register(payload);
           set({
-            user: mapUser(res.user),
+            user: MapUser(res.user),
             is_loading: false,
           });
         } catch (err: unknown) {
@@ -144,12 +148,12 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
-      requestTrackedAccess: async (email) => {
+      RequestTrackedAccess: async (email) => {
         set({ is_loading: true, error: null });
         try {
-          const { data: res } = await api.post('/auth/registro-rapido', { email });
+          const { data: res } = await auth_api.RequestTrackedAccess(email);
           set({
-            user: mapUser(res.user),
+            user: MapUser(res.user),
             is_loading: false,
           });
         } catch (err: unknown) {
@@ -162,19 +166,24 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
-      completeProfile: async (data) => {
+      CompleteProfile: async (data) => {
         set({ is_loading: true, error: null });
         try {
+          const current_user = get().user;
+          if (!current_user?.id) {
+            throw new Error('No authenticated user');
+          }
+          // Backend user DTO uses name/lastname/cedula
           const payload = {
-            nombre: data.first_name,
-            apellido: data.last_name,
+            name: data.first_name,
+            lastname: data.last_name,
             cedula: data.national_id,
             password: data.password,
-            telefono: data.phone,
+            phone: data.phone,
           };
-          const { data: res } = await api.post('/auth/completar-perfil', payload);
+          const { data: res } = await auth_api.CompleteProfile(current_user.id, payload);
           set({
-            user: mapUser(res.user),
+            user: MapUser(res.data || res.user || { ...current_user, ...payload }),
             is_loading: false,
           });
         } catch (err: unknown) {
@@ -187,12 +196,12 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
-      logout: () => {
+      Logout: () => {
         api.post('/auth/logout').catch(() => null);
         set({ user: null, error: null });
       },
 
-      clearError: () => set({ error: null }),
+      ClearError: () => set({ error: null }),
     }),
     {
       name: 'gad-auth',
@@ -200,7 +209,7 @@ export const useAuthStore = create<AuthState>()(
       migrate: (persisted: any) => ({
         ...persisted,
         user: persisted?.user
-          ? { ...persisted.user, role: normalizeRole(persisted.user.role) }
+          ? { ...persisted.user, role: NormalizeRole(persisted.user.role) }
           : null,
       }),
       partialize: (state) => ({
