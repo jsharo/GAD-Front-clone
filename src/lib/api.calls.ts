@@ -33,23 +33,12 @@ export interface RequestAttachment {
 }
 
 export type SignatureVerificationStatus =
-  | 'MATCH'
-  | 'MATCH_WITH_WARNINGS'
-  | 'MISMATCH'
-  | 'UNSIGNED'
-  | 'INVALID'
-  | 'INDETERMINATE'
-  | 'ERROR';
+  'MATCH' | 'MATCH_WITH_WARNINGS' | 'MISMATCH' | 'UNSIGNED' | 'INVALID' | 'INDETERMINATE' | 'ERROR';
 
 export type SignatureIdentityStatus = 'MATCH' | 'MISMATCH' | 'INDETERMINATE';
 
 export type SignatureTrustStatus =
-  | 'TRUSTED'
-  | 'UNTRUSTED'
-  | 'REVOKED'
-  | 'EXPIRED'
-  | 'NOT_CONFIGURED'
-  | 'UNKNOWN';
+  'TRUSTED' | 'UNTRUSTED' | 'REVOKED' | 'EXPIRED' | 'NOT_CONFIGURED' | 'UNKNOWN';
 
 export interface ExpectedSigner {
   id: string | null;
@@ -453,18 +442,66 @@ export async function VerifyAuditChain() {
   return response.data;
 }
 
-// ---- Auth ----
+// ---- Auth / registration (users module) ----
+
+export interface RegisterPayload {
+  email: string;
+  password: string;
+  cedula?: string;
+  name?: string;
+  lastname?: string;
+  direction?: string;
+}
 
 export const auth_api = {
   Login: (email: string, password: string) => api.post('/auth/login', { email, password }),
 
-  Register: (data: object) => api.post('/users/register', data),
+  Register: (data: RegisterPayload) => api.post('/users/register', data),
 
-  RequestTrackedAccess: (email: string) => api.post('/users/register-architect', { email }),
+  /** Architect self-registration (rol USER). Sin UI aún; listo para cablear. */
+  RegisterArchitect: (data: RegisterPayload) => api.post('/users/register-architect', data),
+
+  VerifyEmail: (email: string, code: string) =>
+    api.post('/verification/verify-email', { email, code }),
+  ResendVerificationCode: (email: string) => api.post('/verification/resend-code', { email }),
 
   CompleteProfile: (user_id: string, data: object) => api.patch(`/users/${user_id}`, data),
 
   Refresh: () => api.post('/auth/refresh'),
+
+  Logout: () => api.post('/auth/logout'),
+
+  ForgotPassword: (email: string) => api.post('/auth/forgot-password', { email }),
+
+  ResetPassword: (email: string, code: string, newPassword: string) =>
+    api.post('/auth/reset-password', { email, code, newPassword }),
+};
+
+// ---- Roles / permissions ----
+
+export const roles_api = {
+  List: () => api.get('/roles'),
+
+  ListPermissions: () => api.get('/roles/permissions'),
+
+  Create: (data: { name: string; description?: string }) => api.post('/roles', data),
+
+  Update: (id: string, data: { name?: string; description?: string }) =>
+    api.patch(`/roles/${id}`, data),
+
+  Delete: (id: string) => api.delete(`/roles/${id}`),
+
+  SyncPermissions: (role_id: string, permission_ids: string[]) =>
+    api.put(`/roles/${role_id}/permissions`, { permissionIds: permission_ids }),
+
+  Assign: (user_id: string, role_name: string) =>
+    api.post('/roles/assign', { userId: user_id, roleName: role_name }),
+
+  GetUserPermissionsBreakdown: (user_id: string) =>
+    api.get(`/roles/users/${user_id}/permissions/breakdown`),
+
+  SyncUserPermissions: (user_id: string, permission_ids: string[]) =>
+    api.put(`/roles/users/${user_id}/permissions`, { permissionIds: permission_ids }),
 };
 
 // ---- Applications ----
@@ -640,13 +677,58 @@ export const notifications_api = {
 // ---- Users ----
 
 export const users_api = {
+  Me: () => api.get('/users/me'),
+
+  UpdateOwnProfile: (data: { name?: string; lastname?: string; cedula?: string }) =>
+    api.patch('/users/me', data),
+
+  SubmitProfessionalProfile: (data: {
+    name: string;
+    lastname: string;
+    cedula: string;
+    senescytCode: string;
+  }) => api.post('/users/me/professional-profile', data),
+
+  PendingProfessionals: () => api.get('/users/professional-verifications/pending'),
+
+  ReviewProfessional: (id: string, approved: boolean) =>
+    api.post(`/users/${id}/professional-verify`, { approved }),
+
+  SetRecoveryEmail: (recoveryEmail: string) =>
+    api.post('/users/me/recovery-email', { recoveryEmail }),
+
+  VerifyRecoveryEmail: (code: string) => api.post('/users/me/recovery-email/verify', { code }),
+
+  RemoveRecoveryEmail: () => api.delete('/users/me/recovery-email'),
+
   List: (params?: object) => api.get('/users', { params }),
 
   Technicians: () => api.get('/users/technicians'),
 
-  CreateStaff: (data: object) => api.post('/users/institutional', data),
+  CreateStaff: (data: {
+    email: string;
+    password: string;
+    name: string;
+    lastname: string;
+    roleName: string;
+    cedula?: string;
+    direction?: string;
+  }) => api.post('/users/institutional', data),
 
-  Update: (id: string, data: object) => api.patch(`/users/${id}`, data),
+  Update: (
+    id: string,
+    data: {
+      name?: string;
+      lastname?: string;
+      cedula?: string;
+      direction?: string;
+      password?: string;
+      zone?: 'URBAN' | 'RURAL' | null;
+    }
+  ) => api.patch(`/users/${id}`, data),
+
+  UpdateStatus: (id: string, status: 'ACTIVE' | 'INACTIVE') =>
+    api.patch(`/users/${id}/status`, { status }),
 
   UpdateTechnicianZone: (id: string, zone: 'URBAN' | 'RURAL' | null) =>
     api.patch(`/users/${id}`, { zone }),

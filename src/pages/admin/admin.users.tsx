@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, useCallback } from 'react';
 import { Edit3, Plus, Shield, Trash2, Users } from 'lucide-react';
-import api from '@/lib/api';
+import { roles_api, users_api } from '@/lib/api.calls';
 import { FormatDateTime, Cn } from '@/lib/utils';
 import { BaseModal } from '@/components/logic/base.modal';
 import { useToastStore } from '@/stores/toast.store';
@@ -226,18 +226,19 @@ function MapAdminUser(raw: AdminUserWire): AdminUser {
 }
 
 async function ListUsers(params?: { role?: string; limit?: number }): Promise<AdminUser[]> {
-  const response = await api.get<{ success: boolean; data: AdminUserWire[] }>('/users', { params });
-  return (response.data.data ?? []).map(MapAdminUser);
+  const response = await users_api.List(params);
+  const data = (response.data as { success: boolean; data: AdminUserWire[] }).data ?? [];
+  return data.map(MapAdminUser);
 }
 
 async function ListRoles(): Promise<RoleRecord[]> {
-  const response = await api.get<RoleRecordWire[]>('/roles');
-  return (response.data ?? []).map(MapRoleRecord);
+  const response = await roles_api.List();
+  return ((response.data as RoleRecordWire[]) ?? []).map(MapRoleRecord);
 }
 
 async function ListPermissions(): Promise<PermissionRecord[]> {
-  const response = await api.get<PermissionRecordWire[]>('/roles/permissions');
-  return (response.data ?? []).map(MapPermissionRecord);
+  const response = await roles_api.ListPermissions();
+  return ((response.data as PermissionRecordWire[]) ?? []).map(MapPermissionRecord);
 }
 
 async function CreateInstitutionalUser(payload: {
@@ -249,11 +250,8 @@ async function CreateInstitutionalUser(payload: {
   cedula?: string;
   direction?: string;
 }) {
-  const response = await api.post<{ success: boolean; user: { id: string } }>(
-    '/users/institutional',
-    payload
-  );
-  return response.data.user;
+  const response = await users_api.CreateStaff(payload);
+  return (response.data as { success: boolean; user: { id: string } }).user;
 }
 
 async function UpdateUserProfile(
@@ -266,35 +264,27 @@ async function UpdateUserProfile(
     password?: string;
   }
 ): Promise<AdminUser> {
-  const response = await api.patch<{ success: boolean; data: AdminUserWire }>(
-    `/users/${id}`,
-    payload
-  );
-  return MapAdminUser(response.data.data);
+  const response = await users_api.Update(id, payload);
+  return MapAdminUser((response.data as { success: boolean; data: AdminUserWire }).data);
 }
 
 async function UpdateUserStatus(id: string, status: UserStatus): Promise<AdminUser> {
-  const response = await api.patch<{ success: boolean; data: AdminUserWire }>(
-    `/users/${id}/status`,
-    {
-      status,
-    }
-  );
-  return MapAdminUser(response.data.data);
+  const response = await users_api.UpdateStatus(id, status);
+  return MapAdminUser((response.data as { success: boolean; data: AdminUserWire }).data);
 }
 
 async function AssignUserRole(user_id: string, role_name: string) {
-  await api.post('/roles/assign', { userId: user_id, roleName: role_name });
+  await roles_api.Assign(user_id, role_name);
 }
 
 async function GetUserPermissionBreakdown(user_id: string): Promise<UserPermissionBreakdown> {
-  const response = await api.get<{
+  const response = await roles_api.GetUserPermissionsBreakdown(user_id);
+  const data = response.data as {
     roleName: string | null;
     rolePermissionIds: string[];
     directPermissionIds: string[];
     effectivePermissionIds: string[];
-  }>(`/roles/users/${user_id}/permissions/breakdown`);
-  const data = response.data;
+  };
   return {
     role_name: data.roleName,
     role_permission_ids: data.rolePermissionIds,
@@ -304,35 +294,34 @@ async function GetUserPermissionBreakdown(user_id: string): Promise<UserPermissi
 }
 
 async function SyncUserPermissions(user_id: string, permission_ids: string[]) {
-  const response = await api.put<{
+  const response = await roles_api.SyncUserPermissions(user_id, permission_ids);
+  const data = response.data as {
     directPermissionIds: string[];
     ignoredBecauseInRole: string[];
-  }>(`/roles/users/${user_id}/permissions`, { permissionIds: permission_ids });
+  };
   return {
-    direct_permission_ids: response.data.directPermissionIds,
-    ignored_because_in_role: response.data.ignoredBecauseInRole,
+    direct_permission_ids: data.directPermissionIds,
+    ignored_because_in_role: data.ignoredBecauseInRole,
   };
 }
 
 async function CreateRole(payload: { name: string; description?: string }) {
-  const response = await api.post<RoleRecordWire>('/roles', payload);
-  return MapRoleRecord(response.data);
+  const response = await roles_api.Create(payload);
+  return MapRoleRecord(response.data as RoleRecordWire);
 }
 
 async function UpdateRole(id: string, payload: { name?: string; description?: string }) {
-  const response = await api.patch<RoleRecordWire>(`/roles/${id}`, payload);
-  return MapRoleRecord(response.data);
+  const response = await roles_api.Update(id, payload);
+  return MapRoleRecord(response.data as RoleRecordWire);
 }
 
 async function SyncRolePermissions(role_id: string, permission_ids: string[]) {
-  const response = await api.put<RoleRecordWire>(`/roles/${role_id}/permissions`, {
-    permissionIds: permission_ids,
-  });
-  return MapRoleRecord(response.data);
+  const response = await roles_api.SyncPermissions(role_id, permission_ids);
+  return MapRoleRecord(response.data as RoleRecordWire);
 }
 
 async function DeleteRole(id: string) {
-  await api.delete(`/roles/${id}`);
+  await roles_api.Delete(id);
 }
 
 export function AdminUsers() {

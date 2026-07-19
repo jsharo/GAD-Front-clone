@@ -6,6 +6,8 @@ import { AuthLayout } from '@/layouts/auth.layout';
 import { SignInPage } from '@/pages/auth/signin.page';
 import { SignUpPage } from '@/pages/auth/signup.page';
 import { EmailCodePage } from '@/pages/auth/email.code.page';
+import { ForgotPasswordPage } from '@/pages/auth/forgot.password.page';
+import { ResetPasswordPage } from '@/pages/auth/reset.password.page';
 
 // Landing
 import { LandingPage } from '@/pages/landing.page';
@@ -14,6 +16,7 @@ import { LandingPage } from '@/pages/landing.page';
 import { UsersLayout } from '@/layouts/users.layout';
 import { PORTAL_CONFIGS } from '@/router/portal.config';
 import { ProtectedRoute, PublicOnlyRoute } from '@/router/protected.route';
+import { SettingsPage } from '@/pages/settings/settings.page';
 
 export function AppRouter() {
   return (
@@ -29,6 +32,15 @@ export function AppRouter() {
           <Route path="signup" element={<SignUpPage />} />
           <Route path="register" element={<Navigate to="/auth/signup" replace />} />
           <Route path="signup/email-code" element={<EmailCodePage />} />
+          <Route path="forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="reset-password" element={<ResetPasswordPage />} />
+        </Route>
+      </Route>
+
+      {/* Settings — any authenticated role */}
+      <Route element={<ProtectedRoute />}>
+        <Route path="/settings" element={<UsersLayout />}>
+          <Route index element={<SettingsPage />} />
         </Route>
       </Route>
 

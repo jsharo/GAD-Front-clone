@@ -1,5 +1,5 @@
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { LogOut, User, Menu, X } from 'lucide-react';
+import { LogOut, User, Menu, X, Settings } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useAuthStore, type Role } from '@/stores/auth.store';
 import { PORTAL_CONFIG_BY_ROLE, resolvePortalRole } from '@/router/portal.config';
@@ -32,6 +32,11 @@ export function UsersLayout() {
   const HandleLogout = () => {
     Logout();
     navigate('/auth/signin');
+  };
+
+  const HandleSettings = () => {
+    set_dropdown_open(false);
+    navigate('/settings');
   };
 
   const BadgeIcon = layout.badge_icon;
@@ -100,7 +105,14 @@ export function UsersLayout() {
                     </span>
                   </div>
                 </div>
-                <div className="p-2">
+                <div className="p-2 space-y-1">
+                  <button
+                    onClick={HandleSettings}
+                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-neutral-700 hover:bg-primary-dark hover:text-neutral-50"
+                  >
+                    <Settings size={16} />
+                    <span className="font-semibold text-sm">Configuración</span>
+                  </button>
                   <button
                     onClick={HandleLogout}
                     className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-error-default hover:bg-primary-dark hover:text-neutral-50"

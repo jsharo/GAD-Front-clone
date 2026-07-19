@@ -1,9 +1,10 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import api from '@/lib/api';
-import { auth_api } from '@/lib/api.calls';
+import { auth_api, users_api, type RegisterPayload } from '@/lib/api.calls';
 
 export type Role = 'ADMINISTRATOR' | 'SECRETARY' | 'TECHNICIAN' | 'FINANCIAL' | 'USER' | 'CITIZEN';
+
+export type ProfessionalStatus = 'UNVERIFIED' | 'PENDING' | 'VERIFIED' | 'REJECTED';
 
 const SUPPORTED_ROLE_MAP: Record<string, Role> = {
   ADMINISTRATOR: 'ADMINISTRATOR',
@@ -38,7 +39,9 @@ export interface User {
   role: Role;
   zone?: 'URBAN' | 'RURAL' | null;
   is_active: boolean;
+  /** true solo si professionalStatus === VERIFIED (arquitecto habilitado) */
   is_enabled?: boolean;
+  professional_status?: ProfessionalStatus;
   title?: string;
   registration_number?: string;
   created_at: string;
@@ -49,51 +52,65 @@ interface AuthState {
   is_loading: boolean;
   error: string | null;
 
-  Login: (email: string, password: string) => Promise<void>;
+  Login: (email: string, password: string) => Promise<Role>;
   Register: (data: RegisterData) => Promise<void>;
-  RequestTrackedAccess: (email: string) => Promise<void>;
+  VerifyEmail: (email: string, code: string) => Promise<void>;
   CompleteProfile: (data: CompleteProfileData) => Promise<void>;
   Logout: () => void;
   ClearError: () => void;
 }
 
-interface RegisterData {
+export interface RegisterData {
   email: string;
   password: string;
-  first_name: string;
-  last_name: string;
-  national_id: string;
-  phone?: string;
+  first_name?: string;
+  last_name?: string;
+  national_id?: string;
+  direction?: string;
 }
 
 export interface CompleteProfileData {
   first_name: string;
   last_name: string;
   national_id: string;
-  password: string;
-  phone?: string;
+  senescyt_code: string;
 }
 
 /** Maps backend user payload to the English frontend User model. */
 export const MapUser = (u: any): User | null => {
   if (!u) return null;
+  const professional_status = (u.professionalStatus ||
+    u.professional_status ||
+    'UNVERIFIED') as ProfessionalStatus;
   return {
     id: u.id,
     email: u.email,
     first_name: u.name || u.first_name || '',
     last_name: u.lastname || u.last_name || '',
-    // Backend wire field for Ecuadorian ID remains `cedula`
     national_id: u.cedula || u.national_id,
     phone: u.phone || null,
     role: NormalizeRole(u.role?.name || u.role),
     zone: u.zone === 'RURAL' ? 'RURAL' : u.zone === 'URBAN' ? 'URBAN' : u.zone || null,
     is_active: u.status ? u.status === 'ACTIVE' : u.is_active !== false,
-    is_enabled: u.is_enabled !== undefined ? u.is_enabled : u.status === 'ACTIVE',
+    professional_status,
+    is_enabled: professional_status === 'VERIFIED',
     title: u.title,
-    registration_number: u.registration_number,
+    registration_number: u.senescytCode || u.registration_number || u.senescyt_code,
     created_at: u.createdAt || u.created_at,
   };
 };
+
+function ToRegisterPayload(data: RegisterData): RegisterPayload {
+  const payload: RegisterPayload = {
+    email: data.email,
+    password: data.password,
+  };
+  if (data.first_name) payload.name = data.first_name;
+  if (data.last_name) payload.lastname = data.last_name;
+  if (data.national_id) payload.cedula = data.national_id;
+  if (data.direction) payload.direction = data.direction;
+  return payload;
+}
 
 export const useAuthStore = create<AuthState>()(
   persist(
@@ -105,12 +122,14 @@ export const useAuthStore = create<AuthState>()(
       Login: async (email, password) => {
         set({ is_loading: true, error: null });
         try {
-          const response = await api.post('/auth/login', { email, password });
-          const data = response.data.data;
+          const { data: body } = await auth_api.Login(email, password);
+          const mapped = MapUser(body.data.user);
+          const role = mapped?.role ?? NormalizeRole(body.data.user?.role);
           set({
-            user: MapUser(data.user),
+            user: mapped,
             is_loading: false,
           });
+          return role;
         } catch (err: unknown) {
           const error = err as { response?: { data?: { message?: string } } };
           set({
@@ -124,20 +143,8 @@ export const useAuthStore = create<AuthState>()(
       Register: async (data) => {
         set({ is_loading: true, error: null });
         try {
-          // Backend user DTO uses name/lastname/cedula
-          const payload = {
-            email: data.email,
-            password: data.password,
-            name: data.first_name,
-            lastname: data.last_name,
-            cedula: data.national_id,
-            phone: data.phone,
-          };
-          const { data: res } = await auth_api.Register(payload);
-          set({
-            user: MapUser(res.user),
-            is_loading: false,
-          });
+          await auth_api.RegisterArchitect(ToRegisterPayload(data));
+          set({ is_loading: false });
         } catch (err: unknown) {
           const error = err as { response?: { data?: { message?: string } } };
           set({
@@ -148,19 +155,16 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
-      RequestTrackedAccess: async (email) => {
+      VerifyEmail: async (email, code) => {
         set({ is_loading: true, error: null });
         try {
-          const { data: res } = await auth_api.RequestTrackedAccess(email);
-          set({
-            user: MapUser(res.user),
-            is_loading: false,
-          });
+          await auth_api.VerifyEmail(email, code);
+          set({ is_loading: false });
         } catch (err: unknown) {
           const error = err as { response?: { data?: { message?: string } } };
           set({
             is_loading: false,
-            error: error.response?.data?.message || 'Error requesting access',
+            error: error.response?.data?.message || 'Invalid or expired code',
           });
           throw err;
         }
@@ -173,17 +177,25 @@ export const useAuthStore = create<AuthState>()(
           if (!current_user?.id) {
             throw new Error('No authenticated user');
           }
-          // Backend user DTO uses name/lastname/cedula
-          const payload = {
+          const { data: res } = await users_api.SubmitProfessionalProfile({
             name: data.first_name,
             lastname: data.last_name,
             cedula: data.national_id,
-            password: data.password,
-            phone: data.phone,
-          };
-          const { data: res } = await auth_api.CompleteProfile(current_user.id, payload);
+            senescytCode: data.senescyt_code,
+          });
+          const updated = MapUser(res.user || res.data);
           set({
-            user: MapUser(res.data || res.user || { ...current_user, ...payload }),
+            user: updated
+              ? { ...updated, role: current_user.role, email: current_user.email || updated.email }
+              : {
+                  ...current_user,
+                  first_name: data.first_name,
+                  last_name: data.last_name,
+                  national_id: data.national_id,
+                  registration_number: data.senescyt_code,
+                  professional_status: 'PENDING',
+                  is_enabled: false,
+                },
             is_loading: false,
           });
         } catch (err: unknown) {
@@ -197,7 +209,7 @@ export const useAuthStore = create<AuthState>()(
       },
 
       Logout: () => {
-        api.post('/auth/logout').catch(() => null);
+        auth_api.Logout().catch(() => null);
         set({ user: null, error: null });
       },
 
@@ -205,11 +217,16 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name: 'gad-auth',
-      version: 2,
+      version: 3,
       migrate: (persisted: any) => ({
         ...persisted,
         user: persisted?.user
-          ? { ...persisted.user, role: NormalizeRole(persisted.user.role) }
+          ? {
+              ...persisted.user,
+              role: NormalizeRole(persisted.user.role),
+              professional_status: persisted.user.professional_status ?? 'UNVERIFIED',
+              is_enabled: persisted.user.professional_status === 'VERIFIED',
+            }
           : null,
       }),
       partialize: (state) => ({
