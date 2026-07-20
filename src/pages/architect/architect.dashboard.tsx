@@ -24,6 +24,7 @@ import { EmptyState } from '@/components/ui/empty.state';
 import { DetailSection } from '@/components/ui/detail.section';
 import { PanelCard } from '@/components/ui/panel.card';
 import { InfoGrid } from '@/components/ui/info.grid';
+import { ProfileModalDismissKey } from '@/lib/senescyt';
 
 interface Application {
   id: string;
@@ -32,6 +33,57 @@ interface Application {
   property?: { address: string } | null;
   citizen?: { first_name: string; last_name: string; national_id?: string } | null;
   created_at: string;
+}
+
+function CompleteProfileBanner({
+  OnOpen,
+  is_rejected,
+}: {
+  OnOpen: () => void;
+  is_rejected?: boolean;
+}) {
+  return (
+    <div
+      className={`mb-6 rounded-2xl border p-6 ${
+        is_rejected
+          ? 'border-error-light/50 bg-error-light/5'
+          : 'border-primary-light/40 bg-primary-light/5'
+      }`}
+    >
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-start gap-4">
+          <div
+            className={`flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl ${
+              is_rejected
+                ? 'bg-error-light/15 text-error-dark'
+                : 'bg-primary-light/15 text-primary-default'
+            }`}
+          >
+            {is_rejected ? <XCircle size={24} /> : <HardHat size={24} />}
+          </div>
+          <div>
+            <h2 className="font-heading font-bold text-blue-955 text-lg">
+              {is_rejected
+                ? 'Solicitud rechazada por Secretaría'
+                : 'Completa tu perfil profesional'}
+            </h2>
+            <p className="text-slate-600 mt-1 text-sm leading-relaxed">
+              {is_rejected
+                ? 'El código o los datos no pudieron verificarse (código incorrecto o título no encontrado). Corrige la información y vuelve a enviarlos.'
+                : 'Para poder crear trámites debes enviar tus nombres, apellidos, cédula y código SENESCYT a Secretaría.'}
+            </p>
+          </div>
+        </div>
+        <button
+          type="button"
+          onClick={OnOpen}
+          className="btn-primary flex-shrink-0 self-start sm:self-center"
+        >
+          {is_rejected ? 'Corregir y reenviar' : 'Completar perfil'}
+        </button>
+      </div>
+    </div>
+  );
 }
 
 function PendingEnablementBanner() {
@@ -64,13 +116,49 @@ function PendingEnablementBanner() {
   );
 }
 
+function WasProfileModalDismissed(user_id?: string): boolean {
+  if (!user_id || typeof sessionStorage === 'undefined') return false;
+  return sessionStorage.getItem(ProfileModalDismissKey(user_id)) === '1';
+}
+
 export function ArchitectDashboard() {
   const { user } = useAuthStore();
   const [applications, set_applications] = useState<Application[]>([]);
   const [is_loading, set_is_loading] = useState(true);
+  const [profile_modal_open, set_profile_modal_open] = useState(() => {
+    const status = user?.professional_status ?? 'UNVERIFIED';
+    const needs = user?.is_enabled !== true && (status === 'UNVERIFIED' || status === 'REJECTED');
+    if (!needs) return false;
+    return !WasProfileModalDismissed(user?.id);
+  });
 
   const is_enabled = user?.is_enabled === true;
-  const needs_profile_completion = !user?.national_id || !user?.first_name?.trim();
+  const professional_status = user?.professional_status ?? 'UNVERIFIED';
+  const needs_profile_completion =
+    !is_enabled && (professional_status === 'UNVERIFIED' || professional_status === 'REJECTED');
+  const is_pending_review = professional_status === 'PENDING';
+  const is_rejected = professional_status === 'REJECTED';
+
+  const DismissProfileModal = () => {
+    if (user?.id) {
+      sessionStorage.setItem(ProfileModalDismissKey(user.id), '1');
+    }
+    set_profile_modal_open(false);
+  };
+
+  const OpenProfileModal = () => {
+    if (user?.id) {
+      sessionStorage.removeItem(ProfileModalDismissKey(user.id));
+    }
+    set_profile_modal_open(true);
+  };
+
+  const HandleProfileSuccess = () => {
+    if (user?.id) {
+      sessionStorage.removeItem(ProfileModalDismissKey(user.id));
+    }
+    set_profile_modal_open(false);
+  };
 
   useEffect(() => {
     applications_api
@@ -118,16 +206,28 @@ export function ArchitectDashboard() {
 
   return (
     <div className="space-y-6">
-      {!is_enabled && needs_profile_completion && <CompleteProfileModal allow_close={false} />}
+      {needs_profile_completion && profile_modal_open && (
+        <CompleteProfileModal
+          allow_close
+          OnClose={DismissProfileModal}
+          OnSuccess={HandleProfileSuccess}
+        />
+      )}
 
-      {!is_enabled && !needs_profile_completion && <PendingEnablementBanner />}
+      {needs_profile_completion && !profile_modal_open && (
+        <CompleteProfileBanner OnOpen={OpenProfileModal} is_rejected={is_rejected} />
+      )}
+
+      {!is_enabled && is_pending_review && <PendingEnablementBanner />}
 
       <PageHeader
-        title={`Bienvenido, ${user?.first_name || 'Arquitecto'} 👷`}
+        title={`Bienvenido, ${user?.first_name || 'Arquitecto'}`}
         description={
           is_enabled
             ? 'Gestiona los trámites de tus clientes desde aquí.'
-            : 'Tu cuenta está siendo verificada por el GAD Municipal.'
+            : is_pending_review
+              ? 'Tu solicitud de habilitación está en revisión por Secretaría.'
+              : 'Completa tu perfil profesional para solicitar la habilitación.'
         }
         actions={
           is_enabled ? (
@@ -153,16 +253,23 @@ export function ArchitectDashboard() {
       </KpiGrid>
 
       {/* Información profesional */}
-      {user?.title && (
+      {(user?.registration_number || user?.first_name) && (
         <DetailSection title="Mi perfil profesional" icon={HardHat}>
           <InfoGrid
             columns={3}
             items={[
-              { label: 'Título', value: user.title },
-              { label: 'N° Registro SENESCYT', value: user.registration_number },
+              {
+                label: 'Nombre',
+                value: `${user?.first_name ?? ''} ${user?.last_name ?? ''}`.trim() || '—',
+              },
+              { label: 'Código SENESCYT', value: user?.registration_number || '—' },
               {
                 label: 'Estado',
-                value: is_enabled ? '✅ Habilitado por el GAD' : '⏳ Pendiente de habilitación',
+                value: is_enabled
+                  ? 'Habilitado por el GAD'
+                  : is_pending_review
+                    ? 'Pendiente de habilitación'
+                    : 'Perfil incompleto',
               },
             ]}
           />

@@ -4,10 +4,9 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Eye, EyeOff, AlertCircle } from 'lucide-react';
-import api from '@/lib/api';
 import { GetApiError } from '@/lib/errors';
 import { AlertBanner } from '@/components/ui/alert.banner';
-import { MapUser, NormalizeRole, useAuthStore } from '@/stores/auth.store';
+import { useAuthStore } from '@/stores/auth.store';
 import { ROLE_HOME } from '@/router/portal.config';
 
 const SignInSchema = z.object({
@@ -18,6 +17,7 @@ type SignInForm = z.infer<typeof SignInSchema>;
 
 export function SignInPage() {
   const navigate = useNavigate();
+  const Login = useAuthStore((s) => s.Login);
   const [show_pass, set_show_pass] = useState(false);
   const [is_loading, set_is_loading] = useState(false);
   const [error, set_error] = useState<string | null>(null);
@@ -34,23 +34,8 @@ export function SignInPage() {
     set_error(null);
     set_is_loading(true);
     try {
-      const { data: body } = await api.post<{
-        success: boolean;
-        data: {
-          user: { id: string; email: string; role: string };
-        };
-      }>('/auth/login', { email: data.email, password: data.password });
-
-      const { user } = body.data;
-      const fe_role = NormalizeRole(user.role);
-
-      useAuthStore.setState({
-        user: MapUser({ ...user, role: fe_role }),
-        is_loading: false,
-        error: null,
-      });
-
-      navigate(ROLE_HOME[fe_role], { replace: true });
+      const role = await Login(data.email, data.password);
+      navigate(ROLE_HOME[role], { replace: true });
     } catch (err) {
       set_error(GetApiError(err, 'Error logging in'));
     } finally {
@@ -135,6 +120,14 @@ export function SignInPage() {
                 {errors.password.message}
               </p>
             )}
+            <div className="mt-2 text-right">
+              <Link
+                to="/auth/forgot-password"
+                className="text-xs font-semibold text-primary-default hover:text-primary-dark"
+              >
+                ¿Olvidaste tu contraseña?
+              </Link>
+            </div>
           </div>
 
           {/* Main button */}

@@ -1,5 +1,5 @@
 ﻿import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -21,7 +21,7 @@ import {
   UserCheck,
 } from 'lucide-react';
 import { applications_api, attachments_api } from '@/lib/api.calls';
-import { MapUser, type User as AuthUser } from '@/stores/auth.store';
+import { MapUser, useAuthStore, type User as AuthUser } from '@/stores/auth.store';
 import { Cn } from '@/lib/utils';
 import { PROCEDURE_TYPE_LABELS } from '@/lib/constants/procedure.types';
 import { PageHeader } from '@/components/ui/page.header';
@@ -131,6 +131,7 @@ const PROCEDURE_THEME: Record<
 
 export function NewProcedure() {
   const navigate = useNavigate();
+  const is_enabled = useAuthStore((s) => s.user?.is_enabled === true);
   const [step, set_step] = useState(1);
 
   // Paso 1: propietario
@@ -281,6 +282,10 @@ export function NewProcedure() {
       set_is_loading(false);
     }
   };
+
+  if (!is_enabled) {
+    return <Navigate to="/architect" replace />;
+  }
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">

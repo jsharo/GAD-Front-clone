@@ -4,10 +4,15 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Eye, EyeOff, AlertCircle } from 'lucide-react';
-import api from '@/lib/api';
 import { GetApiError } from '@/lib/errors';
 import { AlertBanner } from '@/components/ui/alert.banner';
+import { useAuthStore } from '@/stores/auth.store';
 
+/**
+ * Signup aligns with backend CreateUserDto:
+ * email + password required; name/lastname/cedula/direction optional
+ * (completed later via profile).
+ */
 const SignUpSchema = z
   .object({
     email: z.string().email('Invalid email address'),
@@ -20,14 +25,9 @@ const SignUpSchema = z
   });
 type SignUpForm = z.infer<typeof SignUpSchema>;
 
-/** Placeholder until national ID is collected in a later step (backend requires 10 digits). */
-function GenerateTempNationalId(): string {
-  const raw = `${Date.now()}${Math.floor(Math.random() * 1000)}`;
-  return raw.replace(/\D/g, '').slice(-10).padStart(10, '0');
-}
-
 export function SignUpPage() {
   const navigate = useNavigate();
+  const Register = useAuthStore((s) => s.Register);
   const [show_pass, set_show_pass] = useState(false);
   const [show_confirm, set_show_confirm] = useState(false);
   const [is_loading, set_is_loading] = useState(false);
@@ -45,12 +45,16 @@ export function SignUpPage() {
     set_error(null);
     set_is_loading(true);
     try {
-      await api.post('/users/register', {
+      await Register({
         email: data.email,
         password: data.password,
-        // Backend wire field for Ecuadorian ID remains `cedula`
-        cedula: GenerateTempNationalId(),
       });
+
+      try {
+        sessionStorage.setItem(`gad_signup_pw:${data.email.trim().toLowerCase()}`, data.password);
+      } catch {
+        // ignore storage failures
+      }
 
       navigate('/auth/signup/email-code', {
         state: { from_signup: true, email: data.email },

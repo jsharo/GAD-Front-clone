@@ -1,12 +1,15 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { ClipboardEvent, KeyboardEvent } from 'react';
 import { Link, useNavigate, useLocation, Navigate } from 'react-router-dom';
 import { MailCheck } from 'lucide-react';
-import api from '@/lib/api';
 import { GetApiError } from '@/lib/errors';
 import { AlertBanner } from '@/components/ui/alert.banner';
+import { useAuthStore } from '@/stores/auth.store';
+import { auth_api } from '@/lib/api.calls';
+import { ROLE_HOME } from '@/router/portal.config';
 
 const CODE_LENGTH = 6;
+const RESEND_COOLDOWN_SECONDS = 15;
 
 type EmailCodeLocationState = {
   from_signup?: boolean;
@@ -17,17 +20,29 @@ export function EmailCodePage() {
   const navigate = useNavigate();
   const location = useLocation();
   const state = location.state as EmailCodeLocationState | null;
+  const VerifyEmail = useAuthStore((s) => s.VerifyEmail);
+  const Login = useAuthStore((s) => s.Login);
+
+  const email = state?.email;
+  const can_verify = Boolean(state?.from_signup && email);
 
   const [digits, set_digits] = useState<string[]>(Array(CODE_LENGTH).fill(''));
   const [error, set_error] = useState<string | null>(null);
+  const [info, set_info] = useState<string | null>(null);
   const [is_loading, set_is_loading] = useState(false);
+  const [is_resending, set_is_resending] = useState(false);
+  const [cooldown, set_cooldown] = useState(RESEND_COOLDOWN_SECONDS);
   const inputs = useRef<Array<HTMLInputElement | null>>([]);
 
-  if (!state?.from_signup || !state.email) {
+  useEffect(() => {
+    if (cooldown <= 0) return;
+    const timer = window.setTimeout(() => set_cooldown((s) => s - 1), 1000);
+    return () => window.clearTimeout(timer);
+  }, [cooldown]);
+
+  if (!can_verify || !email) {
     return <Navigate to="/auth/signup" replace />;
   }
-
-  const email = state.email;
 
   const FocusAt = (index: number) => inputs.current[index]?.focus();
 
@@ -60,25 +75,63 @@ export function EmailCodePage() {
     e.preventDefault();
     const code = digits.join('');
     if (code.length < CODE_LENGTH) {
-      set_error('Please enter the complete 6-digit code.');
+      set_error('Ingresa el código de 6 dígitos completo.');
       return;
     }
     set_error(null);
+    set_info(null);
     set_is_loading(true);
     try {
-      await api.post('/verification/verify-email', { email, code });
-      navigate('/auth/signin', { replace: true });
+      await VerifyEmail(email, code);
+
+      const storage_key = `gad_signup_pw:${email.trim().toLowerCase()}`;
+      let password: string | null = null;
+      try {
+        password = sessionStorage.getItem(storage_key);
+        sessionStorage.removeItem(storage_key);
+      } catch {
+        password = null;
+      }
+
+      if (password) {
+        const role = await Login(email, password);
+        navigate(ROLE_HOME[role] ?? '/architect', { replace: true });
+      } else {
+        navigate('/auth/signin', { replace: true });
+      }
     } catch (err) {
-      set_error(GetApiError(err, 'Invalid or expired code. Please try again.'));
+      set_error(GetApiError(err, 'Código inválido o expirado. Intenta de nuevo.'));
     } finally {
       set_is_loading(false);
+    }
+  };
+
+  const HandleResend = async () => {
+    if (cooldown > 0 || is_resending) return;
+    set_error(null);
+    set_info(null);
+    set_is_resending(true);
+    try {
+      await auth_api.ResendVerificationCode(email);
+      set_digits(Array(CODE_LENGTH).fill(''));
+      set_cooldown(RESEND_COOLDOWN_SECONDS);
+      set_info('Te enviamos un nuevo código. Revisa tu bandeja de entrada.');
+      FocusAt(0);
+    } catch (err) {
+      const retry = (err as { response?: { data?: { retryAfterSeconds?: number } } })?.response
+        ?.data?.retryAfterSeconds;
+      if (typeof retry === 'number' && retry > 0) {
+        set_cooldown(retry);
+      }
+      set_error(GetApiError(err, 'No se pudo reenviar el código.'));
+    } finally {
+      set_is_resending(false);
     }
   };
 
   return (
     <div className="flex-1 flex items-center justify-center px-8 py-16 bg-neutral-100 overflow-y-auto">
       <div className="w-full max-w-xs my-auto">
-        {/* Mobile logo */}
         <div className="lg:hidden flex flex-col items-center mb-8">
           <img
             src="/logo-gad.png"
@@ -91,29 +144,34 @@ export function EmailCodePage() {
           </p>
         </div>
 
-        {/* Title */}
         <div className="mb-10">
           <h1 className="font-heading font-black text-neutral-900 text-[1.9rem] tracking-[-0.02em]">
-            Verify Email Code
+            Verificar correo
           </h1>
-          <p className="mt-2 text-sm text-neutral-500 leading-relaxed flex items-center gap-2">
-            <MailCheck size={15} className="flex-shrink-0 text-neutral-600" />
-            Enter the 6-digit code sent to{' '}
-            <span className="font-medium text-neutral-700">{email}</span>.
+          <p className="mt-2 text-sm text-neutral-500 leading-relaxed">
+            <span className="inline-flex items-start gap-2">
+              <MailCheck size={15} className="mt-0.5 flex-shrink-0 text-neutral-600" />
+              <span>
+                Ingresa el código de 6 dígitos enviado a{' '}
+                <span className="font-medium text-neutral-700">{email}</span>.
+              </span>
+            </span>
           </p>
         </div>
 
-        {/* Global error */}
         {error && (
           <AlertBanner message={error} OnDismiss={() => set_error(null)} className="mb-6" />
         )}
+        {info && !error && (
+          <div className="mb-6 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2.5 text-sm text-emerald-800">
+            {info}
+          </div>
+        )}
 
-        {/* Form */}
         <form onSubmit={OnSubmit} className="space-y-4">
-          {/* Code inputs */}
           <div>
             <label className="block text-xs font-bold text-neutral-500 tracking-widest mb-4">
-              Verification Code
+              Código de verificación
             </label>
             <div className="flex gap-2 justify-between">
               {digits.map((digit, i) => (
@@ -138,7 +196,6 @@ export function EmailCodePage() {
             </div>
           </div>
 
-          {/* Submit button */}
           <button
             type="submit"
             id="email-code-submit"
@@ -147,23 +204,36 @@ export function EmailCodePage() {
               is_loading ? 'bg-neutral-400/50' : 'bg-primary-default hover:bg-primary-dark'
             }`}
           >
-            {is_loading ? <span>Verificando...</span> : <span>Verify</span>}
+            {is_loading ? 'Verificando...' : 'Verificar'}
           </button>
         </form>
 
-        {/* Back link */}
-        <div className="mt-5 text-center">
-          <span className="text-sm text-neutral-500">Didn't receive a code? </span>
+        <div className="mt-5 text-center space-y-2">
+          <p className="text-sm text-neutral-500">
+            ¿No recibiste el código?{' '}
+            {cooldown > 0 ? (
+              <span className="font-semibold text-neutral-400">Reenviar en {cooldown}s</span>
+            ) : (
+              <button
+                type="button"
+                id="email-code-resend"
+                onClick={() => void HandleResend()}
+                disabled={is_resending}
+                className="font-semibold text-primary-default hover:text-primary-dark disabled:opacity-50"
+              >
+                {is_resending ? 'Enviando...' : 'Enviar nuevo código'}
+              </button>
+            )}
+          </p>
           <Link
             to="/auth/signup"
             id="email-code-back"
-            className="text-sm font-semibold text-neutral-600 hover:text-primary-dark"
+            className="inline-block text-sm font-semibold text-neutral-600 hover:text-primary-dark"
           >
-            Go back
+            Volver al registro
           </Link>
         </div>
 
-        {/* Footer */}
         <p className="text-center mt-6 text-neutral-400 text-[0.65rem]">
           © {new Date().getFullYear()} GAD Municipal de Cañar
         </p>
