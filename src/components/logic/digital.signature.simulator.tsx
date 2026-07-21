@@ -21,7 +21,7 @@ export function DigitalSignatureSimulator({
   signer_id,
   require_pin = true,
   OnSignComplete,
-  title = 'Simulador de Firma Electrónica Avanzada',
+  title = 'Advanced Electronic Signature Simulator',
 }: DigitalSignatureSimulatorProps) {
   const canvas_ref = useRef<HTMLCanvasElement>(null);
   const [is_drawing, set_is_drawing] = useState(false);
@@ -128,12 +128,12 @@ export function DigitalSignatureSimulator({
     set_error(null);
 
     if (require_pin && pin.length !== 4) {
-      set_error('Por favor ingresa un código PIN de 4 dígitos.');
+      set_error('Please enter a 4-digit PIN code.');
       return;
     }
 
     if (!canvas_has_content) {
-      set_error('Debes dibujar tu firma en el recuadro para continuar.');
+      set_error('You must draw your signature in the box to continue.');
       return;
     }
 
@@ -157,7 +157,7 @@ export function DigitalSignatureSimulator({
         <div>
           <h4 className="font-heading font-black text-slate-800 text-sm tracking-wide">{title}</h4>
           <p className="text-slate-400 text-[10px] uppercase font-bold tracking-wider mt-0.5">
-            GAD Cañar Firma-Móvil
+            GAD Cañar Mobile Signature
           </p>
         </div>
       </div>
@@ -167,20 +167,18 @@ export function DigitalSignatureSimulator({
           {/* Signer details */}
           <div className="grid grid-cols-2 gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-200/50 text-xs">
             <div>
-              <p className="text-slate-400 font-bold uppercase tracking-wider text-[9px]">
-                Firmante
-              </p>
+              <p className="text-slate-400 font-bold uppercase tracking-wider text-[9px]">Signer</p>
               <p className="text-slate-700 font-bold mt-0.5">{signer_name}</p>
             </div>
             <div>
               <p className="text-slate-400 font-bold uppercase tracking-wider text-[9px]">
-                Identificación (Cédula)
+                Identification (National ID)
               </p>
               <p className="text-slate-700 font-mono font-semibold mt-0.5">{signer_id}</p>
             </div>
             <div className="col-span-2 border-t border-slate-200/50 pt-2">
               <p className="text-slate-400 font-bold uppercase tracking-wider text-[9px]">
-                Fecha y Hora
+                Date and Time
               </p>
               <p className="text-slate-600 font-medium mt-0.5">{new Date().toLocaleString()}</p>
             </div>
@@ -190,7 +188,7 @@ export function DigitalSignatureSimulator({
           <div className="space-y-2">
             <div className="flex justify-between items-center">
               <label className="text-[10px] font-bold text-blue-600 uppercase tracking-wider flex items-center gap-1">
-                <PenTool size={10} /> Trazo de Firma Digital *
+                <PenTool size={10} /> Digital Signature Stroke *
               </label>
               {canvas_has_content && (
                 <button
@@ -198,7 +196,7 @@ export function DigitalSignatureSimulator({
                   onClick={ClearCanvas}
                   className="text-[10px] text-red-500 hover:text-red-650 font-bold uppercase flex items-center gap-1 transition-colors cursor-pointer"
                 >
-                  <RefreshCw size={10} /> Limpiar
+                  <RefreshCw size={10} /> Clear
                 </button>
               )}
             </div>
@@ -218,7 +216,7 @@ export function DigitalSignatureSimulator({
               />
               {!canvas_has_content && (
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none text-slate-400 text-xs">
-                  Dibuja tu firma aquí (Mouse o Dedo)
+                  Draw your signature here (mouse or finger)
                 </div>
               )}
             </div>
@@ -228,7 +226,7 @@ export function DigitalSignatureSimulator({
           {require_pin && (
             <div className="space-y-1.5">
               <label className="text-[10px] font-bold text-blue-600 uppercase tracking-wider flex items-center gap-1">
-                <KeyRound size={10} /> Código PIN del Certificado (4 dígitos) *
+                <KeyRound size={10} /> Certificate PIN Code (4 digits) *
               </label>
               <input
                 type="password"
@@ -257,12 +255,12 @@ export function DigitalSignatureSimulator({
             {is_signing ? (
               <>
                 <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                <span>Encriptando y Firmando...</span>
+                <span>Encrypting and Signing...</span>
               </>
             ) : (
               <>
                 <ShieldCheck size={16} />
-                <span>Autorizar y Firmar Digitalmente</span>
+                <span>Authorize and Sign Digitally</span>
               </>
             )}
           </button>
@@ -275,21 +273,21 @@ export function DigitalSignatureSimulator({
           </div>
           <div>
             <h5 className="font-heading font-black text-slate-800 text-sm">
-              Firma Autorizada Exitosamente
+              Signature Authorized Successfully
             </h5>
             <p className="text-[10px] text-emerald-700 font-bold uppercase mt-0.5">
-              Certificado de Firma Válido
+              Valid Signature Certificate
             </p>
           </div>
           <div className="w-full text-left space-y-2 border-t border-emerald-200/50 pt-4 text-[10px] font-medium text-slate-600">
             <div>
-              <span className="text-slate-400 font-bold">FECHA:</span> {new Date().toLocaleString()}
+              <span className="text-slate-400 font-bold">DATE:</span> {new Date().toLocaleString()}
             </div>
             <div>
-              <span className="text-slate-400 font-bold">ALGORITMO:</span> SHA-256 con RSA-2048
+              <span className="text-slate-400 font-bold">ALGORITHM:</span> SHA-256 with RSA-2048
             </div>
             <div className="break-all">
-              <span className="text-slate-400 font-bold">HUELLA DIGITAL:</span>
+              <span className="text-slate-400 font-bold">DIGITAL FINGERPRINT:</span>
               <p className="font-mono mt-0.5 text-slate-700">{signed_hash}</p>
             </div>
           </div>

@@ -11,35 +11,42 @@ export function GetApiError(err: unknown, fallback: string): string {
 
     if (response?.status === 401) {
       if (message === 'Email not verified') {
-        return 'Debes verificar tu correo antes de iniciar sesión.';
+        return 'You must verify your email before signing in.';
       }
       if (message === 'User is inactive') {
-        return 'Usuario inactivado.';
+        return 'User account is inactive.';
       }
       if (message === 'Invalid email or password') {
-        return 'Credenciales incorrectas.';
+        return 'Invalid credentials.';
       }
-      return 'La sesión expiró. Inicie sesión nuevamente.';
+      return 'Your session has expired. Please sign in again.';
     }
-    if (response?.status === 403) return 'No tiene permisos para realizar esta acción.';
-    if (response?.status === 404) return 'El expediente o documento no fue encontrado.';
+    if (response?.status === 403) return 'You do not have permission to perform this action.';
+    if (response?.status === 404) return 'The file or document was not found.';
     if (response?.status === 409) {
-      if (message === 'Esta cédula ya está registrada en el sistema.') {
-        return message;
+      if (
+        message === 'This ID number is already registered in the system.' ||
+        message === 'Esta cédula ya está registrada en el sistema.'
+      ) {
+        return 'This national ID number is already registered in the system.';
       }
       if (message === 'Email is already registered') {
-        return 'Este correo ya está registrado en el sistema.';
+        return 'This email is already registered in the system.';
       }
     }
     if (typeof message === 'string') {
-      if (message.includes('cedula must be a valid Ecuadorian national ID number')) {
-        return 'La cédula no es válida. Debe ser un número de identidad ecuatoriano real.';
+      if (
+        message.includes('cedula must be a valid Ecuadorian national ID number') ||
+        message.includes('The ID number is not valid') ||
+        message.includes('La cédula no es válida')
+      ) {
+        return 'The national ID number is not valid. It must be a valid Ecuadorian national ID number.';
       }
-      if (message.includes('La cédula no es válida')) {
-        return message;
-      }
-      if (message.includes('Esta cédula ya está registrada')) {
-        return message;
+      if (
+        message.includes('This ID number is already registered') ||
+        message.includes('Esta cédula ya está registrada')
+      ) {
+        return 'This national ID number is already registered in the system.';
       }
       return message;
     }

@@ -13,9 +13,9 @@ import { PanelCard } from '@/components/ui/panel.card';
 import { ProcedureTypeBadge } from '@/components/ui/procedure.type.badge';
 
 const SECRETARY_STATUS_OPTIONS = [
-  { value: '', label: 'Todos (activos)' },
-  { value: 'PENDING_SECRETARY', label: 'Pendientes' },
-  { value: 'OBSERVED', label: 'Observados' },
+  { value: '', label: 'All (active)' },
+  { value: 'PENDING_SECRETARY', label: 'Pending' },
+  { value: 'OBSERVED', label: 'Observed' },
 ];
 
 interface Application {
@@ -105,14 +105,14 @@ export function SecretaryInbox() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Bandeja de Trámites"
-        description="Verificación documental — firma y completitud de expedientes"
+        title="Application Inbox"
+        description="Document verification — signature and completeness of files"
         actions={
           <button
             onClick={LoadInbox}
             disabled={is_loading}
             className="rounded-xl border border-neutral-200 p-2.5 text-slate-500 hover:bg-primary-dark hover:text-neutral-50 hover:border-primary-dark"
-            title="Actualizar"
+            title="Refresh"
           >
             <RefreshCw size={16} className={is_loading ? 'animate-spin' : ''} />
           </button>
@@ -121,7 +121,7 @@ export function SecretaryInbox() {
 
       <KpiGrid columns="3">
         <StatCard
-          label="Pendientes"
+          label="Pending"
           value={pending_count}
           icon={Clock}
           icon_class_name="text-warning-dark"
@@ -129,7 +129,7 @@ export function SecretaryInbox() {
           is_loading={is_loading}
         />
         <StatCard
-          label="Observados"
+          label="Observed"
           value={observed_count}
           icon={XCircle}
           icon_class_name="text-error-dark"
@@ -137,7 +137,7 @@ export function SecretaryInbox() {
           is_loading={is_loading}
         />
         <StatCard
-          label="Total activos"
+          label="Total active"
           value={pending_count + observed_count}
           icon={FileCheck2}
           icon_class_name="text-primary-default"
@@ -158,14 +158,7 @@ export function SecretaryInbox() {
           <table className="w-full text-left">
             <thead>
               <tr className="border-b border-neutral-200 bg-neutral-100">
-                {[
-                  'Expediente',
-                  'Ciudadano',
-                  'Tipo de Trámite',
-                  'Archivos',
-                  'Estado',
-                  'Acciones',
-                ].map((h) => (
+                {['File', 'Citizen', 'Procedure Type', 'Files', 'Status', 'Actions'].map((h) => (
                   <th
                     key={h}
                     className="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider"
@@ -187,7 +180,7 @@ export function SecretaryInbox() {
                   <td colSpan={6}>
                     <EmptyState
                       icon={FileCheck2}
-                      title="No hay solicitudes que coincidan"
+                      title="No matching applications"
                       className="py-12"
                     />
                   </td>
@@ -201,7 +194,7 @@ export function SecretaryInbox() {
                       </p>
                       <p className="text-[0.7rem] text-slate-400">
                         {application.created_at
-                          ? new Date(application.created_at).toLocaleDateString('es-EC')
+                          ? new Date(application.created_at).toLocaleDateString('en-US')
                           : '—'}
                       </p>
                     </td>
@@ -223,7 +216,7 @@ export function SecretaryInbox() {
                       <div className="flex items-center gap-2">
                         <FileCheck2 size={14} className="text-slate-500" />
                         <span className="text-sm font-semibold text-blue-955">
-                          {application.attachments?.length ?? 0} archivos
+                          {application.attachments?.length ?? 0} files
                         </span>
                       </div>
                     </td>
@@ -235,7 +228,7 @@ export function SecretaryInbox() {
                         to={`/secretary/inbox/${application.id}`}
                         className="inline-flex items-center gap-2 rounded-xl border border-secondary-light bg-secondary-light/20 px-3 py-2 text-xs font-semibold text-secondary-dark hover:border-primary-dark hover:bg-primary-dark hover:text-neutral-50"
                       >
-                        <Eye size={14} /> Revisar
+                        <Eye size={14} /> Review
                       </Link>
                     </td>
                   </tr>

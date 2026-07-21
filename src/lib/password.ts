@@ -4,10 +4,10 @@ import { z } from 'zod';
 export const PASSWORD_COMPLEXITY_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
 
 export const PASSWORD_REQUIREMENTS_HINT =
-  'Mínimo 8 caracteres, con mayúscula, minúscula, número y carácter especial';
+  'At least 8 characters, including uppercase, lowercase, number, and special character';
 
 export const PASSWORD_REQUIREMENTS_ERROR =
-  'La contraseña debe tener mínimo 8 caracteres e incluir mayúscula, minúscula, número y un carácter especial';
+  'Password must be at least 8 characters and include uppercase, lowercase, number, and a special character';
 
 export function IsStrongPasswordValue(password: string): boolean {
   return PASSWORD_COMPLEXITY_REGEX.test(password);
@@ -15,5 +15,5 @@ export function IsStrongPasswordValue(password: string): boolean {
 
 export const StrongPasswordSchema = z
   .string()
-  .min(8, 'Mínimo 8 caracteres')
+  .min(8, 'At least 8 characters')
   .regex(PASSWORD_COMPLEXITY_REGEX, PASSWORD_REQUIREMENTS_ERROR);

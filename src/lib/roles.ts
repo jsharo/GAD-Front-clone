@@ -4,13 +4,13 @@ export const ASSIGNABLE_ROLES = ['ADMINISTRATOR', 'TECHNICIAN', 'USER', 'SECRETA
 export type AssignableRole = (typeof ASSIGNABLE_ROLES)[number];
 
 export const ROLE_LABELS: Record<string, string> = {
-  ADMINISTRATOR: 'Administrador',
-  TECHNICIAN: 'Técnico',
-  USER: 'Arquitecto',
-  SECRETARY: 'Secretaria',
+  ADMINISTRATOR: 'Administrator',
+  TECHNICIAN: 'Technician',
+  USER: 'Architect',
+  SECRETARY: 'Secretary',
   // Legacy labels (display only; not assignable)
-  FINANCIAL: 'Financiero',
-  CITIZEN: 'Ciudadano',
+  FINANCIAL: 'Financial',
+  CITIZEN: 'Citizen',
 };
 
 export function IsAssignableRole(roleName: string): boolean {

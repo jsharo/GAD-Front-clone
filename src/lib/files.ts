@@ -20,7 +20,7 @@ export async function FetchRequestAttachmentBlob(request_id: string, attachment_
   return {
     blob: response.data,
 
-    filename: FilenameFromDisposition(response.headers['content-disposition'], 'documento'),
+    filename: FilenameFromDisposition(response.headers['content-disposition'], 'document'),
   };
 }
 
@@ -76,7 +76,7 @@ export async function OpenFileInNewTab(url: string): Promise<void> {
   } catch (error) {
     console.error(error);
 
-    throw new Error('Error al cargar el documento', { cause: error });
+    throw new Error('Error loading the document', { cause: error });
   }
 }
 
@@ -98,6 +98,6 @@ export async function DownloadFile(url: string, filename: string): Promise<void>
   } catch (error) {
     console.error(error);
 
-    throw new Error('Error al descargar el documento', { cause: error });
+    throw new Error('Error downloading the document', { cause: error });
   }
 }

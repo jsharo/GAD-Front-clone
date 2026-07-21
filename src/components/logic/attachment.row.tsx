@@ -47,7 +47,7 @@ export function AttachmentRow({
     try {
       await callback();
     } catch (error) {
-      OnError?.(GetApiError(error, 'No se pudo completar la operación documental.'));
+      OnError?.(GetApiError(error, 'The document operation could not be completed.'));
     } finally {
       set_loading_action(null);
     }
@@ -80,7 +80,7 @@ export function AttachmentRow({
 
         <div className="flex items-center gap-1">
           <button
-            title="Ver documento"
+            title="View document"
             className="rounded-lg p-2 text-blue-600 hover:bg-blue-50"
             onClick={() => Run('view', () => OpenRequestAttachment(request_id, attachment.id))}
           >
@@ -92,7 +92,7 @@ export function AttachmentRow({
           </button>
 
           <button
-            title="Descargar documento"
+            title="Download document"
             className="rounded-lg p-2 text-slate-500 hover:bg-slate-100"
             onClick={() =>
               Run('download', () =>
@@ -108,7 +108,7 @@ export function AttachmentRow({
           </button>
 
           <button
-            title="Verificar integridad"
+            title="Verify integrity"
             className="rounded-lg p-2 text-green-700 hover:bg-green-50"
             onClick={() =>
               Run('verify', async () =>
@@ -125,7 +125,7 @@ export function AttachmentRow({
 
           {allowed_ipfs && (
             <button
-              title="Enviar a IPFS"
+              title="Send to IPFS"
               className="rounded-lg p-2 text-violet-700 hover:bg-violet-50"
               onClick={() =>
                 Run('ipfs', async () =>
@@ -154,11 +154,7 @@ export function AttachmentRow({
           <span
             className={`rounded-full px-2 py-1 ${verification.valid ? 'bg-green-50 text-green-700' : verification.verifiable ? 'bg-red-50 text-red-700' : 'bg-amber-50 text-amber-700'}`}
           >
-            {verification.valid
-              ? 'Íntegro'
-              : verification.verifiable
-                ? 'Alterado'
-                : 'No verificable'}
+            {verification.valid ? 'Intact' : verification.verifiable ? 'Altered' : 'Not verifiable'}
           </span>
         )}
       </div>

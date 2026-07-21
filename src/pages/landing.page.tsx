@@ -20,80 +20,80 @@ import { CedulaValidationMessage } from '@/lib/cedula';
 import { BaseModal } from '@/components/logic/base.modal';
 
 const STATS = [
-  { value: '3,200+', label: 'Planos y Proyectos Aprobados', icon: FileText },
-  { value: '48h', label: 'Tiempo Promedio de Revisión', icon: Clock },
-  { value: '250+', label: 'Profesionales Habilitados', icon: Star },
-  { value: '12', label: 'Analistas Técnicos GAD', icon: Users },
+  { value: '3,200+', label: 'Approved Plans and Projects', icon: FileText },
+  { value: '48h', label: 'Average Review Time', icon: Clock },
+  { value: '250+', label: 'Licensed Professionals', icon: Star },
+  { value: '12', label: 'GAD Technical Analysts', icon: Users },
 ];
 
 const FEATURES = [
   {
     icon: FileText,
-    title: 'Línea de Fábrica Digital',
-    desc: 'Obtención rápida de informes de regulación urbana y compatibilidad de uso de suelo.',
+    title: 'Digital Building Line',
+    desc: 'Quick access to urban regulation reports and land-use compatibility assessments.',
     icon_wrapper_class: 'bg-primary-light/10 border border-primary-light/20',
     icon_class: 'text-primary-default',
   },
   {
     icon: Shield,
-    title: 'Aprobación de Planos',
-    desc: 'Envío técnico de proyectos arquitectónicos y estructurales para revisión ágil de los analistas.',
+    title: 'Plan Approval',
+    desc: 'Submit architectural and structural projects for streamlined review by municipal analysts.',
     icon_wrapper_class: 'bg-error-light/20 border border-error-light',
     icon_class: 'text-error-default',
   },
   {
     icon: MapPin,
-    title: 'Permisos de Construcción',
-    desc: 'Licenciamiento de edificación 100% en línea para áreas urbanas y rurales del cantón.',
+    title: 'Construction Permits',
+    desc: 'Fully online building licensing for urban and rural areas in the canton.',
     icon_wrapper_class: 'bg-success-light/20 border border-success-light',
     icon_class: 'text-success-dark',
   },
 ];
 
 const PROCEDURE_TYPE_LABELS: Record<string, string> = {
-  BUILDING_LINE: 'Línea de Fábricas',
-  PLAN_APPROVAL: 'Aprobación de Planos',
-  CONSTRUCTION_PERMIT: 'Permiso de Construcción',
+  BUILDING_LINE: 'Building Lines',
+  PLAN_APPROVAL: 'Plan Approval',
+  CONSTRUCTION_PERMIT: 'Construction Permit',
 };
 
 const STATUS_INFO: Record<string, { label: string; badge_class: string; step: number }> = {
   DRAFT: {
-    label: 'Borrador (Pendiente Envío)',
+    label: 'Draft (Pending Submission)',
     badge_class: 'bg-neutral-200 text-neutral-700 border border-neutral-300',
     step: 1,
   },
   PENDING_SECRETARY: {
-    label: 'Enviado (Espera Validación Documental)',
+    label: 'Submitted (Awaiting Document Review)',
     badge_class: 'bg-warning-light/20 text-warning-dark border border-warning-light',
     step: 1,
   },
   OBSERVED: {
-    label: 'Observado por Secretaría (Devuelto)',
+    label: 'Returned by Secretary (Observed)',
     badge_class: 'bg-error-light/20 text-error-dark border border-error-light',
     step: 2,
   },
   PENDING_TECHNICIAN: {
-    label: 'En Revisión Técnica',
+    label: 'Under Technical Review',
     badge_class: 'bg-primary-light/10 text-primary-default border border-primary-light/30',
     step: 2,
   },
   PENDING_PAYMENT: {
-    label: 'Aprobado (Pendiente de Pago)',
+    label: 'Approved (Payment Pending)',
     badge_class: 'bg-warning-light/20 text-warning-dark border border-warning-light',
     step: 3,
   },
   PAID: {
-    label: 'Pago Registrado (En Firma Final)',
+    label: 'Payment Recorded (Final Signing)',
     badge_class: 'bg-success-light/20 text-success-dark border border-success-light',
     step: 3,
   },
   APPROVED: {
-    label: 'Aprobado y Concluido',
+    label: 'Approved and Completed',
     badge_class: 'bg-success-light/20 text-success-dark border border-success-light',
     step: 4,
   },
   REJECTED: {
-    label: 'Rechazado Definitivamente',
+    label: 'Permanently Rejected',
     badge_class: 'bg-error-light/20 text-error-dark border border-error-light',
     step: 4,
   },
@@ -129,9 +129,7 @@ export function LandingPage() {
       const tracked_applications = data.applications || data.data || [];
 
       if (!tracked_applications.length) {
-        set_error_msg(
-          'El ciudadano se encuentra registrado, pero aún no tiene ningún trámite ingresado.'
-        );
+        set_error_msg('The citizen is registered but has not submitted any applications yet.');
       } else {
         set_tracking_result({
           citizen: data.citizen,
@@ -141,8 +139,7 @@ export function LandingPage() {
       }
     } catch (err: any) {
       set_error_msg(
-        err.response?.data?.message ||
-          'No se encontraron registros que coincidan con la cédula o correo ingresado.'
+        err.response?.data?.message || 'No records found matching the ID number or email entered.'
       );
     } finally {
       set_is_loading(false);
@@ -197,7 +194,7 @@ export function LandingPage() {
                   CAÑAR
                 </p>
                 <p className="text-secondary-dark font-bold text-[9px] tracking-wider uppercase mt-0.5">
-                  Cantón Intercultural
+                  Intercultural Canton
                 </p>
               </div>
               {/* Franja de Colores del Prototipo */}
@@ -220,7 +217,7 @@ export function LandingPage() {
               />
               <input
                 type="text"
-                placeholder="Buscar trámites o servicios..."
+                placeholder="Search applications or services..."
                 className="w-full pl-9 pr-4 py-1.5 rounded-full bg-neutral-100 border border-neutral-200 focus:bg-neutral-50 focus:border-primary-default text-xs outline-none"
               />
             </div>
@@ -253,19 +250,19 @@ export function LandingPage() {
               href="#home"
               className="text-primary-default border-b-2 border-secondary-light pb-1 hover:text-primary-dark"
             >
-              INICIO
+              HOME
             </a>
             <a href="#services" className="hover:text-primary-dark">
-              TRÁMITES TÉCNINES
+              TECHNICAL APPLICATIONS
             </a>
             <a href="#tracking" className="hover:text-primary-dark">
-              CONSULTA EXPEDIENTES
+              FILE INQUIRY
             </a>
             <a href="#professional-registration" className="hover:text-primary-dark">
-              HABILITACIÓN PROFESIONAL
+              PROFESSIONAL LICENSING
             </a>
             <a href="#news" className="hover:text-primary-dark">
-              NOTICIAS GAD
+              GAD NEWS
             </a>
           </div>
         </div>
@@ -284,18 +281,18 @@ export function LandingPage() {
           <div className="lg:col-span-7 space-y-6 text-left">
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary-light/10 border border-primary-light/20 text-primary-default text-xs font-semibold">
               <span className="w-2 h-2 rounded-full bg-primary-default" />
-              PORTAL TÉCNICO DE PLANIFICACIÓN TERRITORIAL · GAD CAÑAR
+              TERRITORIAL PLANNING TECHNICAL PORTAL · GAD CAÑAR
             </div>
 
             <h1 className="font-heading font-extrabold leading-tight text-4xl sm:text-5xl lg:text-6xl text-neutral-900 tracking-tight">
-              Gestión Profesional <br />
-              <span className="text-primary-default">de Proyectos y Planos</span>.
+              Professional Management <br />
+              <span className="text-primary-default">of Projects and Plans</span>.
             </h1>
 
             <p className="text-base text-neutral-600 max-w-xl leading-relaxed">
-              Plataforma oficial para arquitectos, ingenieros civiles y profesionales técnicos.
-              Gestione de forma 100% digital la aprobación de planos, líneas de fábrica y permisos
-              de edificación en el cantón Cañar.
+              Official platform for architects, civil engineers, and technical professionals. Manage
+              plan approvals, building lines, and construction permits fully online in the Cañar
+              canton.
             </p>
 
             <div className="flex flex-wrap gap-4 pt-2">
@@ -303,28 +300,28 @@ export function LandingPage() {
                 to="/auth/signin"
                 className="inline-flex items-center justify-center gap-2 text-base px-8 py-3.5 rounded-xl bg-primary-default hover:bg-primary-dark text-neutral-50 font-bold"
               >
-                Ingresar al Portal
+                Enter Portal
                 <ArrowRight size={18} />
               </Link>
               <a
                 href="#professional-registration"
                 className="inline-flex items-center justify-center gap-2 text-base px-8 py-3.5 rounded-xl border border-primary-default/30 text-primary-default font-semibold hover:bg-primary-dark hover:text-neutral-50 hover:border-primary-dark"
               >
-                Registrarme como Profesional
+                Register as a Professional
               </a>
             </div>
 
             {/* Check Features del Prototipo */}
             <div className="flex flex-wrap items-center gap-6 pt-4 text-xs font-bold text-neutral-500">
               <span className="flex items-center gap-1.5">
-                <CheckCircle2 size={15} className="text-primary-light" /> Firma Electrónica
+                <CheckCircle2 size={15} className="text-primary-light" /> Electronic Signature
                 (XAdES-BES)
               </span>
               <span className="flex items-center gap-1.5">
-                <CheckCircle2 size={15} className="text-success-default" /> Revisión Ágil
+                <CheckCircle2 size={15} className="text-success-default" /> Streamlined Review
               </span>
               <span className="flex items-center gap-1.5">
-                <CheckCircle2 size={15} className="text-warning-default" /> Trazabilidad Completa
+                <CheckCircle2 size={15} className="text-warning-default" /> Full Traceability
               </span>
             </div>
           </div>
@@ -338,7 +335,7 @@ export function LandingPage() {
             <div className="relative z-10 w-44 h-56 bg-neutral-50 p-4 rounded-3xl border border-neutral-200 flex items-center justify-center">
               <img
                 src="/logo-gad.png"
-                alt="Escudo de Cañar"
+                alt="Cañar Coat of Arms"
                 className="w-full h-full object-contain"
               />
             </div>
@@ -348,23 +345,21 @@ export function LandingPage() {
               <span className="text-primary-default font-extrabold text-sm leading-none">
                 3,200+
               </span>
-              <span className="text-neutral-500 text-[10px] font-bold mt-0.5">
-                Planos Aprobados
-              </span>
+              <span className="text-neutral-500 text-[10px] font-bold mt-0.5">Approved Plans</span>
             </div>
 
             {/* Tarjeta Flotante 2 (Promedio) */}
             <div className="absolute bottom-6 left-6 z-20 bg-neutral-50 border border-neutral-200 rounded-2xl px-4 py-2.5 flex flex-col items-start min-w-[100px] text-left">
               <span className="text-warning-default font-extrabold text-sm leading-none">48h</span>
               <span className="text-neutral-500 text-[10px] font-bold mt-0.5">
-                Revisión Técnica
+                Technical Review
               </span>
             </div>
 
             {/* Tarjeta Flotante 3 (Satisfacción) */}
             <div className="absolute bottom-12 right-2 z-20 bg-neutral-50 border border-neutral-200 rounded-2xl px-4 py-2.5 flex flex-col items-start min-w-[110px] text-left">
               <span className="text-success-dark font-extrabold text-sm leading-none">250+</span>
-              <span className="text-neutral-500 text-[10px] font-bold mt-0.5">Profesionales</span>
+              <span className="text-neutral-500 text-[10px] font-bold mt-0.5">Professionals</span>
             </div>
           </div>
         </div>
@@ -379,11 +374,11 @@ export function LandingPage() {
               <div className="md:col-span-5 text-left">
                 <h2 className="text-xl font-bold flex items-center gap-2 text-neutral-800">
                   <Search size={18} className="text-primary-default" />
-                  Consulta de Expedientes Técnicos
+                  Technical File Inquiry
                 </h2>
                 <p className="text-xs text-neutral-500 mt-1">
-                  Consulte el estado de las solicitudes patrocinadas en nombre de su cliente
-                  ingresando la cédula del propietario o correo electrónico.
+                  Check the status of applications submitted on behalf of your client by entering
+                  the property owner's ID number or email address.
                 </p>
               </div>
 
@@ -394,7 +389,7 @@ export function LandingPage() {
                       id="tracking-input"
                       type="text"
                       className="w-full pl-4 pr-12 py-3.5 bg-neutral-50 border border-neutral-200 text-neutral-800 placeholder-neutral-400 focus:border-primary-default focus:ring-2 focus:ring-primary-light text-xs rounded-2xl outline-none"
-                      placeholder="Cédula del propietario o correo del expediente"
+                      placeholder="Property owner's ID number or file email"
                       value={search_val}
                       onChange={(e) => {
                         set_search_val(e.target.value);
@@ -434,12 +429,12 @@ export function LandingPage() {
             <HardHat size={28} />
           </div>
           <h2 className="text-3xl font-extrabold text-neutral-900">
-            Registro y Habilitación de Firmas Técnicas
+            Technical Firm Registration and Licensing
           </h2>
           <p className="text-neutral-500 max-w-xl mx-auto mt-2 text-sm leading-relaxed">
-            Si eres Arquitecto o Ingeniero Civil y requieres ingresar expedientes urbanísticos en
-            nombre de tus clientes, solicita tu registro profesional para comenzar a operar de
-            inmediato.
+            If you are an Architect or Civil Engineer and need to submit urban planning applications
+            on behalf of your clients, request your professional registration to start operating
+            right away.
           </p>
         </div>
 
@@ -450,24 +445,24 @@ export function LandingPage() {
           <div className="space-y-3 flex-1">
             <div className="flex items-center gap-2 flex-wrap">
               <h3 className="font-bold text-neutral-800 text-lg">
-                Registro de Profesional Acreditado
+                Accredited Professional Registration
               </h3>
               <span className="px-2.5 py-1 rounded-full text-[10px] uppercase font-bold tracking-wider bg-success-light/20 text-success-dark border border-success-light">
-                Habilitación Inmediata
+                Immediate Licensing
               </span>
             </div>
             <p className="text-neutral-600 text-sm leading-relaxed">
-              Completa tus datos personales, título profesional y número de registro SENESCYT.
-              Podrás iniciar sesión e ingresar expedientes técnicos inmediatamente. Tus credenciales
-              profesionales y título se validarán con la copia de tu cédula al momento de iniciar tu
-              primer trámite.
+              Complete your personal details, professional degree, and SENESCYT registration number.
+              You can sign in and submit technical applications right away. Your professional
+              credentials and degree will be validated against a copy of your ID when you start your
+              first application.
             </p>
             <div className="pt-2">
               <Link
                 to="/auth/signup"
                 className="inline-flex items-center justify-center gap-2 w-full sm:w-auto px-6 py-3 text-xs font-bold rounded-xl bg-primary-default hover:bg-primary-dark text-neutral-50 border-none"
               >
-                Crear Cuenta Profesional <ArrowRight size={14} />
+                Create Professional Account <ArrowRight size={14} />
               </Link>
             </div>
           </div>
@@ -494,11 +489,10 @@ export function LandingPage() {
       <section id="services" className="py-20 max-w-7xl mx-auto px-6">
         <div className="text-center mb-16">
           <h2 className="text-3xl font-extrabold text-neutral-900">
-            Trámites Técnicos Habilitados
+            Available Technical Applications
           </h2>
           <p className="text-neutral-500 mt-2 max-w-lg mx-auto text-sm leading-relaxed">
-            Gestión optimizada y control digital completo sobre las solicitudes técnicas
-            municipales.
+            Optimized management and full digital control over municipal technical applications.
           </p>
         </div>
         <div className="grid md:grid-cols-3 gap-8">
@@ -522,13 +516,13 @@ export function LandingPage() {
         <div className="max-w-7xl mx-auto px-6 text-center space-y-4">
           <img src="/logo-gad.png" alt="GAD Cañar" className="w-11 h-11 object-contain mx-auto" />
           <p className="text-sm font-bold text-neutral-800">
-            GAD Municipal de Cañar — Sistema de Planificación y Trámites Técnicos
+            GAD Municipal de Cañar — Planning and Technical Applications System
           </p>
           <p className="text-xs text-neutral-500 max-w-md mx-auto leading-relaxed">
-            © {new Date().getFullYear()} GAD Cañar. Todos los derechos reservados.
+            © {new Date().getFullYear()} GAD Cañar. All rights reserved.
             <br />
-            Plataforma para profesionales acreditados de la construcción. Soporte de firma digital
-            oficial del Ecuador.
+            Platform for accredited construction professionals. Official Ecuador digital signature
+            support.
           </p>
         </div>
       </footer>
@@ -536,12 +530,12 @@ export function LandingPage() {
       <BaseModal
         is_open={is_modal_open && !!tracking_result}
         OnClose={() => set_is_modal_open(false)}
-        title="Estado de Trámites"
+        title="Application Status"
         size="xl"
       >
         {citizen && (
           <p className="text-xs text-neutral-500 mb-4 -mt-2">
-            Propietario: {citizen.first_name} {citizen.last_name}
+            Property owner: {citizen.first_name} {citizen.last_name}
           </p>
         )}
 
@@ -553,10 +547,10 @@ export function LandingPage() {
               step: 1,
             };
             const steps = [
-              { num: 1, label: 'Ingreso' },
-              { num: 2, label: 'Revisión' },
-              { num: 3, label: 'Pago Tasas' },
-              { num: 4, label: 'Finalizado' },
+              { num: 1, label: 'Submitted' },
+              { num: 2, label: 'Review' },
+              { num: 3, label: 'Fee Payment' },
+              { num: 4, label: 'Completed' },
             ];
 
             return (
@@ -626,7 +620,7 @@ export function LandingPage() {
                 {application.status === 'OBSERVED' && application.observations && (
                   <div className="p-3.5 rounded-xl bg-error-light/20 border border-error-light text-error-dark text-xs">
                     <p className="font-bold flex items-center gap-1.5 mb-1 text-error-dark">
-                      <AlertCircle size={14} /> Observación documental a subsanar:
+                      <AlertCircle size={14} /> Document observation to address:
                     </p>
                     <p>{application.observations}</p>
                   </div>
@@ -635,7 +629,7 @@ export function LandingPage() {
                 {application.status === 'REJECTED' && application.rejection_reason && (
                   <div className="p-3.5 rounded-xl bg-error-light/20 border border-error-light text-error-dark text-xs">
                     <p className="font-bold flex items-center gap-1.5 mb-1 text-error-dark">
-                      <XCircle size={14} /> Motivo del rechazo técnico:
+                      <XCircle size={14} /> Technical rejection reason:
                     </p>
                     <p>{application.rejection_reason}</p>
                   </div>
@@ -644,7 +638,7 @@ export function LandingPage() {
                 {application.status === 'PENDING_PAYMENT' && application.payment && (
                   <div className="p-3.5 rounded-xl bg-warning-light/20 border border-warning-light text-warning-dark text-xs flex justify-between items-center">
                     <div>
-                      <p className="font-bold text-warning-dark">Monto Liquidado a Pagar:</p>
+                      <p className="font-bold text-warning-dark">Amount Due:</p>
                       <p className="text-neutral-500">{application.payment.concept}</p>
                     </div>
                     <span className="text-lg font-black text-warning-default">
@@ -654,9 +648,8 @@ export function LandingPage() {
                 )}
 
                 <div className="text-[10px] text-neutral-400 text-right">
-                  Última actualización:{' '}
-                  {new Date(application.updated_at).toLocaleDateString('es-EC')} a las{' '}
-                  {new Date(application.updated_at).toLocaleTimeString('es-EC', {
+                  Last updated: {new Date(application.updated_at).toLocaleDateString('en-US')} at{' '}
+                  {new Date(application.updated_at).toLocaleTimeString('en-US', {
                     hour: '2-digit',
                     minute: '2-digit',
                   })}
@@ -668,8 +661,8 @@ export function LandingPage() {
 
         <div className="border-t pt-4 mt-4 text-center">
           <p className="text-[11px] text-neutral-400 flex items-center justify-center gap-1">
-            <HelpCircle size={12} /> Para soporte adicional, contacta al departamento de
-            Planificación GAD Cañar.
+            <HelpCircle size={12} /> For additional support, contact the GAD Cañar Planning
+            department.
           </p>
         </div>
       </BaseModal>

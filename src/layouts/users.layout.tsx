@@ -103,7 +103,7 @@ export function UsersLayout() {
               </div>
               <div className="text-left hidden md:block">
                 <p className="text-sm font-semibold text-neutral-50 leading-tight">
-                  {user?.first_name ?? 'Usuario'}
+                  {user?.first_name ?? 'User'}
                 </p>
                 <p className="text-[0.65rem] text-neutral-200">{layout.badge_label}</p>
               </div>
@@ -113,10 +113,10 @@ export function UsersLayout() {
               <div className="absolute right-0 mt-3 w-64 rounded-2xl overflow-hidden origin-top-right bg-neutral-50 border border-neutral-300 z-50 text-left">
                 <div className="p-4 border-b border-neutral-200">
                   <p className="text-neutral-800 font-bold">
-                    {user?.first_name ?? 'Usuario'} {user?.last_name ?? ''}
+                    {user?.first_name ?? 'User'} {user?.last_name ?? ''}
                   </p>
                   <p className="text-xs mt-0.5 truncate font-semibold text-primary-default">
-                    {user?.email ?? 'Sin sesión activa'}
+                    {user?.email ?? 'No active session'}
                   </p>
                   <div className="flex items-center gap-1.5 mt-3 px-2 py-1.5 rounded-lg w-max bg-primary-light/10">
                     <BadgeIcon size={12} className="text-primary-default" />
@@ -131,14 +131,14 @@ export function UsersLayout() {
                     className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-neutral-700 hover:bg-primary-dark hover:text-neutral-50"
                   >
                     <Settings size={16} />
-                    <span className="font-semibold text-sm">Configuración</span>
+                    <span className="font-semibold text-sm">Settings</span>
                   </button>
                   <button
                     onClick={HandleLogout}
                     className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-error-default hover:bg-primary-dark hover:text-neutral-50"
                   >
                     <LogOut size={16} />
-                    <span className="font-semibold text-sm">Cerrar Sesión</span>
+                    <span className="font-semibold text-sm">Sign Out</span>
                   </button>
                 </div>
               </div>
@@ -180,7 +180,7 @@ export function UsersLayout() {
             onClick={HandleLogout}
             className="mt-4 flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-error-default text-neutral-50 font-semibold"
           >
-            <LogOut size={18} /> Cerrar Sesión
+            <LogOut size={18} /> Sign Out
           </button>
         </div>
       )}

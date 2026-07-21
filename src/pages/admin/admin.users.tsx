@@ -134,15 +134,15 @@ const EMPTY_ROLE_FORM: RoleFormState = {
 };
 
 const PERMISSION_MODULE_LABELS: Record<string, string> = {
-  users: 'Usuarios',
-  requests: 'Solicitudes',
-  audit: 'Auditoría',
+  users: 'Users',
+  requests: 'Applications',
+  audit: 'Audit',
 };
 
 const PERMISSION_ACTION_LABELS: Record<string, string> = {
-  read: 'Lectura',
-  write: 'Escritura',
-  review: 'Revisión',
+  read: 'Read',
+  write: 'Write',
+  review: 'Review',
 };
 
 function FormatPermissionLabel(name: string): string {
@@ -152,7 +152,7 @@ function FormatPermissionLabel(name: string): string {
   const module_label = PERMISSION_MODULE_LABELS[module] ?? module;
   const action_label = PERMISSION_ACTION_LABELS[action] ?? action;
 
-  return `${action_label} de ${module_label}`;
+  return `${action_label} ${module_label}`;
 }
 
 function GetErrorMessage(err: unknown, fallback: string) {
@@ -363,7 +363,7 @@ export function AdminUsers() {
     try {
       set_roles(await ListRoles());
     } catch (e) {
-      const message = GetErrorMessage(e, 'No se pudieron cargar los roles');
+      const message = GetErrorMessage(e, 'Could not load roles');
       AddToast({ type: 'error', message });
     } finally {
       set_is_loading_roles(false);
@@ -374,7 +374,7 @@ export function AdminUsers() {
     try {
       set_permissions(await ListPermissions());
     } catch (e) {
-      const message = GetErrorMessage(e, 'No se pudieron cargar los permisos');
+      const message = GetErrorMessage(e, 'Could not load permissions');
       AddToast({ type: 'error', message });
     }
   }, [AddToast]);
@@ -386,7 +386,7 @@ export function AdminUsers() {
       if (role_filter) params.role = role_filter;
       set_users(await ListUsers(params));
     } catch (e) {
-      const message = GetErrorMessage(e, 'No se pudieron cargar los usuarios');
+      const message = GetErrorMessage(e, 'Could not load users');
       set_error(message);
       AddToast({ type: 'error', message });
     } finally {
@@ -489,7 +489,7 @@ export function AdminUsers() {
         permission_ids: breakdown.direct_permission_ids,
       }));
     } catch (e) {
-      const message = GetErrorMessage(e, 'No se pudieron cargar los permisos del usuario');
+      const message = GetErrorMessage(e, 'Could not load user permissions');
       AddToast({ type: 'error', message });
     }
   };
@@ -519,7 +519,7 @@ export function AdminUsers() {
     try {
       const contact = user_form.direction.trim();
       if (contact && contact.length !== 10) {
-        set_error('El contacto debe ser un número de celular de 10 dígitos');
+        set_error('Contact must be a 10-digit mobile number');
         return;
       }
 
@@ -557,7 +557,7 @@ export function AdminUsers() {
         await FetchUsers();
       } else {
         if (!user_form.password) {
-          set_error('La contraseña temporal es obligatoria');
+          set_error('Temporary password is required');
           return;
         }
         const created_user = await CreateInstitutionalUser({
@@ -582,12 +582,10 @@ export function AdminUsers() {
       set_user_form(EMPTY_USER_FORM);
       AddToast({
         type: 'success',
-        message: editing_user
-          ? 'Usuario actualizado correctamente'
-          : 'Usuario creado correctamente',
+        message: editing_user ? 'User updated successfully' : 'User created successfully',
       });
     } catch (err: unknown) {
-      const message = GetErrorMessage(err, 'Error al guardar usuario');
+      const message = GetErrorMessage(err, 'Error saving user');
       set_error(message);
       AddToast({ type: 'error', message });
     } finally {
@@ -622,10 +620,10 @@ export function AdminUsers() {
       set_role_form(EMPTY_ROLE_FORM);
       AddToast({
         type: 'success',
-        message: editing_role ? 'Rol actualizado correctamente' : 'Rol creado correctamente',
+        message: editing_role ? 'Role updated successfully' : 'Role created successfully',
       });
     } catch (err: unknown) {
-      const message = GetErrorMessage(err, 'Error al guardar rol');
+      const message = GetErrorMessage(err, 'Error saving role');
       set_error(message);
       AddToast({ type: 'error', message });
     } finally {
@@ -640,10 +638,10 @@ export function AdminUsers() {
       set_users((prev) => prev.map((entry) => (entry.id === user.id ? updated : entry)));
       AddToast({
         type: 'success',
-        message: user.status === 'ACTIVE' ? 'Usuario desactivado' : 'Usuario activado',
+        message: user.status === 'ACTIVE' ? 'User deactivated' : 'User activated',
       });
     } catch (err: unknown) {
-      const message = GetErrorMessage(err, 'Error al cambiar estado');
+      const message = GetErrorMessage(err, 'Error changing status');
       set_error(message);
       AddToast({ type: 'error', message });
     }
@@ -664,9 +662,9 @@ export function AdminUsers() {
       await FetchRoles();
       set_show_delete_role_modal(false);
       set_role_to_delete(null);
-      AddToast({ type: 'success', message: 'Rol eliminado correctamente' });
+      AddToast({ type: 'success', message: 'Role deleted successfully' });
     } catch (err: unknown) {
-      const message = GetErrorMessage(err, 'Error al eliminar rol');
+      const message = GetErrorMessage(err, 'Error deleting role');
       set_error(message);
       AddToast({ type: 'error', message });
     } finally {
@@ -744,7 +742,7 @@ export function AdminUsers() {
 
   return (
     <div className="animate-fade-in space-y-6">
-      <PageHeader title="Gestión de usuarios y roles" icon={Users} />
+      <PageHeader title="User and Role Management" icon={Users} />
 
       {error && !is_any_modal_open && (
         <AlertBanner message={error} OnDismiss={() => set_error(null)} />
@@ -757,7 +755,7 @@ export function AdminUsers() {
             className={TabButtonClass('users')}
             onClick={() => set_active_tab('users')}
           >
-            Usuarios
+            Users
           </button>
           {can_manage_roles && (
             <button
@@ -773,13 +771,13 @@ export function AdminUsers() {
         {active_tab === 'users' ? (
           can_write_users ? (
             <button onClick={OpenCreateUser} className="btn-primary shrink-0">
-              <Plus size={18} /> Nuevo Usuario
+              <Plus size={18} /> New User
             </button>
           ) : null
         ) : (
           can_manage_roles && (
             <button onClick={OpenCreateRole} className="btn-primary shrink-0">
-              <Plus size={18} /> Nuevo Rol
+              <Plus size={18} /> New Role
             </button>
           )
         )}
@@ -790,7 +788,7 @@ export function AdminUsers() {
           <div className="flex flex-col md:flex-row gap-4 mb-6">
             <SearchInput
               container_class_name="flex-1"
-              placeholder="Buscar por nombre, email, cédula o contacto..."
+              placeholder="Search by name, email, ID, or contact..."
               value={user_search}
               onChange={(e) => set_user_search(e.target.value)}
             />
@@ -799,7 +797,7 @@ export function AdminUsers() {
               onChange={(e) => set_role_filter(e.target.value)}
               className="input-field md:max-w-xs"
             >
-              <option value="">Todos los roles</option>
+              <option value="">All roles</option>
               {assignable_roles.map((role) => (
                 <option key={role.id} value={role.name}>
                   {FormatRoleDisplayName(role.name)}
@@ -812,12 +810,12 @@ export function AdminUsers() {
             <table className="w-full text-sm text-left">
               <thead className="text-xs text-slate-500 uppercase bg-surface-muted border-b border-surface-border">
                 <tr>
-                  <th className="px-6 py-4 font-semibold">Usuario</th>
-                  <th className="px-6 py-4 font-semibold">Rol</th>
-                  <th className="px-6 py-4 font-semibold">Cédula / Contacto</th>
-                  <th className="px-6 py-4 font-semibold">Registro</th>
-                  <th className="px-6 py-4 font-semibold">Estado</th>
-                  <th className="px-6 py-4 font-semibold text-right">Acciones</th>
+                  <th className="px-6 py-4 font-semibold">User</th>
+                  <th className="px-6 py-4 font-semibold">Role</th>
+                  <th className="px-6 py-4 font-semibold">ID / Contact</th>
+                  <th className="px-6 py-4 font-semibold">Registered</th>
+                  <th className="px-6 py-4 font-semibold">Status</th>
+                  <th className="px-6 py-4 font-semibold text-right">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -830,11 +828,7 @@ export function AdminUsers() {
                 ) : filtered_users.length === 0 ? (
                   <tr>
                     <td colSpan={6}>
-                      <EmptyState
-                        icon={Users}
-                        title="No se encontraron usuarios"
-                        className="py-8"
-                      />
+                      <EmptyState icon={Users} title="No users found" className="py-8" />
                     </td>
                   </tr>
                 ) : (
@@ -854,7 +848,7 @@ export function AdminUsers() {
                             </div>
                             <div>
                               <p className="font-semibold text-blue-950">
-                                {user.name || 'Sin nombre'} {user.lastname}
+                                {user.name || 'No name'} {user.lastname}
                               </p>
                               <p className="text-xs text-slate-500">{user.email}</p>
                             </div>
@@ -877,7 +871,7 @@ export function AdminUsers() {
                                 type="button"
                                 role="switch"
                                 aria-checked={is_active}
-                                aria-label={is_active ? 'Usuario activo' : 'Usuario inactivo'}
+                                aria-label={is_active ? 'Active user' : 'Inactive user'}
                                 onClick={() => HandleToggleActive(user)}
                                 className={Cn(
                                   'relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary-default focus:ring-offset-2',
@@ -898,7 +892,7 @@ export function AdminUsers() {
                                 is_active ? 'text-success-dark' : 'text-slate-500'
                               )}
                             >
-                              {is_active ? 'Activo' : 'Inactivo'}
+                              {is_active ? 'Active' : 'Inactive'}
                             </span>
                           </div>
                         </td>
@@ -908,10 +902,10 @@ export function AdminUsers() {
                               onClick={() => OpenEditUser(user)}
                               className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-blue-700 transition-colors"
                             >
-                              <Edit3 size={14} /> Editar
+                              <Edit3 size={14} /> Edit
                             </button>
                           ) : (
-                            <span className="text-xs text-slate-400">Solo lectura</span>
+                            <span className="text-xs text-slate-400">Read only</span>
                           )}
                         </td>
                       </tr>
@@ -928,7 +922,7 @@ export function AdminUsers() {
         <div className="glass-card p-6">
           <SearchInput
             container_class_name="mb-6"
-            placeholder="Buscar rol por nombre o descripción..."
+            placeholder="Search role by name or description..."
             value={role_search}
             onChange={(e) => set_role_search(e.target.value)}
           />
@@ -937,11 +931,11 @@ export function AdminUsers() {
             <table className="w-full text-sm text-left">
               <thead className="text-xs text-slate-500 uppercase bg-surface-muted border-b border-surface-border">
                 <tr>
-                  <th className="px-6 py-4 font-semibold">Rol</th>
-                  <th className="px-6 py-4 font-semibold">Descripción</th>
-                  <th className="px-6 py-4 font-semibold">Permisos</th>
-                  <th className="px-6 py-4 font-semibold">Usuarios</th>
-                  <th className="px-6 py-4 font-semibold text-right">Acciones</th>
+                  <th className="px-6 py-4 font-semibold">Role</th>
+                  <th className="px-6 py-4 font-semibold">Description</th>
+                  <th className="px-6 py-4 font-semibold">Permissions</th>
+                  <th className="px-6 py-4 font-semibold">Users</th>
+                  <th className="px-6 py-4 font-semibold text-right">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -954,7 +948,7 @@ export function AdminUsers() {
                 ) : filtered_roles.length === 0 ? (
                   <tr>
                     <td colSpan={5}>
-                      <EmptyState icon={Shield} title="No hay roles registrados" className="py-8" />
+                      <EmptyState icon={Shield} title="No roles registered" className="py-8" />
                     </td>
                   </tr>
                 ) : (
@@ -970,7 +964,7 @@ export function AdminUsers() {
                       <td className="px-6 py-4">
                         <div className="flex flex-wrap gap-1 max-w-md">
                           {(role.permissions ?? []).length === 0 ? (
-                            <span className="text-xs text-slate-400">Sin permisos</span>
+                            <span className="text-xs text-slate-400">No permissions</span>
                           ) : (
                             role.permissions?.map((entry) => (
                               <span
@@ -990,7 +984,7 @@ export function AdminUsers() {
                             onClick={() => OpenEditRole(role)}
                             className="inline-flex items-center gap-1 px-3 py-2 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50"
                           >
-                            <Edit3 size={14} /> Editar
+                            <Edit3 size={14} /> Edit
                           </button>
                           <button
                             onClick={() => OpenDeleteRole(role)}
@@ -1017,7 +1011,7 @@ export function AdminUsers() {
           set_user_form(EMPTY_USER_FORM);
           set_error(null);
         }}
-        title={editing_user ? 'Editar usuario' : 'Registrar usuario'}
+        title={editing_user ? 'Edit user' : 'Register user'}
         size="md"
         hide_brand_bar
         respect_header
@@ -1030,7 +1024,7 @@ export function AdminUsers() {
         <form onSubmit={HandleSaveUser} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="input-label normal-case">Rol *</label>
+              <label className="input-label normal-case">Role *</label>
               <select
                 required
                 className="input-field"
@@ -1056,7 +1050,7 @@ export function AdminUsers() {
               </select>
             </div>
             <div>
-              <label className="input-label normal-case">Estado</label>
+              <label className="input-label normal-case">Status</label>
               <select
                 className="input-field"
                 value={user_form.status}
@@ -1064,14 +1058,14 @@ export function AdminUsers() {
                   set_user_form({ ...user_form, status: e.target.value as UserStatus })
                 }
               >
-                <option value="ACTIVE">Activo</option>
-                <option value="INACTIVE">Inactivo</option>
+                <option value="ACTIVE">Active</option>
+                <option value="INACTIVE">Inactive</option>
               </select>
             </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="input-label normal-case">Nombres *</label>
+              <label className="input-label normal-case">First name *</label>
               <input
                 required
                 className="input-field"
@@ -1080,7 +1074,7 @@ export function AdminUsers() {
               />
             </div>
             <div>
-              <label className="input-label normal-case">Apellidos *</label>
+              <label className="input-label normal-case">Last name *</label>
               <input
                 required
                 className="input-field"
@@ -1091,7 +1085,7 @@ export function AdminUsers() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="input-label normal-case">Correo *</label>
+              <label className="input-label normal-case">Email *</label>
               <input
                 required
                 type="email"
@@ -1102,12 +1096,12 @@ export function AdminUsers() {
               />
             </div>
             <div>
-              <label className="input-label normal-case">Cédula</label>
+              <label className="input-label normal-case">National ID</label>
               <input
                 className="input-field"
                 inputMode="numeric"
                 maxLength={10}
-                placeholder="10 dígitos"
+                placeholder="10 digits"
                 value={user_form.national_id}
                 onChange={(e) =>
                   set_user_form({
@@ -1117,13 +1111,13 @@ export function AdminUsers() {
                 }
               />
               <p className="text-xs text-slate-500 mt-1">
-                Se valida como cédula ecuatoriana real (dígito verificador).
+                Validated as a real Ecuadorian national ID (check digit).
               </p>
             </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="input-label normal-case">Contacto</label>
+              <label className="input-label normal-case">Contact</label>
               <input
                 className="input-field"
                 type="tel"
@@ -1141,7 +1135,7 @@ export function AdminUsers() {
             </div>
             <div>
               <label className="input-label normal-case">
-                {editing_user ? 'Nueva contraseña (opcional)' : 'Contraseña temporal *'}
+                {editing_user ? 'New password (optional)' : 'Temporary password *'}
               </label>
               <p className="text-xs text-slate-500 mb-1">{PASSWORD_REQUIREMENTS_HINT}</p>
               <input
@@ -1156,14 +1150,14 @@ export function AdminUsers() {
           <div className="space-y-4">
             <div>
               <label className="input-label normal-case">
-                Permisos del rol ({FormatRoleDisplayName(user_form.role)})
+                Role permissions ({FormatRoleDisplayName(user_form.role)})
               </label>
               <p className="text-xs text-slate-500 mb-2">
-                Heredados del rol seleccionado. Para cambiarlos, edita el rol en la pestaña Roles.
+                Inherited from the selected role. To change them, edit the role in the Roles tab.
               </p>
               <div className="max-h-32 overflow-y-auto rounded-xl border border-surface-border bg-surface-muted/30 p-2 space-y-1">
                 {role_permissions_for_form.length === 0 ? (
-                  <p className="text-sm text-slate-500">Este rol no tiene permisos asignados.</p>
+                  <p className="text-sm text-slate-500">This role has no assigned permissions.</p>
                 ) : (
                   role_permissions_for_form.map((permission) => (
                     <label
@@ -1188,10 +1182,10 @@ export function AdminUsers() {
             </div>
 
             <div>
-              <label className="input-label normal-case">Permisos adicionales</label>
+              <label className="input-label normal-case">Additional permissions</label>
               <p className="text-xs text-slate-500 mb-2">
-                Solo para este usuario. No se repiten los que ya trae el rol. Usa un paquete para
-                marcar el conjunto recomendado de una vez.
+                Only for this user. Does not duplicate those already included in the role. Use a
+                preset to mark the recommended set at once.
               </p>
               <div className="flex flex-wrap gap-2 mb-3">
                 {PERMISSION_PRESETS.map((preset) => {
@@ -1210,7 +1204,7 @@ export function AdminUsers() {
                       disabled={disabled}
                       title={
                         disabled
-                          ? 'Ya cubierto por el rol o sin permisos disponibles'
+                          ? 'Already covered by role or no permissions available'
                           : `${preset.description} (${preset.permissions.join(', ')})`
                       }
                       onClick={() => ApplyUserPreset(preset.permissions)}
@@ -1230,7 +1224,7 @@ export function AdminUsers() {
               <div className="max-h-32 overflow-y-auto rounded-xl border border-surface-border p-2 space-y-1">
                 {additional_permissions_for_form.length === 0 ? (
                   <p className="text-sm text-slate-500">
-                    No hay permisos extra disponibles fuera del rol.
+                    No extra permissions available outside the role.
                   </p>
                 ) : (
                   additional_permissions_for_form.map((permission) => (
@@ -1266,10 +1260,10 @@ export function AdminUsers() {
               onClick={() => set_show_user_modal(false)}
               className="btn-secondary"
             >
-              Cancelar
+              Cancel
             </button>
             <button type="submit" disabled={is_saving} className="btn-primary">
-              {is_saving ? 'Guardando...' : editing_user ? 'Guardar' : 'Crear'}
+              {is_saving ? 'Saving...' : editing_user ? 'Save' : 'Create'}
             </button>
           </div>
         </form>
@@ -1283,7 +1277,7 @@ export function AdminUsers() {
           set_role_form(EMPTY_ROLE_FORM);
           set_error(null);
         }}
-        title={editing_role ? 'Editar rol' : 'Nuevo rol'}
+        title={editing_role ? 'Edit role' : 'New role'}
         size="md"
         hide_brand_bar
         respect_header
@@ -1295,7 +1289,7 @@ export function AdminUsers() {
         )}
         <form onSubmit={HandleSaveRole} className="space-y-3">
           <div>
-            <label className="input-label normal-case">Nombre del rol *</label>
+            <label className="input-label normal-case">Role name *</label>
             <input
               required
               className="input-field font-mono text-sm"
@@ -1305,13 +1299,11 @@ export function AdminUsers() {
               onChange={(e) => set_role_form({ ...role_form, name: e.target.value.toUpperCase() })}
             />
             {editing_role && (
-              <p className="text-xs text-slate-500 mt-1">
-                El identificador del rol no se puede cambiar.
-              </p>
+              <p className="text-xs text-slate-500 mt-1">The role identifier cannot be changed.</p>
             )}
           </div>
           <div>
-            <label className="input-label normal-case">Descripción</label>
+            <label className="input-label normal-case">Description</label>
             <input
               className="input-field"
               value={role_form.description}
@@ -1319,10 +1311,10 @@ export function AdminUsers() {
             />
           </div>
           <div>
-            <label className="input-label normal-case">Permisos asignados</label>
+            <label className="input-label normal-case">Assigned permissions</label>
             <p className="text-xs text-slate-500 mb-2">
-              Usa un paquete para marcar el conjunto recomendado; luego ajusta permisos sueltos si
-              hace falta.
+              Use a preset to mark the recommended set; then adjust individual permissions if
+              needed.
             </p>
             <div className="flex flex-wrap gap-2 mb-3">
               {PERMISSION_PRESETS.map((preset) => {
@@ -1352,7 +1344,7 @@ export function AdminUsers() {
             <div className="max-h-36 overflow-y-auto rounded-xl border border-surface-border p-2 space-y-1">
               {permissions.length === 0 ? (
                 <p className="text-sm text-slate-500">
-                  No hay permisos disponibles. Créalos en la pestaña Permisos.
+                  No permissions available. Create them in the Permissions tab.
                 </p>
               ) : (
                 permissions.map((permission) => (
@@ -1387,10 +1379,10 @@ export function AdminUsers() {
               onClick={() => set_show_role_modal(false)}
               className="btn-secondary"
             >
-              Cancelar
+              Cancel
             </button>
             <button type="submit" disabled={is_saving} className="btn-primary">
-              {is_saving ? 'Guardando...' : editing_role ? 'Guardar' : 'Crear'}
+              {is_saving ? 'Saving...' : editing_role ? 'Save' : 'Create'}
             </button>
           </div>
         </form>
@@ -1403,7 +1395,7 @@ export function AdminUsers() {
           set_role_to_delete(null);
           set_error(null);
         }}
-        title="Eliminar rol"
+        title="Delete role"
         size="md"
         hide_brand_bar
       >
@@ -1414,16 +1406,16 @@ export function AdminUsers() {
         )}
         <div className="space-y-4">
           <p className="text-sm text-slate-600">
-            ¿Estás seguro de que deseas eliminar el rol{' '}
+            Are you sure you want to delete the role{' '}
             <span className="font-semibold text-blue-950">
               {role_to_delete ? FormatRoleDisplayName(role_to_delete.name) : ''}
             </span>
-            ? Esta acción no se puede deshacer.
+            ? This action cannot be undone.
           </p>
           {role_to_delete && (role_to_delete._count?.users ?? 0) > 0 && (
             <div className="p-3 rounded-xl bg-amber-50 text-amber-800 text-sm border border-amber-200">
-              Este rol tiene {role_to_delete._count?.users} usuario(s) asignado(s). Debes
-              reasignarlos antes de eliminarlo.
+              This role has {role_to_delete._count?.users} assigned user(s). You must reassign them
+              before deleting it.
             </div>
           )}
           <div className="pt-2 flex justify-end gap-3">
@@ -1436,7 +1428,7 @@ export function AdminUsers() {
               }}
               className="btn-secondary"
             >
-              Cancelar
+              Cancel
             </button>
             <button
               type="button"
@@ -1444,7 +1436,7 @@ export function AdminUsers() {
               disabled={is_saving || (role_to_delete?._count?.users ?? 0) > 0}
               className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-red-600 text-white font-semibold hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              {is_saving ? 'Eliminando...' : 'Eliminar rol'}
+              {is_saving ? 'Deleting...' : 'Delete role'}
             </button>
           </div>
         </div>

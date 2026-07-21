@@ -8,8 +8,8 @@ export function ModulePlaceholder({ title }: { title: string }) {
       <PageHeader title={title} icon={Clock3} />
       <EmptyState
         icon={Clock3}
-        title="Módulo en preparación"
-        description="Su sesión está activa. Las funciones de este portal estarán disponibles próximamente."
+        title="Module in development"
+        description="Your session is active. This portal's features will be available soon."
         className="py-16"
       />
     </div>

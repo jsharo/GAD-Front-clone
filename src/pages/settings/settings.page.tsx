@@ -40,15 +40,15 @@ interface MeProfile {
 type ModalStep = 'email' | 'code';
 
 const TABS: { id: SettingsTab; label: string; icon: typeof User }[] = [
-  { id: 'profile', label: 'Perfil', icon: User },
-  { id: 'secondary-email', label: 'Email secundario', icon: Mail },
+  { id: 'profile', label: 'Profile', icon: User },
+  { id: 'secondary-email', label: 'Secondary email', icon: Mail },
 ];
 
 const STATUS_LABELS: Record<string, string> = {
-  UNVERIFIED: 'Sin verificar',
-  PENDING: 'En revisión',
-  VERIFIED: 'Verificado',
-  REJECTED: 'Rechazado',
+  UNVERIFIED: 'Unverified',
+  PENDING: 'Under review',
+  VERIFIED: 'Verified',
+  REJECTED: 'Rejected',
 };
 
 function ProfileField({ label, value }: { label: string; value?: string | null }) {
@@ -138,7 +138,7 @@ export function SettingsPage() {
         cedula: data.cedula ?? '',
       });
     } catch (err) {
-      set_error(GetApiError(err, 'No se pudo cargar la configuración'));
+      set_error(GetApiError(err, 'Could not load settings'));
     } finally {
       set_is_loading(false);
     }
@@ -164,7 +164,7 @@ export function SettingsPage() {
     set_profile_error(null);
 
     if (!profile_form.name.trim() || !profile_form.lastname.trim()) {
-      set_profile_error('Nombre y apellido son obligatorios.');
+      set_profile_error('First and last name are required.');
       return;
     }
     const cedula_error = CedulaValidationMessage(profile_form.cedula);
@@ -200,10 +200,10 @@ export function SettingsPage() {
           },
         });
       }
-      AddToast({ type: 'success', message: 'Perfil actualizado' });
+      AddToast({ type: 'success', message: 'Profile updated' });
       await LoadProfile();
     } catch (err) {
-      set_profile_error(GetApiError(err, 'No se pudo guardar el perfil'));
+      set_profile_error(GetApiError(err, 'Could not save profile'));
     } finally {
       set_profile_saving(false);
     }
@@ -233,9 +233,9 @@ export function SettingsPage() {
       await users_api.SetRecoveryEmail(recovery_input.trim());
       set_modal_step('code');
       set_digits(Array(CODE_LENGTH).fill(''));
-      AddToast({ type: 'success', message: 'Código enviado al email secundario' });
+      AddToast({ type: 'success', message: 'Code sent to secondary email' });
     } catch (err) {
-      set_modal_error(GetApiError(err, 'No se pudo enviar el código'));
+      set_modal_error(GetApiError(err, 'Could not send code'));
     } finally {
       set_modal_loading(false);
     }
@@ -270,18 +270,18 @@ export function SettingsPage() {
     e.preventDefault();
     const code = digits.join('');
     if (code.length < CODE_LENGTH) {
-      set_modal_error('Ingresa el código de 6 dígitos completo.');
+      set_modal_error('Enter the full 6-digit code.');
       return;
     }
     set_modal_error(null);
     set_modal_loading(true);
     try {
       await users_api.VerifyRecoveryEmail(code);
-      AddToast({ type: 'success', message: 'Email secundario verificado' });
+      AddToast({ type: 'success', message: 'Secondary email verified' });
       CloseModal();
       await LoadProfile();
     } catch (err) {
-      set_modal_error(GetApiError(err, 'Código inválido o expirado'));
+      set_modal_error(GetApiError(err, 'Invalid or expired code'));
     } finally {
       set_modal_loading(false);
     }
@@ -295,11 +295,11 @@ export function SettingsPage() {
     set_remove_loading(true);
     try {
       await users_api.RemoveRecoveryEmail();
-      AddToast({ type: 'success', message: 'Email secundario eliminado' });
+      AddToast({ type: 'success', message: 'Secondary email removed' });
       set_remove_modal_open(false);
       await LoadProfile();
     } catch (err) {
-      AddToast({ type: 'error', message: GetApiError(err, 'No se pudo eliminar') });
+      AddToast({ type: 'error', message: GetApiError(err, 'Could not remove') });
     } finally {
       set_remove_loading(false);
     }
@@ -308,8 +308,8 @@ export function SettingsPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Configuración"
-        description="Consulta tu perfil y gestiona opciones de la cuenta"
+        title="Settings"
+        description="View your profile and manage account options"
         icon={Settings}
       />
 
@@ -321,7 +321,7 @@ export function SettingsPage() {
         <div className="flex flex-col md:flex-row gap-6 md:gap-8">
           <nav
             className="md:w-52 flex-shrink-0 flex md:flex-col gap-1 overflow-x-auto md:overflow-visible"
-            aria-label="Secciones de configuración"
+            aria-label="Settings sections"
           >
             {TABS.map((tab) => {
               const Icon = tab.icon;
@@ -348,21 +348,21 @@ export function SettingsPage() {
             {active_tab === 'profile' && (
               <div className="space-y-5">
                 <div>
-                  <h2 className="font-heading font-bold text-xl text-neutral-900">Perfil</h2>
+                  <h2 className="font-heading font-bold text-xl text-neutral-900">Profile</h2>
                   <p className="mt-1 text-sm text-neutral-500">
                     {can_edit_profile
-                      ? 'Puedes editar nombre, apellido y cédula. El resto es solo consulta.'
-                      : 'Los datos del perfil se envían desde el formulario de habilitación. Podrás editarlos aquí cuando Secretaría apruebe tu cuenta.'}
+                      ? 'You can edit first name, last name, and ID number. The rest is read-only.'
+                      : 'Profile data is submitted through the licensing form. You will be able to edit it here once the Secretary approves your account.'}
                   </p>
                 </div>
 
                 {!can_edit_profile && is_architect && (
                   <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
                     {profile?.professionalStatus === 'PENDING'
-                      ? 'Tu solicitud está en revisión. Mientras tanto el perfil es solo lectura.'
+                      ? 'Your application is under review. The profile is read-only in the meantime.'
                       : profile?.professionalStatus === 'REJECTED'
-                        ? 'Tu solicitud fue rechazada. Corrige y reenvía los datos desde el banner de Inicio.'
-                        : 'Aún no has completado tu perfil profesional. Usa el formulario de Inicio para enviarlo a Secretaría.'}
+                        ? 'Your application was rejected. Correct and resubmit your details from the Home banner.'
+                        : 'You have not completed your professional profile yet. Use the Home form to submit it to the Secretary.'}
                   </div>
                 )}
 
@@ -381,20 +381,20 @@ export function SettingsPage() {
                     {can_edit_profile ? (
                       <>
                         <EditableField
-                          label="Nombres *"
+                          label="First name *"
                           value={profile_form.name}
                           onChange={(name) => set_profile_form((f) => ({ ...f, name }))}
-                          placeholder="Ej. Juan Carlos"
+                          placeholder="e.g. Juan Carlos"
                         />
                         <EditableField
-                          label="Apellidos *"
+                          label="Last name *"
                           value={profile_form.lastname}
                           onChange={(lastname) => set_profile_form((f) => ({ ...f, lastname }))}
-                          placeholder="Ej. Guaman Suscal"
+                          placeholder="e.g. Guaman Suscal"
                         />
                         <div>
                           <EditableField
-                            label="Cédula"
+                            label="ID number"
                             value={profile_form.cedula}
                             onChange={(cedula) =>
                               set_profile_form((f) => ({
@@ -402,26 +402,26 @@ export function SettingsPage() {
                                 cedula: cedula.replace(/\D/g, '').slice(0, 10),
                               }))
                             }
-                            placeholder="10 dígitos"
+                            placeholder="10 digits"
                             maxLength={10}
                             inputMode="numeric"
                           />
                           <p className="mt-1 text-[11px] text-neutral-400">
-                            Se valida como cédula ecuatoriana real (dígito verificador).
+                            Validated as a real Ecuadorian ID number (check digit).
                           </p>
                         </div>
                       </>
                     ) : (
                       <>
-                        <ProfileField label="Nombres" value={profile?.name} />
-                        <ProfileField label="Apellidos" value={profile?.lastname} />
-                        <ProfileField label="Cédula" value={profile?.cedula} />
+                        <ProfileField label="First name" value={profile?.name} />
+                        <ProfileField label="Last name" value={profile?.lastname} />
+                        <ProfileField label="ID number" value={profile?.cedula} />
                       </>
                     )}
-                    <ProfileField label="Email principal" value={profile?.email} />
-                    <ProfileField label="Código SENESCYT" value={profile?.senescytCode} />
+                    <ProfileField label="Primary email" value={profile?.email} />
+                    <ProfileField label="SENESCYT code" value={profile?.senescytCode} />
                     <ProfileField
-                      label="Estado profesional"
+                      label="Professional status"
                       value={
                         profile?.professionalStatus
                           ? (STATUS_LABELS[profile.professionalStatus] ??
@@ -434,8 +434,7 @@ export function SettingsPage() {
                   <div className="pt-2 border-t border-neutral-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                     <div className="flex items-center gap-2 text-xs text-neutral-500">
                       <BadgeCheck size={14} />
-                      Correo principal{' '}
-                      {profile?.emailVerified ? 'verificado' : 'pendiente de verificar'}
+                      Primary email {profile?.emailVerified ? 'verified' : 'pending verification'}
                     </div>
                     {can_edit_profile && (
                       <button
@@ -447,7 +446,7 @@ export function SettingsPage() {
                             : 'bg-primary-default hover:bg-primary-dark'
                         }`}
                       >
-                        {profile_saving ? 'Guardando...' : 'Guardar cambios'}
+                        {profile_saving ? 'Saving...' : 'Save changes'}
                       </button>
                     )}
                   </div>
@@ -455,42 +454,42 @@ export function SettingsPage() {
 
                 <div className="rounded-2xl bg-neutral-50 border border-neutral-200 p-5 shadow-sm space-y-4">
                   <div>
-                    <h3 className="font-bold text-neutral-900">Firma electrónica</h3>
+                    <h3 className="font-bold text-neutral-900">Electronic signature</h3>
                     <p className="mt-1 text-sm text-neutral-500">
-                      Se captura automáticamente cuando subes un PDF firmado en un trámite y la
-                      cédula del certificado coincide con tu perfil.
+                      Captured automatically when you upload a signed PDF in an application and the
+                      certificate ID matches your profile.
                     </p>
                   </div>
                   {profile?.signatureCertFingerprint ? (
                     <div className="grid sm:grid-cols-2 gap-4">
                       <ProfileField
-                        label="Titular del certificado"
+                        label="Certificate holder"
                         value={profile.signatureCertCommonName}
                       />
                       <ProfileField
-                        label="Cédula del certificado"
+                        label="Certificate ID number"
                         value={profile.signatureCertNationalId}
                       />
-                      <ProfileField label="Emisor" value={profile.signatureCertIssuerCn} />
+                      <ProfileField label="Issuer" value={profile.signatureCertIssuerCn} />
                       <ProfileField
-                        label="Capturada"
+                        label="Captured"
                         value={
                           profile.signatureProfileCapturedAt
-                            ? new Date(profile.signatureProfileCapturedAt).toLocaleString('es-EC')
+                            ? new Date(profile.signatureProfileCapturedAt).toLocaleString('en-US')
                             : null
                         }
                       />
                       <div className="sm:col-span-2">
                         <ProfileField
-                          label="Huella del certificado (SHA-256)"
+                          label="Certificate fingerprint (SHA-256)"
                           value={profile.signatureCertFingerprint}
                         />
                       </div>
                     </div>
                   ) : (
                     <p className="text-sm italic text-neutral-400">
-                      Aún no hay firma registrada. Sube un documento PDF firmado electrónicamente en
-                      un trámite para capturarla.
+                      No signature registered yet. Upload an electronically signed PDF document in
+                      an application to capture it.
                     </p>
                   )}
                 </div>
@@ -501,43 +500,43 @@ export function SettingsPage() {
               <div className="space-y-5">
                 <div>
                   <h2 className="font-heading font-bold text-xl text-neutral-900">
-                    Email secundario
+                    Secondary email
                   </h2>
                   <p className="mt-1 text-sm text-neutral-500">
-                    Correo de respaldo opcional para tu cuenta
+                    Optional backup email for your account
                   </p>
                 </div>
 
                 <div className="rounded-2xl border border-secondary-default/40 bg-secondary-default/10 p-4 flex gap-3">
                   <Info size={18} className="text-primary-default flex-shrink-0 mt-0.5" />
                   <div>
-                    <p className="text-sm font-bold text-neutral-800">¿Para qué sirve?</p>
+                    <p className="text-sm font-bold text-neutral-800">What is it for?</p>
                     <p className="mt-1 text-sm text-neutral-600 leading-relaxed">
-                      Correo de respaldo opcional. Al recuperar la contraseña puedes usar el email
-                      principal o este secundario (si está verificado); el código se envía al email
-                      que indiques en ese momento.
+                      Optional backup email. When resetting your password, you can use your primary
+                      email or this secondary one (if verified); the code is sent to whichever
+                      address you provide at that time.
                     </p>
                   </div>
                 </div>
 
                 <div className="rounded-2xl bg-neutral-50 border border-neutral-200 p-5 shadow-sm">
                   <div className="flex items-start justify-between gap-3 mb-5">
-                    <h3 className="font-bold text-neutral-900">Estado actual</h3>
+                    <h3 className="font-bold text-neutral-900">Current status</h3>
                     <span
                       className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold ${
                         is_configured ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-600'
                       }`}
                     >
                       <AlertCircle size={12} />
-                      {is_configured ? 'Configurado' : 'No configurado'}
+                      {is_configured ? 'Configured' : 'Not configured'}
                     </span>
                   </div>
 
                   <div className="space-y-4">
-                    <ProfileField label="Email principal" value={profile?.email} />
+                    <ProfileField label="Primary email" value={profile?.email} />
                     <div>
                       <p className="text-xs font-bold text-neutral-500 tracking-wide mb-1">
-                        Email secundario
+                        Secondary email
                       </p>
                       {is_configured ? (
                         <p className="text-sm font-medium text-neutral-800">
@@ -545,10 +544,10 @@ export function SettingsPage() {
                         </p>
                       ) : profile?.recoveryEmail && !profile.recoveryEmailVerified ? (
                         <p className="text-sm italic text-amber-700">
-                          Pendiente de verificar: {profile.recoveryEmail}
+                          Pending verification: {profile.recoveryEmail}
                         </p>
                       ) : (
-                        <p className="text-sm italic text-neutral-400">No configurado</p>
+                        <p className="text-sm italic text-neutral-400">Not configured</p>
                       )}
                     </div>
                   </div>
@@ -560,7 +559,7 @@ export function SettingsPage() {
                       className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm text-neutral-50 bg-primary-default hover:bg-primary-dark"
                     >
                       <Plus size={16} />
-                      {is_configured || profile?.recoveryEmail ? 'Editar email' : 'Añadir email'}
+                      {is_configured || profile?.recoveryEmail ? 'Edit email' : 'Add email'}
                     </button>
                     {(is_configured || profile?.recoveryEmail) && (
                       <button
@@ -569,7 +568,7 @@ export function SettingsPage() {
                         className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-bold text-sm text-error-default border border-neutral-200 hover:bg-neutral-100"
                       >
                         <Trash2 size={16} />
-                        Eliminar
+                        Remove
                       </button>
                     )}
                   </div>
@@ -583,7 +582,7 @@ export function SettingsPage() {
       <BaseModal
         is_open={modal_open}
         OnClose={CloseModal}
-        title={modal_step === 'email' ? 'Añadir email secundario' : 'Verificar código'}
+        title={modal_step === 'email' ? 'Add secondary email' : 'Verify code'}
         hide_brand_bar
       >
         {modal_error && (
@@ -598,7 +597,7 @@ export function SettingsPage() {
           <form onSubmit={SubmitRecoveryEmail} className="space-y-4">
             <div>
               <label className="block text-xs font-bold text-neutral-500 tracking-widest mb-2">
-                Email secundario
+                Secondary email
               </label>
               <div className="relative">
                 <Mail
@@ -610,12 +609,12 @@ export function SettingsPage() {
                   required
                   value={recovery_input}
                   onChange={(e) => set_recovery_input(e.target.value)}
-                  placeholder="backup@correo.ec"
+                  placeholder="backup@email.com"
                   className="w-full pl-10 pr-4 py-3 rounded-xl text-sm outline-none bg-neutral-50 border border-neutral-300 focus:border-primary-default focus:ring-2 focus:ring-primary-light"
                 />
               </div>
               <p className="mt-2 text-xs text-neutral-500">
-                Debe ser distinto a tu email principal. Te enviaremos un código de verificación.
+                Must be different from your primary email. We will send you a verification code.
               </p>
             </div>
             <button
@@ -625,13 +624,13 @@ export function SettingsPage() {
                 modal_loading ? 'bg-neutral-400/50' : 'bg-primary-default hover:bg-primary-dark'
               }`}
             >
-              {modal_loading ? 'Enviando...' : 'Enviar código'}
+              {modal_loading ? 'Sending...' : 'Send code'}
             </button>
           </form>
         ) : (
           <form onSubmit={SubmitVerifyCode} className="space-y-4">
             <p className="text-sm text-neutral-600">
-              Ingresa el código de 6 dígitos enviado a{' '}
+              Enter the 6-digit code sent to{' '}
               <span className="font-medium text-neutral-800">{recovery_input}</span>.
             </p>
             <div className="flex gap-2 justify-between">
@@ -660,7 +659,7 @@ export function SettingsPage() {
                 modal_loading ? 'bg-neutral-400/50' : 'bg-primary-default hover:bg-primary-dark'
               }`}
             >
-              {modal_loading ? 'Verificando...' : 'Verificar'}
+              {modal_loading ? 'Verifying...' : 'Verify'}
             </button>
           </form>
         )}
@@ -668,16 +667,16 @@ export function SettingsPage() {
 
       <ConfirmModal
         is_open={remove_modal_open}
-        title="Eliminar email secundario"
+        title="Remove secondary email"
         message={
           <p>
-            ¿Estás seguro de que deseas eliminar el email secundario{' '}
+            Are you sure you want to remove the secondary email{' '}
             <span className="font-semibold text-slate-800">{profile?.recoveryEmail ?? ''}</span>?
-            Podrás volver a configurarlo más adelante.
+            You can set it up again later.
           </p>
         }
-        confirm_label="Eliminar"
-        cancel_label="Cancelar"
+        confirm_label="Remove"
+        cancel_label="Cancel"
         danger
         is_loading={remove_loading}
         OnConfirm={() => void ConfirmRemoveSecondaryEmail()}

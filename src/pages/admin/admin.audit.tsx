@@ -34,11 +34,11 @@ function MapLogsToAuditEvents(logs: AuditLog[]): AuditEvent[] {
     id: log.id,
     action: `${log.action} — ${log.entity}${log.entity_id ? ` #${log.entity_id.slice(0, 8)}` : ''}`,
     performer_name: log.user_name,
-    role: 'Auditoría GAD',
+    role: 'GAD Audit',
     timestamp: log.timestamp,
     block_index: logs.length - index,
     block_hash: log.hash,
-    previous_hash: log.previous_hash || 'BLOQUE GÉNESIS (NULL)',
+    previous_hash: log.previous_hash || 'GENESIS BLOCK (NULL)',
     metadata: ParseDetail(log.detail),
   }));
 }
@@ -98,7 +98,7 @@ export function AdminAudit() {
       console.error('Error verifying integrity:', e);
       set_integrity_status({
         is_intact: false,
-        breakage_info: 'Error de conexión con el verificador notarial.',
+        breakage_info: 'Connection error with the notarial verifier.',
       });
     } finally {
       set_is_verifying(false);
@@ -110,8 +110,8 @@ export function AdminAudit() {
   return (
     <div className="animate-fade-in space-y-8">
       <PageHeader
-        title="Integridad de Auditoría"
-        description="Verificación criptográfica de la cadena Hash Chain de auditoría."
+        title="Audit Integrity"
+        description="Cryptographic verification of the audit Hash Chain."
         icon={Activity}
         actions={
           <button
@@ -133,7 +133,7 @@ export function AdminAudit() {
             ) : (
               <ShieldCheck size={20} />
             )}
-            <span>{is_verifying ? 'Escaneando Bloques...' : 'Verificar Integridad'}</span>
+            <span>{is_verifying ? 'Scanning Blocks...' : 'Verify Integrity'}</span>
 
             <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent group-hover:animate-[shimmer_1.5s_infinite]" />
           </button>
@@ -145,8 +145,8 @@ export function AdminAudit() {
           variant={integrity_status.is_intact ? 'success' : 'error'}
           message={
             integrity_status.is_intact
-              ? `${integrity_status.breakage_info} ${integrity_status.checked_logs ?? 0} registros verificados y ${integrity_status.legacy_logs ?? 0} registros legacy.`
-              : `¡Alerta de Integridad Comprometida! ${integrity_status.breakage_info ?? ''}`
+              ? `${integrity_status.breakage_info} ${integrity_status.checked_logs ?? 0} records verified and ${integrity_status.legacy_logs ?? 0} legacy records.`
+              : `Integrity Compromised Alert! ${integrity_status.breakage_info ?? ''}`
           }
         />
       )}

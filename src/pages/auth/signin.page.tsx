@@ -125,7 +125,7 @@ export function SignInPage() {
                 to="/auth/forgot-password"
                 className="text-xs font-semibold text-primary-default hover:text-primary-dark"
               >
-                ¿Olvidaste tu contraseña?
+                Forgot your password?
               </Link>
             </div>
           </div>
@@ -140,7 +140,7 @@ export function SignInPage() {
             }`}
           >
             {is_loading ? (
-              <span>Cargando...</span>
+              <span>Loading...</span>
             ) : (
               <>
                 <span>Sign In</span>

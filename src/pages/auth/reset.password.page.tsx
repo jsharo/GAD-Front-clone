@@ -15,7 +15,7 @@ const CODE_LENGTH = 6;
 const ResetSchema = z
   .object({
     password: StrongPasswordSchema,
-    confirmPassword: z.string().min(8, 'Mínimo 8 caracteres'),
+    confirmPassword: z.string().min(8, 'Minimum 8 characters'),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: 'Passwords do not match',
@@ -82,7 +82,7 @@ export function ResetPasswordPage() {
   const OnSubmit = async (data: ResetForm) => {
     const code = digits.join('');
     if (code.length < CODE_LENGTH) {
-      set_error('Ingresa el código de 6 dígitos completo.');
+      set_error('Enter the full 6-digit code.');
       return;
     }
     set_error(null);
@@ -91,7 +91,7 @@ export function ResetPasswordPage() {
       await auth_api.ResetPassword(email, code, data.password);
       navigate('/auth/signin', { replace: true });
     } catch (err) {
-      set_error(GetApiError(err, 'No se pudo restablecer la contraseña'));
+      set_error(GetApiError(err, 'Could not reset password'));
     } finally {
       set_is_loading(false);
     }
@@ -101,10 +101,10 @@ export function ResetPasswordPage() {
     <div className="flex-1 flex items-center justify-center px-8 py-16 bg-neutral-100 overflow-y-auto">
       <div className="w-full max-w-xs my-auto">
         <h1 className="font-heading font-black text-neutral-900 mb-2 text-[1.9rem] tracking-[-0.02em]">
-          Nueva contraseña
+          New password
         </h1>
         <p className="mb-8 text-sm text-neutral-500">
-          Código enviado para <span className="font-medium text-neutral-700">{email}</span>
+          Code sent to <span className="font-medium text-neutral-700">{email}</span>
         </p>
 
         {error && (
@@ -114,7 +114,7 @@ export function ResetPasswordPage() {
         <form onSubmit={handleSubmit(OnSubmit)} className="space-y-4">
           <div>
             <label className="block text-xs font-bold text-neutral-500 tracking-widest mb-4">
-              Código de verificación
+              Verification code
             </label>
             <div className="flex gap-2 justify-between">
               {digits.map((digit, i) => (
@@ -139,7 +139,7 @@ export function ResetPasswordPage() {
 
           <div>
             <label className="block text-xs font-bold text-neutral-500 tracking-widest mb-2">
-              Nueva contraseña
+              New password
             </label>
             <p className="text-[0.7rem] text-neutral-500 mb-2">{PASSWORD_REQUIREMENTS_HINT}</p>
             <div className="relative">
@@ -167,7 +167,7 @@ export function ResetPasswordPage() {
 
           <div>
             <label className="block text-xs font-bold text-neutral-500 tracking-widest mb-2">
-              Confirmar contraseña
+              Confirm password
             </label>
             <div className="relative">
               <input
@@ -199,7 +199,7 @@ export function ResetPasswordPage() {
               is_loading ? 'bg-neutral-400/50' : 'bg-primary-default hover:bg-primary-dark'
             }`}
           >
-            {is_loading ? 'Guardando...' : 'Restablecer contraseña'}
+            {is_loading ? 'Saving...' : 'Reset password'}
           </button>
         </form>
 
@@ -208,7 +208,7 @@ export function ResetPasswordPage() {
             to="/auth/forgot-password"
             className="text-sm font-semibold text-neutral-600 hover:text-primary-dark"
           >
-            Solicitar otro código
+            Request another code
           </Link>
         </div>
       </div>

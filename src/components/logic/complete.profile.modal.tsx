@@ -41,7 +41,7 @@ export function CompleteProfileModal({ OnSuccess, OnClose, allow_close = true }:
       !form.national_id.trim() ||
       !form.senescyt_code.trim()
     ) {
-      set_local_error('Completa nombres, apellidos, cédula y el código SENESCYT.');
+      set_local_error('Please complete first name, last name, national ID, and SENESCYT code.');
       return;
     }
 
@@ -54,7 +54,7 @@ export function CompleteProfileModal({ OnSuccess, OnClose, allow_close = true }:
     const senescyt_code = NormalizeSenescytTitleCode(form.senescyt_code);
     if (!IsValidSenescytTitleCode(senescyt_code)) {
       set_local_error(
-        `El código del título no es válido. Debe seguir el formato ${SENESCYT_TITLE_CODE_EXAMPLE} (nivel + campo + carrera).`
+        `The title code is not valid. It must follow the format ${SENESCYT_TITLE_CODE_EXAMPLE} (level + field + career).`
       );
       return;
     }
@@ -78,7 +78,7 @@ export function CompleteProfileModal({ OnSuccess, OnClose, allow_close = true }:
     <BaseModal
       is_open
       OnClose={HandleClose}
-      title="Completa tu perfil profesional"
+      title="Complete your professional profile"
       size="md"
       hide_brand_bar
     >
@@ -86,8 +86,9 @@ export function CompleteProfileModal({ OnSuccess, OnClose, allow_close = true }:
         <div className="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
           <HardHat size={18} className="mt-0.5 flex-shrink-0" />
           <p>
-            Ingresa tus datos, cédula y código SENESCYT. La Secretaría los verificará y habilitará
-            tu cuenta para tramitar. La cédula también se usa para validar tus firmas electrónicas.
+            Enter your details, national ID, and SENESCYT code. The Secretariat will verify them and
+            enable your account to process applications. Your national ID is also used to validate
+            your electronic signatures.
           </p>
         </div>
 
@@ -101,41 +102,43 @@ export function CompleteProfileModal({ OnSuccess, OnClose, allow_close = true }:
         <form onSubmit={HandleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="input-label">Nombres *</label>
+              <label className="input-label">First name(s) *</label>
               <input
                 required
                 type="text"
                 className="input-field"
-                placeholder="Ej. Juan Carlos"
+                placeholder="e.g. Juan Carlos"
                 value={form.first_name}
                 onChange={(e) => set_form({ ...form, first_name: e.target.value })}
               />
-              <p className="mt-1 text-[11px] text-neutral-400">Puedes escribir uno o dos nombres</p>
+              <p className="mt-1 text-[11px] text-neutral-400">
+                You can enter one or two first names
+              </p>
             </div>
             <div>
-              <label className="input-label">Apellidos *</label>
+              <label className="input-label">Last name(s) *</label>
               <input
                 required
                 type="text"
                 className="input-field"
-                placeholder="Ej. Guaman Suscal"
+                placeholder="e.g. Guaman Suscal"
                 value={form.last_name}
                 onChange={(e) => set_form({ ...form, last_name: e.target.value })}
               />
               <p className="mt-1 text-[11px] text-neutral-400">
-                Puedes escribir uno o dos apellidos
+                You can enter one or two last names
               </p>
             </div>
           </div>
 
           <div>
-            <label className="input-label">Cédula *</label>
+            <label className="input-label">National ID *</label>
             <input
               required
               type="text"
               inputMode="numeric"
               className="input-field font-mono tracking-wide"
-              placeholder="10 dígitos"
+              placeholder="10 digits"
               maxLength={10}
               value={form.national_id}
               onChange={(e) =>
@@ -146,17 +149,17 @@ export function CompleteProfileModal({ OnSuccess, OnClose, allow_close = true }:
               }
             />
             <p className="mt-1 text-[11px] text-neutral-400">
-              Debe ser una cédula ecuatoriana válida (dígito verificador).
+              Must be a valid Ecuadorian national ID (verification digit).
             </p>
           </div>
 
           <div>
-            <label className="input-label">Código SENESCYT del título *</label>
+            <label className="input-label">SENESCYT title code *</label>
             <input
               required
               type="text"
               className="input-field font-mono uppercase tracking-wide"
-              placeholder={`Ej. ${SENESCYT_TITLE_CODE_EXAMPLE}`}
+              placeholder={`e.g. ${SENESCYT_TITLE_CODE_EXAMPLE}`}
               maxLength={9}
               value={form.senescyt_code}
               onChange={(e) =>
@@ -176,7 +179,7 @@ export function CompleteProfileModal({ OnSuccess, OnClose, allow_close = true }:
                 is_loading ? 'opacity-50' : ''
               }`}
             >
-              {is_loading ? 'Enviando...' : 'Enviar a Secretaría'}
+              {is_loading ? 'Submitting...' : 'Submit to Secretariat'}
             </button>
           </div>
         </form>

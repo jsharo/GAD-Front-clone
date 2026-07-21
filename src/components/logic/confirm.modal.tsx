@@ -17,8 +17,8 @@ export function ConfirmModal({
   is_open,
   title,
   message,
-  confirm_label = 'Confirmar',
-  cancel_label = 'Cancelar',
+  confirm_label = 'Confirm',
+  cancel_label = 'Cancel',
   is_loading = false,
   danger = false,
   OnConfirm,
@@ -47,7 +47,7 @@ export function ConfirmModal({
                 : 'bg-primary-default text-neutral-50 hover:bg-primary-dark'
             }`}
           >
-            {is_loading ? 'Procesando...' : confirm_label}
+            {is_loading ? 'Processing...' : confirm_label}
           </button>
         </div>
       </div>

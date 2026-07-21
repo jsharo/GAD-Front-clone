@@ -7,7 +7,7 @@ interface ImageLightboxProps {
   OnClose: () => void;
 }
 
-export function ImageLightbox({ src, alt = 'Vista ampliada', OnClose }: ImageLightboxProps) {
+export function ImageLightbox({ src, alt = 'Enlarged view', OnClose }: ImageLightboxProps) {
   useEffect(() => {
     const Handler = (e: KeyboardEvent) => {
       if (e.key === 'Escape') OnClose();
@@ -25,7 +25,7 @@ export function ImageLightbox({ src, alt = 'Vista ampliada', OnClose }: ImageLig
         type="button"
         className="absolute right-4 top-4 rounded-full bg-black/30 p-2 text-white"
         onClick={OnClose}
-        aria-label="Cerrar"
+        aria-label="Close"
       >
         <X size={22} />
       </button>

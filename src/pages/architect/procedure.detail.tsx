@@ -90,7 +90,7 @@ export function ProcedureDetail() {
       const { data } = await applications_api.GetById(id);
       set_application(data as ApplicationDetail);
     } catch (e: any) {
-      set_error(e.response?.data?.message || 'Error al cargar la solicitud');
+      set_error(e.response?.data?.message || 'Error loading the application');
     } finally {
       set_is_loading(false);
     }
@@ -108,7 +108,7 @@ export function ProcedureDetail() {
       await attachments_api.Upload(id, file);
       await LoadApplication();
     } catch (e: any) {
-      set_error(e.response?.data?.message || 'Error al subir archivo');
+      set_error(e.response?.data?.message || 'Error uploading file');
     } finally {
       set_is_uploading_file(false);
     }
@@ -122,7 +122,7 @@ export function ProcedureDetail() {
       await applications_api.Send(id);
       await LoadApplication();
     } catch (e: any) {
-      set_error(e.response?.data?.message || 'Error al enviar');
+      set_error(e.response?.data?.message || 'Error submitting');
     } finally {
       set_is_submitting(false);
     }
@@ -134,7 +134,7 @@ export function ProcedureDetail() {
     return (
       <EmptyState
         icon={AlertCircle}
-        title={error || 'Solicitud no encontrada'}
+        title={error || 'Application not found'}
         className="glass-card max-w-xl mx-auto"
       />
     );
@@ -148,8 +148,8 @@ export function ProcedureDetail() {
     <div className="animate-fade-in space-y-6 max-w-3xl mx-auto">
       <DetailPageHeader
         back_to="/architect/procedures"
-        title={GetProcedureTypeLabel(application.procedure_type) || 'Trámite de Ordenamiento'}
-        subtitle={`ID: #${id?.slice(0, 8)}... • Creado ${FormatDateTime(application.created_at)}`}
+        title={GetProcedureTypeLabel(application.procedure_type) || 'Planning Procedure'}
+        subtitle={`ID: #${id?.slice(0, 8)}... • Created ${FormatDateTime(application.created_at)}`}
         status={application.status}
         content_class_name="text-left"
       />
@@ -159,14 +159,14 @@ export function ProcedureDetail() {
         <AlertBanner message={error} OnDismiss={() => set_error(null)} className="text-left" />
       )}
 
-      <DetailSection title="Progreso del Trámite" className="pb-12 mb-6">
+      <DetailSection title="Procedure Progress" className="pb-12 mb-6">
         <ApplicationTimeline current_status={application.status} />
       </DetailSection>
 
       {/* Observaciones de Secretaría (cuando devuelven) */}
       {application.status === 'OBSERVED' && application.secretary_decision?.observations && (
         <DetailSection
-          title="Trámite Observado por Secretaría"
+          title="Procedure Observed by Secretariat"
           icon={AlertCircle}
           className="border-amber-500/30 text-left"
         >
@@ -174,8 +174,8 @@ export function ProcedureDetail() {
             {application.secretary_decision.observations}
           </p>
           <p className="text-xs text-slate-500 mt-3">
-            Por favor, revisa las observaciones, corrige la información o sube los documentos
-            faltantes.
+            Please review the observations, correct the information, or upload the missing
+            documents.
           </p>
         </DetailSection>
       )}
@@ -185,7 +185,7 @@ export function ProcedureDetail() {
         application.status === 'APPROVED') &&
         application.payments?.length > 0 && (
           <DetailSection
-            title="Información de Pago"
+            title="Payment Information"
             icon={DollarSign}
             className={Cn(
               'text-left',
@@ -201,24 +201,23 @@ export function ProcedureDetail() {
                     : 'border border-warning-light bg-warning-light/20 text-warning-dark'
                 )}
               >
-                {is_payment_paid ? '✅ Pago Recibido' : '⏳ Pendiente de Pago'}
+                {is_payment_paid ? '✅ Payment Received' : '⏳ Payment Pending'}
               </span>
             </div>
             <InfoGrid
               items={[
                 {
-                  label: 'Monto a pagar',
+                  label: 'Amount due',
                   value: `$${Number(payment?.amount ?? 0).toFixed(2)}`,
                 },
-                { label: 'Concepto', value: payment?.concept },
+                { label: 'Concept', value: payment?.concept },
               ]}
             />
             {(payment?.status === 'PENDING' || payment?.status === 'PENDIENTE') && (
               <div className="mt-4 rounded-xl border border-primary-light/30 bg-primary-light/10 p-3">
                 <p className="text-xs text-blue-800">
-                  El propietario debe acercarse a las ventanillas de recaudación del GAD Municipal
-                  con el número de trámite <strong>#{id?.slice(0, 8).toUpperCase()}</strong> para
-                  cancelar el valor correspondiente.
+                  The owner must visit the GAD Municipal revenue windows with procedure number{' '}
+                  <strong>#{id?.slice(0, 8).toUpperCase()}</strong> to pay the corresponding amount.
                 </p>
               </div>
             )}
@@ -227,43 +226,43 @@ export function ProcedureDetail() {
 
       {is_rejected && (
         <DetailSection
-          title="Solicitud Rechazada"
+          title="Application Rejected"
           icon={XCircle}
           className="border-red-500/30 text-left"
         >
           <p className="text-blue-800 text-sm">
-            {application.rejection_reason || application.observations || 'Sin motivo especificado.'}
+            {application.rejection_reason || application.observations || 'No reason specified.'}
           </p>
         </DetailSection>
       )}
 
       {/* Datos del Propietario */}
       {application.citizen && (
-        <DetailSection title="Propietario del Predio (Cliente)" icon={User} className="text-left">
+        <DetailSection title="Property Owner (Client)" icon={User} className="text-left">
           <InfoGrid
             items={[
               {
-                label: 'Nombre',
+                label: 'Name',
                 value: `${application.citizen.first_name} ${application.citizen.last_name}`,
               },
-              { label: 'Identificación (Cédula/RUC)', value: application.citizen.national_id },
-              { label: 'Correo Electrónico', value: application.citizen.email },
-              { label: 'Teléfono', value: application.citizen.phone },
+              { label: 'Identification (National ID/RUC)', value: application.citizen.national_id },
+              { label: 'Email', value: application.citizen.email },
+              { label: 'Phone', value: application.citizen.phone },
             ]}
           />
         </DetailSection>
       )}
 
-      <DetailSection title="Datos del Predio" icon={MapPin} className="text-left">
+      <DetailSection title="Property Details" icon={MapPin} className="text-left">
         <InfoGrid
           items={[
-            { label: 'Dirección', value: application.property?.address },
-            { label: 'Ubicación', value: application.property?.location },
+            { label: 'Address', value: application.property?.address },
+            { label: 'Location', value: application.property?.location },
             {
-              label: 'Área',
+              label: 'Area',
               value: application.property?.area ? `${application.property.area} m²` : undefined,
             },
-            { label: 'Tipo', value: application.procedure_type },
+            { label: 'Type', value: application.procedure_type },
           ]}
         />
         {application.property?.description && (
@@ -274,7 +273,7 @@ export function ProcedureDetail() {
       </DetailSection>
 
       {application.technician && (
-        <DetailSection title="Técnico Asignado" icon={User} className="text-left">
+        <DetailSection title="Assigned Technician" icon={User} className="text-left">
           <p className="text-blue-955 font-medium">
             {application.technician.first_name} {application.technician.last_name}
           </p>
@@ -283,7 +282,7 @@ export function ProcedureDetail() {
       )}
 
       {application.schedule && (
-        <DetailSection title="Inspección Programada" icon={Calendar} className="text-left">
+        <DetailSection title="Scheduled Inspection" icon={Calendar} className="text-left">
           <p className="text-blue-955 font-medium">{FormatDateTime(application.schedule.date)}</p>
           {application.schedule.notes && (
             <p className="text-blue-800 text-sm mt-1">{application.schedule.notes}</p>
@@ -294,7 +293,7 @@ export function ProcedureDetail() {
               application.schedule.is_confirmed ? 'badge-approved' : 'badge-review'
             )}
           >
-            {application.schedule.is_confirmed ? 'Confirmada' : 'Pendiente de confirmación'}
+            {application.schedule.is_confirmed ? 'Confirmed' : 'Pending confirmation'}
           </span>
         </DetailSection>
       )}
@@ -303,14 +302,14 @@ export function ProcedureDetail() {
 
       {/* Acción: Enviar a revisión */}
       {is_draft && (
-        <DetailSection title="Enviar a Revisión" className="border-primary/30 text-left">
+        <DetailSection title="Submit for Review" className="border-primary/30 text-left">
           <p className="text-slate-500 text-sm mb-4">
-            Al enviar, confirmas que los datos y anexos proporcionados son correctos, y la solicitud
-            será asignada automáticamente a la Secretaría del GAD para revisión documental.
+            By submitting, you confirm that the data and attachments provided are correct, and the
+            application will be automatically assigned to the GAD Secretariat for document review.
           </p>
           {(application.attachments?.length ?? 0) === 0 && (
             <p className="text-yellow-400 text-sm mb-3 flex items-center gap-2">
-              <AlertCircle size={14} /> Debes adjuntar al menos un documento.
+              <AlertCircle size={14} /> You must attach at least one document.
             </p>
           )}
           <button
@@ -320,10 +319,10 @@ export function ProcedureDetail() {
             className="btn-primary w-full"
           >
             {is_submitting ? (
-              <span>Enviando...</span>
+              <span>Submitting...</span>
             ) : (
               <>
-                <Send size={18} /> Enviar a Revisión
+                <Send size={18} /> Submit for Review
               </>
             )}
           </button>

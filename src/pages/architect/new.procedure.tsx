@@ -35,66 +35,66 @@ const PROCEDURES = [
   {
     value: 'BUILDING_LINE' as ProcedureType,
     label: PROCEDURE_TYPE_LABELS.BUILDING_LINE,
-    desc: 'Certificado que establece el lindero frontal de un predio respecto a la vía pública.',
+    desc: 'Certificate that establishes the front boundary of a property in relation to the public road.',
     icon: <Factory size={28} />,
     color: '#D97706',
     docs: [
-      'Título de propiedad',
-      'Cédula del propietario',
-      'Ficha catastral',
-      'Plano de ubicación',
-      'Copia de Cédula del Profesional',
+      'Property title',
+      'Owner national ID',
+      'Cadastral record',
+      'Location plan',
+      'Copy of Professional National ID',
     ],
   },
   {
     value: 'PLAN_APPROVAL' as ProcedureType,
     label: PROCEDURE_TYPE_LABELS.PLAN_APPROVAL,
-    desc: 'Revisión y aprobación técnica de planos arquitectónicos y estructurales.',
+    desc: 'Technical review and approval of architectural and structural plans.',
     icon: <Layers size={28} />,
     color: '#2563EB',
     docs: [
-      'Título de propiedad',
-      'Planos arquitectónicos',
-      'Planos estructurales',
-      'Memoria de cálculo',
-      'Cédula del propietario',
-      'Copia de Cédula del Profesional',
+      'Property title',
+      'Architectural plans',
+      'Structural plans',
+      'Calculation report',
+      'Owner national ID',
+      'Copy of Professional National ID',
     ],
   },
   {
     value: 'CONSTRUCTION_PERMIT' as ProcedureType,
     label: PROCEDURE_TYPE_LABELS.CONSTRUCTION_PERMIT,
-    desc: 'Autorización municipal para ejecutar obras de construcción, ampliación o remodelación.',
+    desc: 'Municipal authorization to carry out construction, expansion, or remodeling work.',
     icon: <HardHat size={28} />,
     color: '#2E8B57',
     docs: [
-      'Título de propiedad',
-      'Planos aprobados',
-      'Contrato con profesional',
-      'Cédula del propietario',
-      'Pago de impuesto predial',
-      'Copia de Cédula del Profesional',
+      'Property title',
+      'Approved plans',
+      'Contract with professional',
+      'Owner national ID',
+      'Property tax payment',
+      'Copy of Professional National ID',
     ],
   },
 ];
 
 const step2Schema = z.object({
   procedure_type: z.enum(['BUILDING_LINE', 'PLAN_APPROVAL', 'CONSTRUCTION_PERMIT'], {
-    required_error: 'Selecciona el tipo de trámite',
+    required_error: 'Select the procedure type',
   }),
-  location: z.enum(['URBAN', 'RURAL'], { required_error: 'Selecciona la ubicación' }),
-  address: z.string().min(5, 'Ingresa la dirección del predio'),
+  location: z.enum(['URBAN', 'RURAL'], { required_error: 'Select the location' }),
+  address: z.string().min(5, 'Enter the property address'),
   area: z.coerce.number().optional(),
   description: z.string().optional(),
 });
 type Step2Form = z.infer<typeof step2Schema>;
 
 const STEPS = [
-  { num: 1, label: 'Propietario', icon: User },
-  { num: 2, label: 'Tipo de Trámite', icon: FileText },
-  { num: 3, label: 'Datos del Predio', icon: MapPin },
-  { num: 4, label: 'Documentos', icon: Upload },
-  { num: 5, label: 'Confirmación', icon: CheckCircle2 },
+  { num: 1, label: 'Owner', icon: User },
+  { num: 2, label: 'Procedure Type', icon: FileText },
+  { num: 3, label: 'Property Details', icon: MapPin },
+  { num: 4, label: 'Documents', icon: Upload },
+  { num: 5, label: 'Confirmation', icon: CheckCircle2 },
 ];
 
 const PROCEDURE_THEME: Record<
@@ -166,7 +166,7 @@ export function NewProcedure() {
   // ── PASO 1: Buscar propietario por cédula ──
   const SearchCitizen = async () => {
     if (!national_id_search || national_id_search.length !== 10) {
-      set_error('La cédula debe tener 10 dígitos');
+      set_error('National ID must have 10 digits');
       return;
     }
     const cedula_error = CedulaValidationMessage(national_id_search);
@@ -196,7 +196,7 @@ export function NewProcedure() {
 
   const OnStep1Next = () => {
     if (!citizen_national_id) {
-      set_error('Ingresa la cédula del propietario del predio');
+      set_error("Enter the property owner's national ID");
       return;
     }
     set_error(null);
@@ -206,7 +206,7 @@ export function NewProcedure() {
   // ── PASO 2: Selección de tipo de trámite ──
   const OnStep2Next = () => {
     if (!selected_procedure) {
-      set_error('Selecciona el tipo de trámite para continuar');
+      set_error('Select the procedure type to continue');
       return;
     }
     set_error(null);
@@ -232,7 +232,7 @@ export function NewProcedure() {
       set_application_id(res.data?.id || res.id);
       set_step(4);
     } catch (e: any) {
-      set_error(e.response?.data?.message || 'Error al crear la solicitud');
+      set_error(e.response?.data?.message || 'Error creating the application');
     } finally {
       set_is_loading(false);
     }
@@ -243,11 +243,11 @@ export function NewProcedure() {
     const file_list = Array.from(e.target.files ?? []);
     const valid = file_list.filter((f) => {
       if (!['application/pdf', 'image/jpeg', 'image/png'].includes(f.type)) {
-        set_error(`"${f.name}" no es un tipo válido (PDF, JPG, PNG)`);
+        set_error(`"${f.name}" is not a valid type (PDF, JPG, PNG)`);
         return false;
       }
       if (f.size > 10 * 1024 * 1024) {
-        set_error(`"${f.name}" supera el límite de 10 MB`);
+        set_error(`"${f.name}" exceeds the 10 MB limit`);
         return false;
       }
       return true;
@@ -268,7 +268,7 @@ export function NewProcedure() {
       }
       set_step(5);
     } catch (e: any) {
-      set_error(e.response?.data?.message || 'Error al subir archivos');
+      set_error(e.response?.data?.message || 'Error uploading files');
     } finally {
       set_is_loading(false);
     }
@@ -283,7 +283,7 @@ export function NewProcedure() {
       await applications_api.Send(application_id);
       navigate(`/architect/procedures/${application_id}`);
     } catch (e: any) {
-      set_error(e.response?.data?.message || 'Error al enviar la solicitud');
+      set_error(e.response?.data?.message || 'Error submitting the application');
     } finally {
       set_is_loading(false);
     }
@@ -296,8 +296,8 @@ export function NewProcedure() {
   return (
     <div className="max-w-2xl mx-auto space-y-6">
       <PageHeader
-        title="Nuevo Trámite"
-        description="Inicia un trámite en nombre del ciudadano propietario del predio"
+        title="New Procedure"
+        description="Start a procedure on behalf of the property owner"
       />
 
       {/* Stepper */}
@@ -343,16 +343,16 @@ export function NewProcedure() {
             <div>
               <h2 className="font-heading font-semibold text-blue-955 mb-1 flex items-center gap-2">
                 <User size={18} className="text-secondary-dark" />
-                Datos del propietario del predio
+                Property owner details
               </h2>
               <p className="text-slate-500 text-sm">
-                Ingresa la cédula del ciudadano propietario. Si no tiene cuenta en el sistema, se le
-                creará automáticamente.
+                Enter the property owner's national ID. If they do not have an account in the
+                system, one will be created automatically.
               </p>
             </div>
 
             <div>
-              <label className="input-label">Cédula del Propietario *</label>
+              <label className="input-label">Owner National ID *</label>
               <div className="flex gap-2">
                 <input
                   type="text"
@@ -374,7 +374,7 @@ export function NewProcedure() {
                   className="flex items-center gap-2 rounded-xl bg-secondary-default px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
                 >
                   {is_searching ? <span>...</span> : <Search size={16} />}
-                  Buscar
+                  Search
                 </button>
               </div>
             </div>
@@ -399,10 +399,10 @@ export function NewProcedure() {
                         {citizen_found.first_name} {citizen_found.last_name}
                       </p>
                       <p className="text-sm text-slate-500">
-                        CI: {citizen_found.national_id} • {citizen_found.email}
+                        ID: {citizen_found.national_id} • {citizen_found.email}
                       </p>
                       <p className="text-xs text-green-600 font-semibold mt-0.5">
-                        ✅ Ciudadano registrado en el sistema
+                        ✅ Citizen registered in the system
                       </p>
                     </div>
                   </div>
@@ -412,10 +412,10 @@ export function NewProcedure() {
                       <User size={18} className="text-primary-default" />
                     </div>
                     <div>
-                      <p className="font-bold text-blue-955">Cédula: {citizen_national_id}</p>
-                      <p className="text-sm text-slate-500">Ciudadano no registrado aún</p>
+                      <p className="font-bold text-blue-955">National ID: {citizen_national_id}</p>
+                      <p className="text-sm text-slate-500">Citizen not yet registered</p>
                       <p className="text-xs text-blue-600 font-semibold mt-0.5">
-                        ℹ️ Se creará una cuenta básica al registrar el trámite
+                        ℹ️ A basic account will be created when registering the procedure
                       </p>
                     </div>
                   </div>
@@ -431,7 +431,7 @@ export function NewProcedure() {
             id="step1-next"
             className="btn-primary w-full bg-secondary-default hover:bg-primary-dark disabled:opacity-50"
           >
-            <span>Continuar</span>
+            <span>Continue</span>
             <ArrowRight size={18} />
           </button>
         </div>
@@ -442,10 +442,10 @@ export function NewProcedure() {
         <div className="space-y-4">
           <div className="glass-card p-5">
             <h2 className="font-heading font-semibold text-blue-955 mb-1">
-              Selecciona el tipo de trámite
+              Select the procedure type
             </h2>
             <p className="text-slate-500 text-sm mb-5">
-              El GAD Municipal ofrece tres procesos de ordenamiento territorial
+              The Municipal GAD offers three territorial planning processes
             </p>
 
             <div className="space-y-3">
@@ -491,7 +491,7 @@ export function NewProcedure() {
 
           <div className="flex gap-3">
             <button type="button" onClick={() => set_step(1)} className="btn-secondary flex-1">
-              <ArrowLeft size={18} /> Atrás
+              <ArrowLeft size={18} /> Back
             </button>
             <button
               type="button"
@@ -500,7 +500,7 @@ export function NewProcedure() {
               id="step2-next"
               className="btn-primary flex-1 bg-secondary-default hover:bg-primary-dark disabled:opacity-50"
             >
-              <span>Continuar</span>
+              <span>Continue</span>
               <ArrowRight size={18} />
             </button>
           </div>
@@ -522,7 +522,7 @@ export function NewProcedure() {
               <div>
                 <p className="font-bold text-blue-955 text-sm">{procedure_info.label}</p>
                 <p className="text-slate-500 text-xs">
-                  Para: CI {citizen_national_id}{' '}
+                  For: ID {citizen_national_id}{' '}
                   {citizen_found ? `— ${citizen_found.first_name} ${citizen_found.last_name}` : ''}
                 </p>
               </div>
@@ -531,7 +531,7 @@ export function NewProcedure() {
 
           <div className="glass-card p-6 space-y-5">
             <div>
-              <label className="input-label">Ubicación del Predio *</label>
+              <label className="input-label">Property Location *</label>
               <div className="grid grid-cols-2 gap-3">
                 {(['URBAN', 'RURAL'] as const).map((u) => (
                   <label
@@ -554,7 +554,7 @@ export function NewProcedure() {
                         watch('location') === u ? 'text-blue-700' : 'text-blue-800'
                       )}
                     >
-                      {u === 'URBAN' ? '🏙️ Urbano' : '🌾 Rural'}
+                      {u === 'URBAN' ? '🏙️ Urban' : '🌾 Rural'}
                     </span>
                   </label>
                 ))}
@@ -562,12 +562,12 @@ export function NewProcedure() {
             </div>
 
             <div>
-              <label className="input-label">Dirección del Predio *</label>
+              <label className="input-label">Property Address *</label>
               <input
                 {...register('address')}
                 id="property-address"
                 className="input-field"
-                placeholder="Av. Los Cerezos y Calle 5, sector norte"
+                placeholder="Los Cerezos Ave. and 5th St., north sector"
               />
               {errors.address && (
                 <p className="input-error">
@@ -579,7 +579,7 @@ export function NewProcedure() {
 
             <div>
               <label className="input-label">
-                Área del Predio (m²) <span className="text-slate-400 normal-case">— opcional</span>
+                Property Area (m²) <span className="text-slate-400 normal-case">— optional</span>
               </label>
               <input
                 {...register('area')}
@@ -593,21 +593,22 @@ export function NewProcedure() {
 
             <div>
               <label className="input-label">
-                Descripción adicional <span className="text-slate-400 normal-case">— opcional</span>
+                Additional description{' '}
+                <span className="text-slate-400 normal-case">— optional</span>
               </label>
               <textarea
                 {...register('description')}
                 id="property-description"
                 className="input-field resize-none"
                 rows={3}
-                placeholder="Información adicional sobre el predio o el trámite..."
+                placeholder="Additional information about the property or procedure..."
               />
             </div>
           </div>
 
           <div className="flex gap-3">
             <button type="button" onClick={() => set_step(2)} className="btn-secondary flex-1">
-              <ArrowLeft size={18} /> Atrás
+              <ArrowLeft size={18} /> Back
             </button>
             <button
               type="submit"
@@ -616,10 +617,10 @@ export function NewProcedure() {
               className="btn-primary flex-1 bg-secondary-default hover:bg-primary-dark disabled:opacity-50"
             >
               {is_loading ? (
-                <span>Guardando...</span>
+                <span>Saving...</span>
               ) : (
                 <>
-                  <span>Siguiente</span>
+                  <span>Next</span>
                   <ArrowRight size={18} />
                 </>
               )}
@@ -634,10 +635,10 @@ export function NewProcedure() {
           <div className="glass-card p-6 space-y-5">
             <div>
               <h2 className="font-heading font-semibold text-blue-955 mb-1">
-                Adjunta los documentos requeridos
+                Attach required documents
               </h2>
               <p className="text-slate-500 text-sm">
-                Escaneados en PDF o fotos JPG/PNG. Máximo 10 MB por archivo.
+                Scanned as PDF or JPG/PNG photos. Maximum 10 MB per file.
               </p>
             </div>
 
@@ -655,7 +656,7 @@ export function NewProcedure() {
                     procedure_theme?.accent_text
                   )}
                 >
-                  📋 Documentos para {procedure_info.label}
+                  📋 Documents for {procedure_info.label}
                 </p>
                 <ul className="space-y-1">
                   {procedure_info.docs.map((doc) => (
@@ -690,9 +691,9 @@ export function NewProcedure() {
                 className="mx-auto mb-3 text-slate-400 group-hover:text-secondary-dark"
               />
               <p className="font-medium text-slate-600 group-hover:text-secondary-dark">
-                Haz clic o arrastra archivos aquí
+                Click or drag files here
               </p>
-              <p className="text-slate-400 text-sm mt-1">PDF, JPG, PNG — máximo 10 MB</p>
+              <p className="text-slate-400 text-sm mt-1">PDF, JPG, PNG — maximum 10 MB</p>
             </label>
 
             {files.length > 0 && (
@@ -725,7 +726,7 @@ export function NewProcedure() {
 
           <div className="flex gap-3">
             <button type="button" onClick={() => set_step(3)} className="btn-secondary flex-1">
-              <ArrowLeft size={18} /> Atrás
+              <ArrowLeft size={18} /> Back
             </button>
             <button
               type="button"
@@ -735,10 +736,10 @@ export function NewProcedure() {
               className="btn-primary flex-1 bg-secondary-default hover:bg-primary-dark disabled:opacity-50"
             >
               {is_loading ? (
-                <span>Subiendo...</span>
+                <span>Uploading...</span>
               ) : (
                 <>
-                  <Upload size={18} /> Subir y continuar
+                  <Upload size={18} /> Upload and continue
                 </>
               )}
             </button>
@@ -753,12 +754,10 @@ export function NewProcedure() {
             <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full border-2 border-secondary-default bg-secondary-light/20">
               <CheckCircle2 size={32} className="text-secondary-dark" />
             </div>
-            <h2 className="font-heading font-bold text-blue-955 text-xl mb-2">
-              ¡Todo listo para enviar!
-            </h2>
+            <h2 className="font-heading font-bold text-blue-955 text-xl mb-2">Ready to submit!</h2>
             <p className="text-slate-500 text-sm max-w-sm mx-auto">
-              Al confirmar, la solicitud será enviada a la Secretaría del GAD para verificación
-              documental.
+              Upon confirmation, the application will be sent to the GAD Secretariat for document
+              verification.
             </p>
           </div>
 
@@ -770,9 +769,9 @@ export function NewProcedure() {
                 <p className="font-bold text-blue-955 text-sm">
                   {citizen_found
                     ? `${citizen_found.first_name} ${citizen_found.last_name}`
-                    : `Propietario CI: ${citizen_national_id}`}
+                    : `Owner ID: ${citizen_national_id}`}
                 </p>
-                <p className="text-slate-400 text-xs">Ciudadano propietario del predio</p>
+                <p className="text-slate-400 text-xs">Property owner citizen</p>
               </div>
             </div>
             {procedure_info && (
@@ -788,41 +787,41 @@ export function NewProcedure() {
                 </div>
                 <div className="text-left">
                   <p className="font-bold text-blue-955 text-sm">{procedure_info.label}</p>
-                  <p className="text-slate-400 text-xs">Tipo de trámite</p>
+                  <p className="text-slate-400 text-xs">Procedure type</p>
                 </div>
               </div>
             )}
             <div className="h-px bg-slate-200" />
             <div className="flex items-center gap-2 text-green-600 font-medium text-sm">
-              <CheckCircle2 size={14} /> Datos del predio registrados
+              <CheckCircle2 size={14} /> Property details registered
             </div>
             <div className="flex items-center gap-2 text-green-600 font-medium text-sm">
-              <CheckCircle2 size={14} /> {files.length} documento(s) adjuntado(s)
+              <CheckCircle2 size={14} /> {files.length} document(s) attached
             </div>
           </div>
 
           {/* Flujo */}
           <div className="rounded-xl border border-secondary-light bg-secondary-light/10 p-4">
             <p className="mb-3 text-left text-xs font-bold uppercase tracking-wider text-secondary-dark">
-              Flujo de revisión
+              Review workflow
             </p>
             <div className="flex items-center gap-2 flex-wrap">
               {[
                 {
-                  label: 'Secretaría',
-                  desc: 'Verifica docs',
+                  label: 'Secretariat',
+                  desc: 'Verifies docs',
                   circle_class: 'bg-secondary-default',
                   text_class: 'text-secondary-dark',
                 },
                 {
-                  label: 'Técnico',
-                  desc: 'Evalúa predio',
+                  label: 'Technician',
+                  desc: 'Evaluates property',
                   circle_class: 'bg-success-default',
                   text_class: 'text-success-dark',
                 },
                 {
-                  label: 'Resultado',
-                  desc: 'Notifica al ciudadano',
+                  label: 'Result',
+                  desc: 'Notifies citizen',
                   circle_class: 'bg-primary-default',
                   text_class: 'text-primary-default',
                 },
@@ -851,13 +850,13 @@ export function NewProcedure() {
           </div>
 
           <p className="text-xs text-slate-400 leading-relaxed border-t border-slate-200 pt-4">
-            Al enviar, confirmas que los datos son verídicos y actúas como representante técnico del
-            ciudadano para este trámite.
+            By submitting, you confirm that the information is truthful and that you are acting as
+            the citizen's technical representative for this procedure.
           </p>
 
           <div className="flex gap-3">
             <button type="button" onClick={() => set_step(4)} className="btn-secondary flex-1">
-              <ArrowLeft size={18} /> Atrás
+              <ArrowLeft size={18} /> Back
             </button>
             <button
               type="button"
@@ -867,10 +866,10 @@ export function NewProcedure() {
               className="btn-primary flex-1 bg-secondary-default hover:bg-primary-dark disabled:opacity-50"
             >
               {is_loading ? (
-                <span>Enviando...</span>
+                <span>Submitting...</span>
               ) : (
                 <>
-                  <FileText size={18} /> Confirmar y Enviar
+                  <FileText size={18} /> Confirm and Submit
                 </>
               )}
             </button>

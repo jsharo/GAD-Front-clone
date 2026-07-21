@@ -64,13 +64,13 @@ function CompleteProfileBanner({
           <div>
             <h2 className="font-heading font-bold text-blue-955 text-lg">
               {is_rejected
-                ? 'Solicitud rechazada por Secretaría'
-                : 'Completa tu perfil profesional'}
+                ? 'Request rejected by Secretariat'
+                : 'Complete your professional profile'}
             </h2>
             <p className="text-slate-600 mt-1 text-sm leading-relaxed">
               {is_rejected
-                ? 'El código o los datos no pudieron verificarse (código incorrecto o título no encontrado). Corrige la información y vuelve a enviarlos.'
-                : 'Para poder crear trámites debes enviar tus nombres, apellidos, cédula y código SENESCYT a Secretaría.'}
+                ? 'The code or data could not be verified (incorrect code or title not found). Correct the information and resubmit it.'
+                : 'To create procedures you must submit your first name, last name, national ID, and SENESCYT code to the Secretariat.'}
             </p>
           </div>
         </div>
@@ -79,7 +79,7 @@ function CompleteProfileBanner({
           onClick={OnOpen}
           className="btn-primary flex-shrink-0 self-start sm:self-center"
         >
-          {is_rejected ? 'Corregir y reenviar' : 'Completar perfil'}
+          {is_rejected ? 'Correct and resubmit' : 'Complete profile'}
         </button>
       </div>
     </div>
@@ -95,19 +95,19 @@ function PendingEnablementBanner() {
         </div>
         <div>
           <h2 className="font-heading font-bold text-blue-955 text-lg">
-            Cuenta pendiente de habilitación
+            Account pending activation
           </h2>
           <p className="text-slate-600 mt-1 text-sm leading-relaxed">
-            Tu registro fue recibido correctamente. La Secretaría del GAD Municipal de Cañar
-            validará tu título profesional y número de registro SENESCYT antes de que puedas iniciar
-            trámites. Este proceso toma entre 1 y 2 días laborables.
+            Your registration was received successfully. The GAD Municipal de Cañar Secretariat will
+            validate your professional degree and SENESCYT registration number before you can start
+            procedures. This process takes 1 to 2 business days.
           </p>
           <div className="flex flex-wrap gap-3 mt-4">
             <div className="flex items-center gap-2 rounded-full border border-warning-light bg-warning-light/20 px-3 py-1.5 text-xs font-semibold text-warning-dark">
-              <AlertCircle size={12} /> Revisión en proceso
+              <AlertCircle size={12} /> Review in progress
             </div>
             <p className="text-slate-500 text-xs self-center">
-              Contacto: secretaria@gad-canar.gob.ec
+              Contact: secretaria@gad-canar.gob.ec
             </p>
           </div>
         </div>
@@ -174,14 +174,14 @@ export function ArchitectDashboard() {
 
   const stats = [
     {
-      label: 'Total Trámites',
+      label: 'Total Procedures',
       value: applications.length,
       icon: FileText,
       icon_class: 'text-primary-default',
       icon_wrapper_class: 'bg-primary-light/10',
     },
     {
-      label: 'En Proceso',
+      label: 'In Progress',
       value: applications.filter((s) => !['APPROVED', 'REJECTED', 'DRAFT'].includes(s.status))
         .length,
       icon: Clock,
@@ -189,14 +189,14 @@ export function ArchitectDashboard() {
       icon_wrapper_class: 'bg-warning-light/20',
     },
     {
-      label: 'Aprobados',
+      label: 'Approved',
       value: applications.filter((s) => s.status === 'APPROVED').length,
       icon: CheckCircle2,
       icon_class: 'text-success-dark',
       icon_wrapper_class: 'bg-success-light/20',
     },
     {
-      label: 'Rechazados',
+      label: 'Rejected',
       value: applications.filter((s) => s.status === 'REJECTED').length,
       icon: XCircle,
       icon_class: 'text-error-dark',
@@ -221,19 +221,19 @@ export function ArchitectDashboard() {
       {!is_enabled && is_pending_review && <PendingEnablementBanner />}
 
       <PageHeader
-        title={`Bienvenido, ${user?.first_name || 'Arquitecto'}`}
+        title={`Welcome, ${user?.first_name || 'Architect'}`}
         description={
           is_enabled
-            ? 'Gestiona los trámites de tus clientes desde aquí.'
+            ? "Manage your clients' procedures from here."
             : is_pending_review
-              ? 'Tu solicitud de habilitación está en revisión por Secretaría.'
-              : 'Completa tu perfil profesional para solicitar la habilitación.'
+              ? 'Your activation request is under review by the Secretariat.'
+              : 'Complete your professional profile to request activation.'
         }
         actions={
           is_enabled ? (
             <Link to="/architect/procedures/new" className="btn-primary">
               <PlusCircle size={18} />
-              <span className="hidden sm:inline">Nuevo Trámite</span>
+              <span className="hidden sm:inline">New Procedure</span>
             </Link>
           ) : undefined
         }
@@ -254,22 +254,22 @@ export function ArchitectDashboard() {
 
       {/* Información profesional */}
       {(user?.registration_number || user?.first_name) && (
-        <DetailSection title="Mi perfil profesional" icon={HardHat}>
+        <DetailSection title="My professional profile" icon={HardHat}>
           <InfoGrid
             columns={3}
             items={[
               {
-                label: 'Nombre',
+                label: 'Name',
                 value: `${user?.first_name ?? ''} ${user?.last_name ?? ''}`.trim() || '—',
               },
-              { label: 'Código SENESCYT', value: user?.registration_number || '—' },
+              { label: 'SENESCYT Code', value: user?.registration_number || '—' },
               {
-                label: 'Estado',
+                label: 'Status',
                 value: is_enabled
-                  ? 'Habilitado por el GAD'
+                  ? 'Activated by GAD'
                   : is_pending_review
-                    ? 'Pendiente de habilitación'
-                    : 'Perfil incompleto',
+                    ? 'Pending activation'
+                    : 'Incomplete profile',
               },
             ]}
           />
@@ -278,13 +278,13 @@ export function ArchitectDashboard() {
 
       <PanelCard
         variant="glass"
-        title="Trámites Recientes"
+        title="Recent Procedures"
         actions={
           <Link
             to="/architect/procedures"
             className="text-sm flex items-center gap-1 font-bold text-primary-default hover:text-primary-dark"
           >
-            Ver todos <ArrowRight size={14} />
+            View all <ArrowRight size={14} />
           </Link>
         }
       >
@@ -293,13 +293,13 @@ export function ArchitectDashboard() {
         ) : applications.length === 0 ? (
           <EmptyState
             icon={TrendingUp}
-            title="Sin trámites aún"
-            description="Inicia el primer trámite para un ciudadano"
+            title="No procedures yet"
+            description="Start the first procedure for a citizen"
             action={
               is_enabled ? (
                 <Link to="/architect/procedures/new" className="btn-primary inline-flex">
                   <PlusCircle size={16} />
-                  Nuevo Trámite
+                  New Procedure
                 </Link>
               ) : undefined
             }
@@ -319,7 +319,7 @@ export function ArchitectDashboard() {
                     </div>
                     <div>
                       <p className="text-blue-955 font-bold text-sm">
-                        {application.procedure_type || 'Trámite'}
+                        {application.procedure_type || 'Procedure'}
                       </p>
                       <div className="flex items-center gap-2 mt-0.5">
                         <User size={11} className="text-slate-400" />

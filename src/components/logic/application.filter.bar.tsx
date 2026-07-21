@@ -77,13 +77,13 @@ export function ApplicationFilterBar({
       <div className="flex items-center gap-2 text-slate-800 font-bold text-sm">
         <SlidersHorizontal size={16} className="text-blue-600" />
 
-        <span>Buscador y Filtros de Solicitudes</span>
+        <span>Application Search & Filters</span>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-4 items-end">
         <div className="lg:col-span-3 space-y-1 text-left">
           <label className="text-[10px] tracking-wider uppercase font-bold text-blue-600">
-            Buscar
+            Search
           </label>
 
           <div className="relative">
@@ -91,7 +91,7 @@ export function ApplicationFilterBar({
               type="text"
               value={search}
               onChange={(e) => set_search(e.target.value)}
-              placeholder="Cédula, N° trámite, dirección..."
+              placeholder="National ID, application no., address..."
               className="input-field py-2 px-9 text-xs rounded-xl"
             />
 
@@ -102,7 +102,7 @@ export function ApplicationFilterBar({
         {show_procedure_filter && (
           <div className="lg:col-span-2 space-y-1 text-left">
             <label className="text-[10px] tracking-wider uppercase font-bold text-blue-600">
-              Trámite
+              Procedure
             </label>
 
             <select
@@ -110,7 +110,7 @@ export function ApplicationFilterBar({
               onChange={(e) => set_procedure_type(e.target.value)}
               className="input-field py-2 text-xs rounded-xl cursor-pointer bg-white"
             >
-              <option value="">Todos los trámites</option>
+              <option value="">All procedures</option>
 
               {procedure_types.map((t) => (
                 <option key={t.value} value={t.value}>
@@ -125,7 +125,7 @@ export function ApplicationFilterBar({
           className={`space-y-1 text-left ${show_procedure_filter ? 'lg:col-span-2' : 'lg:col-span-3'}`}
         >
           <label className="text-[10px] tracking-wider uppercase font-bold text-blue-600">
-            Estado
+            Status
           </label>
 
           <select
@@ -145,7 +145,7 @@ export function ApplicationFilterBar({
           <>
             <div className="lg:col-span-2 space-y-1 text-left">
               <label className="text-[10px] tracking-wider uppercase font-bold text-blue-600 flex items-center gap-1">
-                <Calendar size={10} /> Desde
+                <Calendar size={10} /> From
               </label>
 
               <input
@@ -158,7 +158,7 @@ export function ApplicationFilterBar({
 
             <div className="lg:col-span-2 space-y-1 text-left">
               <label className="text-[10px] tracking-wider uppercase font-bold text-blue-600 flex items-center gap-1">
-                <Calendar size={10} /> Hasta
+                <Calendar size={10} /> To
               </label>
 
               <input
@@ -176,11 +176,11 @@ export function ApplicationFilterBar({
             type="button"
             onClick={HandleClear}
             className="btn-secondary w-full py-2 px-3 rounded-xl flex items-center justify-center gap-1.5 hover:bg-slate-50 transition-all font-semibold text-xs active:scale-95 cursor-pointer"
-            title="Limpiar Filtros"
+            title="Clear filters"
           >
             <RefreshCcw size={12} />
 
-            <span className="lg:hidden">Limpiar</span>
+            <span className="lg:hidden">Clear</span>
           </button>
         </div>
       </div>

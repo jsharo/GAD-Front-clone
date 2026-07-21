@@ -2,23 +2,23 @@
 import { Cn } from '@/lib/utils';
 
 const STEPS = [
-  { key: 'ENTRY', statuses: ['DRAFT'], label: 'Ingresada', icon: FileText },
+  { key: 'ENTRY', statuses: ['DRAFT'], label: 'Submitted', icon: FileText },
   {
     key: 'SECRETARY',
     statuses: ['PENDING_SECRETARY', 'OBSERVED'],
-    label: 'Secretaría',
+    label: 'Secretariat',
     icon: FileCheck2,
   },
   {
     key: 'TECHNICIAN',
     statuses: ['PENDING_TECHNICIAN', 'UNDER_REVIEW', 'INSPECTION'],
-    label: 'Técnico',
+    label: 'Technician',
     icon: MapPin,
   },
   {
     key: 'END',
     statuses: ['APPROVED', 'REJECTED', 'PENDING_PAYMENT', 'PAID'],
-    label: 'Resultado',
+    label: 'Outcome',
     icon: CheckCircle2,
   },
 ];

@@ -75,28 +75,28 @@ export function TechnicianInbox() {
   };
 
   const FILTERS = [
-    { key: 'ALL', label: `Todas (${applications.length})` },
-    { key: 'UNDER_REVIEW', label: `Revisión (${counts.under_review})` },
-    { key: 'INSPECTION', label: `Inspección (${counts.inspection})` },
-    { key: 'APPROVED', label: `Aprobadas (${counts.approved})` },
-    { key: 'REJECTED', label: `Negadas (${counts.rejected})` },
+    { key: 'ALL', label: `All (${applications.length})` },
+    { key: 'UNDER_REVIEW', label: `Review (${counts.under_review})` },
+    { key: 'INSPECTION', label: `Inspection (${counts.inspection})` },
+    { key: 'APPROVED', label: `Approved (${counts.approved})` },
+    { key: 'REJECTED', label: `Denied (${counts.rejected})` },
   ];
 
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Bandeja de Trabajo"
+        title="Work Inbox"
         description={
           user?.zone
-            ? `Solicitudes asignadas de la zona ${user.zone === 'URBAN' ? 'Urbana' : 'Rural'}`
-            : 'Solicitudes asignadas para revisión técnica'
+            ? `Assigned applications from the ${user.zone === 'URBAN' ? 'Urban' : 'Rural'} zone`
+            : 'Applications assigned for technical review'
         }
         actions={<ZoneBadge zone={user?.zone} />}
       />
 
       <KpiGrid>
         <StatCard
-          label="En Revisión"
+          label="Under Review"
           value={counts.under_review}
           icon={Clock}
           icon_class_name="text-warning-dark"
@@ -104,7 +104,7 @@ export function TechnicianInbox() {
           is_loading={is_loading}
         />
         <StatCard
-          label="En Inspección"
+          label="Under Inspection"
           value={counts.inspection}
           icon={MapPin}
           icon_class_name="text-primary-default"
@@ -112,7 +112,7 @@ export function TechnicianInbox() {
           is_loading={is_loading}
         />
         <StatCard
-          label="Aprobadas"
+          label="Approved"
           value={counts.approved}
           icon={CheckCircle2}
           icon_class_name="text-success-dark"
@@ -120,7 +120,7 @@ export function TechnicianInbox() {
           is_loading={is_loading}
         />
         <StatCard
-          label="Negadas"
+          label="Denied"
           value={counts.rejected}
           icon={XCircle}
           icon_class_name="text-error-dark"
@@ -154,10 +154,10 @@ export function TechnicianInbox() {
         ) : filtered_applications.length === 0 ? (
           <EmptyState
             icon={Inbox}
-            title="Sin solicitudes en esta categoría"
+            title="No applications in this category"
             description={
               user?.zone
-                ? `Solo se muestran solicitudes de zona ${user.zone === 'URBAN' ? 'Urbana' : 'Rural'}`
+                ? `Only ${user.zone === 'URBAN' ? 'Urban' : 'Rural'} zone applications are shown`
                 : undefined
             }
           />
@@ -178,7 +178,7 @@ export function TechnicianInbox() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
                     <p className="text-blue-955 font-medium text-sm">
-                      {app.procedure_type || 'Trámite'}
+                      {app.procedure_type || 'Procedure'}
                     </p>
                     <StatusBadge status={app.status} />
                     {/* Zone badge of each application */}

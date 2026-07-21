@@ -73,8 +73,8 @@ export function MyProcedures() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Mis Trámites"
-        description="Todos los trámites que has gestionado para tus clientes"
+        title="My Procedures"
+        description="All procedures you have managed for your clients"
       />
 
       <ApplicationFilterBar
@@ -88,15 +88,15 @@ export function MyProcedures() {
         ) : filtered_applications.length === 0 ? (
           <EmptyState
             icon={FileText}
-            title="Sin trámites encontrados"
+            title="No procedures found"
             description={
               filters.search || filters.status
-                ? 'Cambia los filtros para ver más resultados'
-                : 'Inicia el primer trámite para un ciudadano'
+                ? 'Change filters to see more results'
+                : 'Start the first procedure for a citizen'
             }
             action={
               <Link to="/architect/procedures/new" className="btn-primary inline-flex">
-                Nuevo Trámite
+                New Procedure
               </Link>
             }
           />
@@ -116,7 +116,7 @@ export function MyProcedures() {
                     <div>
                       <div className="flex items-center gap-2 flex-wrap mb-1">
                         <p className="text-blue-955 font-bold text-sm">
-                          {application.procedure_type || 'Trámite'}
+                          {application.procedure_type || 'Procedure'}
                         </p>
                         <StatusBadge status={application.status} />
                       </div>
@@ -128,7 +128,7 @@ export function MyProcedures() {
                           </span>
                           {application.citizen.national_id && (
                             <span className="text-slate-400">
-                              • CI: {application.citizen.national_id}
+                              • ID: {application.citizen.national_id}
                             </span>
                           )}
                         </div>

@@ -33,9 +33,7 @@ export function BlockchainAuditTrail({ history_events }: BlockchainAuditTrailPro
     return (
       <div className="text-center py-10 bg-slate-50 rounded-2xl border border-slate-200/50">
         <Database className="mx-auto text-slate-300 mb-3" size={40} />
-        <p className="text-slate-500 font-medium text-sm">
-          No hay registros de auditoría disponibles.
-        </p>
+        <p className="text-slate-500 font-medium text-sm">No audit records available.</p>
       </div>
     );
   }
@@ -47,13 +45,13 @@ export function BlockchainAuditTrail({ history_events }: BlockchainAuditTrailPro
         <div className="flex items-center gap-2">
           <Database className="text-blue-600" size={20} />
           <h4 className="font-heading font-black text-slate-800 text-sm tracking-wide">
-            Hash Chain de Auditoría
+            Audit Hash Chain
           </h4>
         </div>
         <div className="flex items-center gap-1.5 px-3 py-1 rounded-full border border-blue-100 bg-blue-500/5">
           <Cpu size={12} className="text-blue-600" />
           <span className="text-blue-600 text-[10px] font-bold uppercase tracking-wider">
-            Cadena Activa
+            Active Chain
           </span>
         </div>
       </div>
@@ -107,7 +105,7 @@ export function BlockchainAuditTrail({ history_events }: BlockchainAuditTrailPro
                   >
                     <span className="flex items-center gap-1.5">
                       <LinkIcon size={12} className="text-blue-500" />
-                      Detalles Técnicos del Bloque
+                      Block Technical Details
                     </span>
                     {is_expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
                   </button>
@@ -119,7 +117,7 @@ export function BlockchainAuditTrail({ history_events }: BlockchainAuditTrailPro
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-[10px] font-semibold text-slate-500 bg-slate-50 p-3 rounded-xl border border-slate-100">
                         <div className="truncate">
                           <span className="font-bold text-slate-400 uppercase tracking-wider mr-1">
-                            Hash del Bloque:
+                            Block Hash:
                           </span>
                           <span className="font-mono text-slate-700 bg-slate-100 px-1 py-0.5 rounded select-all">
                             {event.block_hash}
@@ -127,7 +125,7 @@ export function BlockchainAuditTrail({ history_events }: BlockchainAuditTrailPro
                         </div>
                         <div className="truncate">
                           <span className="font-bold text-slate-400 uppercase tracking-wider mr-1">
-                            Hash Previo:
+                            Previous Hash:
                           </span>
                           <span className="font-mono text-slate-700 bg-slate-100 px-1 py-0.5 rounded select-all">
                             {event.previous_hash}

@@ -25,7 +25,7 @@ export function ZoneBadge({ zone, size = 'md', className }: ZoneBadgeProps) {
       )}
     >
       {is_urban ? <Building2 size={is_small ? 10 : 13} /> : <Trees size={is_small ? 10 : 13} />}
-      {is_urban ? 'Urbano' : 'Rural'}
+      {is_urban ? 'Urban' : 'Rural'}
     </span>
   );
 }

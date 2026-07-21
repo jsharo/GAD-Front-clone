@@ -67,14 +67,14 @@ export function ArchitectApproval() {
       AddToast({
         type: 'success',
         message: approved
-          ? 'Arquitecto habilitado. Ya puede crear trámites.'
-          : 'Solicitud rechazada. El arquitecto podrá reenviar sus datos.',
+          ? 'Architect enabled. They can now create applications.'
+          : 'Request rejected. The architect can resubmit their information.',
       });
       FetchPending();
     } catch (err) {
       AddToast({
         type: 'error',
-        message: GetApiError(err, 'No se pudo procesar la verificación'),
+        message: GetApiError(err, 'Could not process verification'),
       });
     } finally {
       set_action_loading(null);
@@ -84,18 +84,18 @@ export function ArchitectApproval() {
   return (
     <div className="space-y-8">
       <PageHeader
-        title="Verificación de Arquitectos"
-        description="Revisa nombre, apellidos, cédula y código SENESCYT. Confirma en SENESCYT y habilita la cuenta."
+        title="Architect Verification"
+        description="Review name, last name, national ID, and SENESCYT code. Confirm in SENESCYT and enable the account."
         icon={HardHat}
       />
 
       <PanelCard
-        title="Solicitudes pendientes"
+        title="Pending applications"
         icon={HardHat}
         icon_class_name="text-secondary-dark"
         actions={
           <span className="rounded-full bg-amber-50 px-2.5 py-1 text-xs font-bold text-amber-700">
-            {architects.length} pendientes
+            {architects.length} pending
           </span>
         }
       >
@@ -105,8 +105,8 @@ export function ArchitectApproval() {
           ) : architects.length === 0 ? (
             <EmptyState
               icon={CheckCircle2}
-              title="Todo al día"
-              description="No hay arquitectos pendientes de verificación."
+              title="All caught up"
+              description="No architects pending verification."
               className="py-12"
             />
           ) : (
@@ -126,7 +126,7 @@ export function ArchitectApproval() {
                       </h3>
                       <p className="text-xs text-slate-500 font-medium mt-1 flex items-center gap-1.5">
                         <BadgeCheck size={13} />
-                        Cédula:{' '}
+                        National ID:{' '}
                         <strong className="text-slate-700">{architect.national_id || '—'}</strong>
                       </p>
                       <p className="text-xs text-slate-500 font-medium mt-1 flex items-center gap-1.5">
@@ -144,13 +144,13 @@ export function ArchitectApproval() {
                     </div>
                     <div className="flex items-center gap-2">
                       <Calendar size={13} className="text-slate-400" />
-                      <span>Solicitud: {FormatDateTime(architect.updated_at)}</span>
+                      <span>Request: {FormatDateTime(architect.updated_at)}</span>
                     </div>
                   </div>
 
                   <p className="text-xs text-neutral-500 max-w-xl leading-relaxed">
-                    Verifica este código en el portal SENESCYT. Si corresponde al profesional,
-                    aprueba para habilitar trámites.
+                    Verify this code on the SENESCYT portal. If it matches the professional, approve
+                    to enable applications.
                   </p>
                 </div>
 
@@ -165,7 +165,7 @@ export function ArchitectApproval() {
                     ) : (
                       <CheckCircle2 size={14} />
                     )}
-                    <span>Aprobar y habilitar</span>
+                    <span>Approve and enable</span>
                   </button>
                   <button
                     disabled={action_loading !== null}
@@ -173,7 +173,7 @@ export function ArchitectApproval() {
                     className="inline-flex items-center justify-center gap-2 rounded-xl border border-neutral-300 bg-neutral-50 px-6 py-2.5 text-xs font-bold text-error-default hover:bg-neutral-100"
                   >
                     <XCircle size={14} />
-                    <span>Rechazar</span>
+                    <span>Reject</span>
                   </button>
                 </div>
               </div>

@@ -9,7 +9,7 @@ import { GetApiError } from '@/lib/errors';
 import { AlertBanner } from '@/components/ui/alert.banner';
 
 const ForgotSchema = z.object({
-  email: z.string().email('Email inválido'),
+  email: z.string().email('Invalid email address'),
 });
 type ForgotForm = z.infer<typeof ForgotSchema>;
 
@@ -38,7 +38,7 @@ export function ForgotPasswordPage() {
       set_error(
         GetApiError(
           err,
-          'No encontramos una cuenta con ese email. Usa tu email principal o tu email secundario verificado.'
+          'We could not find an account with that email. Use your primary email or your verified secondary email.'
         )
       );
     } finally {
@@ -59,15 +59,15 @@ export function ForgotPasswordPage() {
 
         <div className="mb-10">
           <h1 className="font-heading font-black text-neutral-900 text-[1.9rem] tracking-[-0.02em]">
-            Recuperar contraseña
+            Reset password
           </h1>
           <p className="mt-2 text-sm text-neutral-500 leading-relaxed flex items-start gap-2">
             <KeyRound size={15} className="flex-shrink-0 mt-0.5 text-neutral-600" />
             <span>
-              Ingresa el email de la cuenta que quieres recuperar. Puede ser tu{' '}
-              <strong className="font-semibold text-neutral-700">email principal</strong> o tu{' '}
-              <strong className="font-semibold text-neutral-700">email secundario</strong>{' '}
-              verificado. El código se enviará a ese mismo correo.
+              Enter the email for the account you want to recover. It can be your{' '}
+              <strong className="font-semibold text-neutral-700">primary email</strong> or your{' '}
+              <strong className="font-semibold text-neutral-700">verified secondary email</strong>.
+              The code will be sent to that same address.
             </span>
           </p>
         </div>
@@ -79,13 +79,13 @@ export function ForgotPasswordPage() {
         <form onSubmit={handleSubmit(OnSubmit)} className="space-y-4">
           <div>
             <label className="block text-xs font-bold text-neutral-500 tracking-widest mb-2">
-              Email de la cuenta
+              Account email
             </label>
             <input
               {...register('email')}
               type="email"
               autoComplete="email"
-              placeholder="principal o secundario"
+              placeholder="primary or secondary"
               className="w-full px-4 py-3.5 rounded-xl text-sm font-medium outline-none bg-neutral-50 border border-neutral-300 text-neutral-900 focus:border-primary-default focus:ring-2 focus:ring-primary-light"
             />
             {errors.email && (
@@ -103,7 +103,7 @@ export function ForgotPasswordPage() {
               is_loading ? 'bg-neutral-400/50' : 'bg-primary-default hover:bg-primary-dark'
             }`}
           >
-            {is_loading ? 'Enviando...' : 'Enviar código'}
+            {is_loading ? 'Sending...' : 'Send code'}
           </button>
         </form>
 
@@ -112,7 +112,7 @@ export function ForgotPasswordPage() {
             to="/auth/signin"
             className="text-sm font-semibold text-neutral-600 hover:text-primary-dark"
           >
-            Volver a iniciar sesión
+            Back to sign in
           </Link>
         </div>
       </div>

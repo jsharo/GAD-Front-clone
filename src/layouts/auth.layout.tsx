@@ -44,13 +44,13 @@ export function AuthLayout() {
           <div className="relative inline-block mb-10">
             <img
               src="/logo-gad.png"
-              alt="GAD Municipal de Cañar"
+              alt="Cañar Municipal GAD"
               className="relative w-36 h-36 object-contain bg-neutral-50 rounded-2xl p-2.5"
             />
           </div>
 
           <h2 className="font-heading font-black text-neutral-50 mb-2 text-[1.5rem] tracking-[-em]">
-            CAÑAR GAD MUNICIPAL
+            CAÑAR MUNICIPAL GAD
           </h2>
 
           <p className="text-neutral-200 text-[0.72rem] leading-[1.8]">

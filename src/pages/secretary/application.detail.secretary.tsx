@@ -200,7 +200,7 @@ export function ApplicationDetailSecretary() {
       const { data } = await applications_api.GetById(id);
       setApplication(mapApplication(data));
     } catch (load_error) {
-      setError(GetApiError(load_error, 'No se pudo cargar la solicitud.'));
+      setError(GetApiError(load_error, 'Could not load application.'));
     } finally {
       setIsLoading(false);
     }
@@ -241,7 +241,7 @@ export function ApplicationDetailSecretary() {
       navigate('/secretary/inbox');
     } catch (submission_error) {
       setConfirmationOpen(false);
-      setError(GetApiError(submission_error, 'No se pudo registrar el dictamen.'));
+      setError(GetApiError(submission_error, 'Could not record the review decision.'));
     } finally {
       setIsSubmitting(false);
     }
@@ -250,11 +250,11 @@ export function ApplicationDetailSecretary() {
   const handleSubmitDecision = async () => {
     if (!decision) return;
     if (decision === 'return' && !observations.trim()) {
-      setError('Escribe las observaciones para devolver la solicitud.');
+      setError('Enter observations to return the application.');
       return;
     }
     if (decision === 'approve' && signature_loading) {
-      setError('Espera a que termine la verificación automática de firmas.');
+      setError('Wait for automatic signature verification to finish.');
       return;
     }
     if (decision === 'approve' && signature_requires_acknowledgement) {
@@ -272,10 +272,10 @@ export function ApplicationDetailSecretary() {
     return (
       <EmptyState
         icon={AlertCircle}
-        title={error || 'Solicitud no encontrada'}
+        title={error || 'Application not found'}
         action={
           <Link to="/secretary/inbox" className="btn-secondary inline-flex">
-            <ArrowLeft size={16} /> Volver a la bandeja
+            <ArrowLeft size={16} /> Back to inbox
           </Link>
         }
         className="glass-card mx-auto max-w-xl"
@@ -288,7 +288,7 @@ export function ApplicationDetailSecretary() {
     application.secretary_decision != null ||
     !['PENDING_SECRETARY', 'OBSERVED'].includes(application.status);
   const expected_signer = application.architect ?? application.citizen;
-  const expected_signer_role = application.architect ? 'Profesional responsable' : 'Solicitante';
+  const expected_signer_role = application.architect ? 'Responsible professional' : 'Applicant';
   const completed_checks = Object.values(checks).filter(Boolean).length;
   const submit_disabled =
     is_submitting || signature_loading || !decision || (decision === 'approve' && !all_checked);
@@ -301,7 +301,7 @@ export function ApplicationDetailSecretary() {
         subtitle={
           <span className="flex items-center gap-2 text-slate-400">
             <Clock size={14} />
-            Recibido: {FormatDateTime(application.created_at)}
+            Received: {FormatDateTime(application.created_at)}
           </span>
         }
         status={application.status}
@@ -325,9 +325,9 @@ export function ApplicationDetailSecretary() {
             <div className="mb-4 flex items-center gap-2 px-1">
               <User size={18} className="text-blue-700" />
               <div>
-                <h2 className="text-sm font-black text-slate-900">Información del expediente</h2>
+                <h2 className="text-sm font-black text-slate-900">File information</h2>
                 <p className="text-xs text-slate-500">
-                  Datos para contrastar antes de emitir el dictamen
+                  Data to cross-check before issuing the review decision
                 </p>
               </div>
             </div>
@@ -335,16 +335,16 @@ export function ApplicationDetailSecretary() {
             <div className="grid divide-y divide-slate-200 border-y border-slate-200 lg:grid-cols-2 lg:divide-x lg:divide-y-0">
               {application.citizen && (
                 <div className="p-4">
-                  <p className="mb-3 text-xs font-black uppercase text-slate-500">Solicitante</p>
+                  <p className="mb-3 text-xs font-black uppercase text-slate-500">Applicant</p>
                   <InfoGrid
                     items={[
                       {
-                        label: 'Nombre completo',
+                        label: 'Full name',
                         value: `${application.citizen.first_name} ${application.citizen.last_name}`,
                       },
-                      { label: 'Cédula', value: application.citizen.national_id },
-                      { label: 'Correo', value: application.citizen.email },
-                      { label: 'Teléfono', value: application.citizen.phone },
+                      { label: 'National ID', value: application.citizen.national_id },
+                      { label: 'Email', value: application.citizen.email },
+                      { label: 'Phone', value: application.citizen.phone },
                     ]}
                   />
                 </div>
@@ -353,22 +353,22 @@ export function ApplicationDetailSecretary() {
               {application.architect && (
                 <div className="p-4">
                   <p className="mb-3 text-xs font-black uppercase text-slate-500">
-                    Profesional responsable
+                    Responsible professional
                   </p>
                   <InfoGrid
                     items={[
                       {
-                        label: 'Nombre completo',
+                        label: 'Full name',
                         value: `${application.architect.first_name} ${application.architect.last_name}`,
                       },
-                      { label: 'Cédula', value: application.architect.national_id },
-                      { label: 'Título profesional', value: application.architect.title },
+                      { label: 'National ID', value: application.architect.national_id },
+                      { label: 'Professional title', value: application.architect.title },
                       {
-                        label: 'Registro SENESCYT',
+                        label: 'SENESCYT registration',
                         value: application.architect.registration_number,
                       },
-                      { label: 'Correo', value: application.architect.email },
-                      { label: 'Teléfono', value: application.architect.phone },
+                      { label: 'Email', value: application.architect.email },
+                      { label: 'Phone', value: application.architect.phone },
                     ]}
                   />
                 </div>
@@ -378,15 +378,15 @@ export function ApplicationDetailSecretary() {
             <div className="mt-4 px-4">
               <div className="mb-3 flex items-center gap-2">
                 <MapPin size={16} className="text-blue-700" />
-                <p className="text-xs font-black uppercase text-slate-500">Predio</p>
+                <p className="text-xs font-black uppercase text-slate-500">Property</p>
               </div>
               <InfoGrid
                 items={[
-                  { label: 'Tipo de trámite', value: procedure_label },
-                  { label: 'Zona', value: application.property?.location },
-                  { label: 'Dirección', value: application.property?.address },
+                  { label: 'Procedure type', value: procedure_label },
+                  { label: 'Zone', value: application.property?.location },
+                  { label: 'Address', value: application.property?.address },
                   {
-                    label: 'Área',
+                    label: 'Area',
                     value: application.property?.area
                       ? `${application.property.area} m²`
                       : undefined,
@@ -407,9 +407,9 @@ export function ApplicationDetailSecretary() {
                 <FolderOpen size={18} className="text-blue-700" />
                 <div>
                   <h2 className="text-sm font-black text-slate-900">
-                    Documentos ({application.attachments.length})
+                    Documents ({application.attachments.length})
                   </h2>
-                  <p className="text-xs text-slate-500">Resumen del expediente documental</p>
+                  <p className="text-xs text-slate-500">Document file summary</p>
                 </div>
               </div>
               <button
@@ -417,7 +417,7 @@ export function ApplicationDetailSecretary() {
                 onClick={() => setDocumentsOpen(true)}
                 className="inline-flex items-center gap-2 rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-xs font-bold text-blue-800 hover:bg-blue-100"
               >
-                <FolderOpen size={15} /> Gestionar documentos
+                <FolderOpen size={15} /> Manage documents
               </button>
             </div>
 
@@ -440,7 +440,7 @@ export function ApplicationDetailSecretary() {
               </div>
             ) : (
               <p className="mt-4 border-y border-slate-200 py-5 text-center text-xs text-slate-500">
-                No hay documentos adjuntos.
+                No attached documents.
               </p>
             )}
           </section>
@@ -454,15 +454,15 @@ export function ApplicationDetailSecretary() {
                   <FileCheck2 size={18} />
                 </span>
                 <div>
-                  <h2 className="text-sm font-black text-slate-900">Dictamen de Secretaría</h2>
-                  <p className="text-xs text-slate-500">Revisión y decisión del expediente</p>
+                  <h2 className="text-sm font-black text-slate-900">Secretary Review</h2>
+                  <p className="text-xs text-slate-500">File review and decision</p>
                 </div>
               </div>
 
               <div>
                 <div className="mb-2 flex items-center justify-between gap-3">
                   <p className="text-xs font-black uppercase text-slate-500">
-                    Verificación documental
+                    Document verification
                   </p>
                   <span className="text-xs font-bold text-slate-500">
                     {completed_checks}/{Object.keys(checks).length}
@@ -470,22 +470,22 @@ export function ApplicationDetailSecretary() {
                 </div>
                 <div className="space-y-2">
                   <CheckItem
-                    label="Documentos requeridos completos"
+                    label="Required documents complete"
                     checked={checks.documents_complete}
                     on_toggle={() => toggleCheck('documents_complete')}
                   />
                   <CheckItem
-                    label="Datos del solicitante correctos"
+                    label="Applicant data correct"
                     checked={checks.applicant_data_valid}
                     on_toggle={() => toggleCheck('applicant_data_valid')}
                   />
                   <CheckItem
-                    label="Predio identificado correctamente"
+                    label="Property correctly identified"
                     checked={checks.property_identified}
                     on_toggle={() => toggleCheck('property_identified')}
                   />
                   <CheckItem
-                    label="Título profesional e identificación revisados"
+                    label="Professional title and ID reviewed"
                     checked={checks.professional_title_valid}
                     on_toggle={() => toggleCheck('professional_title_valid')}
                   />
@@ -502,13 +502,13 @@ export function ApplicationDetailSecretary() {
                     <ShieldCheck size={16} className="mt-0.5 text-green-700" />
                   )}
                   <div className="min-w-0">
-                    <p className="text-xs font-black text-slate-800">Firma del responsable</p>
+                    <p className="text-xs font-black text-slate-800">Responsible party signature</p>
                     <p className="mt-0.5 text-xs leading-relaxed text-slate-600">
                       {signature_loading
-                        ? 'Verificando firmas y certificados...'
+                        ? 'Verifying signatures and certificates...'
                         : signature_requires_acknowledgement
-                          ? `Requiere revisión: ${signature_summary?.status || 'ERROR'}`
-                          : 'Identidad, integridad y confianza verificadas.'}
+                          ? `Requires review: ${signature_summary?.status || 'ERROR'}`
+                          : 'Identity, integrity, and trust verified.'}
                     </p>
                     {expected_signer && (
                       <p className="mt-1 truncate text-[11px] text-slate-500">
@@ -521,7 +521,7 @@ export function ApplicationDetailSecretary() {
               </div>
 
               <div>
-                <p className="mb-2 text-xs font-black uppercase text-slate-500">Resolución</p>
+                <p className="mb-2 text-xs font-black uppercase text-slate-500">Decision</p>
                 <div className="grid grid-cols-2 gap-2">
                   <button
                     type="button"
@@ -536,8 +536,8 @@ export function ApplicationDetailSecretary() {
                     }`}
                   >
                     <CheckCircle2 size={17} />
-                    <p className="mt-1 text-xs font-black">Aprobar</p>
-                    <p className="text-[10px]">Enviar al técnico</p>
+                    <p className="mt-1 text-xs font-black">Approve</p>
+                    <p className="text-[10px]">Send to technician</p>
                   </button>
                   <button
                     type="button"
@@ -552,15 +552,15 @@ export function ApplicationDetailSecretary() {
                     }`}
                   >
                     <XCircle size={17} />
-                    <p className="mt-1 text-xs font-black">Devolver</p>
-                    <p className="text-[10px]">Con observaciones</p>
+                    <p className="mt-1 text-xs font-black">Return</p>
+                    <p className="text-[10px]">With observations</p>
                   </button>
                 </div>
               </div>
 
               <div>
                 <label className="input-label">
-                  Observaciones {decision === 'return' ? '*' : '(opcional)'}
+                  Observations {decision === 'return' ? '*' : '(optional)'}
                 </label>
                 <textarea
                   value={observations}
@@ -569,23 +569,23 @@ export function ApplicationDetailSecretary() {
                   rows={3}
                   placeholder={
                     decision === 'return'
-                      ? 'Describe los errores o documentos que deben corregirse...'
-                      : 'Notas adicionales para el expediente...'
+                      ? 'Describe the errors or documents that must be corrected...'
+                      : 'Additional notes for the file...'
                   }
                 />
               </div>
 
               {!all_checked && decision === 'approve' && (
                 <p className="flex items-start gap-2 text-xs leading-relaxed text-amber-800">
-                  <AlertCircle size={14} className="mt-0.5 flex-none" /> Completa la verificación
-                  documental para aprobar.
+                  <AlertCircle size={14} className="mt-0.5 flex-none" /> Complete document
+                  verification to approve.
                 </p>
               )}
 
               {decision === 'approve' && all_checked && signature_requires_acknowledgement && (
                 <p className="flex items-start gap-2 text-xs leading-relaxed text-amber-800">
-                  <AlertCircle size={14} className="mt-0.5 flex-none" /> La aprobación solicitará
-                  confirmación por las alertas de firma.
+                  <AlertCircle size={14} className="mt-0.5 flex-none" /> Approval will require
+                  confirmation due to signature alerts.
                 </p>
               )}
 
@@ -603,18 +603,18 @@ export function ApplicationDetailSecretary() {
               >
                 {is_submitting ? (
                   <>
-                    <Loader2 size={17} className="animate-spin" /> Guardando...
+                    <Loader2 size={17} className="animate-spin" /> Saving...
                   </>
                 ) : decision === 'approve' ? (
                   <>
-                    <CheckCircle2 size={17} /> Aprobar y enviar
+                    <CheckCircle2 size={17} /> Approve and send
                   </>
                 ) : decision === 'return' ? (
                   <>
-                    <XCircle size={17} /> Devolver expediente
+                    <XCircle size={17} /> Return file
                   </>
                 ) : (
-                  'Selecciona una resolución'
+                  'Select a decision'
                 )}
               </button>
             </section>
@@ -631,20 +631,20 @@ export function ApplicationDetailSecretary() {
                   <XCircle size={22} className="text-red-700" />
                 )}
                 <div>
-                  <h2 className="text-sm font-black text-slate-900">Dictamen registrado</h2>
+                  <h2 className="text-sm font-black text-slate-900">Review recorded</h2>
                   <p className="mt-0.5 text-xs text-slate-500">
-                    {application.secretary_decision?.is_approved ? 'Aprobado' : 'Devuelto'} ·{' '}
+                    {application.secretary_decision?.is_approved ? 'Approved' : 'Returned'} ·{' '}
                     {application.secretary_decision?.created_at
                       ? FormatDateTime(application.secretary_decision.created_at)
-                      : 'Sin fecha'}
+                      : 'No date'}
                   </p>
                 </div>
               </div>
               <p className="mt-4 border-y border-slate-200 py-3 text-xs leading-relaxed text-slate-700">
-                Firma del responsable:{' '}
+                Responsible party signature:{' '}
                 {application.secretary_decision?.signature_validated
-                  ? 'identidad e integridad verificadas automáticamente.'
-                  : 'alerta de firma reconocida y registrada.'}
+                  ? 'identity and integrity verified automatically.'
+                  : 'signature alert acknowledged and recorded.'}
               </p>
               {application.secretary_decision?.observations && (
                 <p className="mt-3 text-xs leading-relaxed text-slate-600">
@@ -660,7 +660,7 @@ export function ApplicationDetailSecretary() {
         <BaseModal
           is_open={documents_open}
           OnClose={() => setDocumentsOpen(false)}
-          title="Gestión de documentos"
+          title="Document management"
           size="xl"
           respect_header
         >
@@ -677,17 +677,18 @@ export function ApplicationDetailSecretary() {
       <BaseModal
         is_open={confirmation_open}
         OnClose={() => setConfirmationOpen(false)}
-        title="Confirmar aprobación con alerta"
+        title="Confirm approval with alert"
         size="sm"
       >
         <div className="text-left">
           <div className="flex items-start gap-3 border-y border-amber-200 bg-amber-50 px-3 py-4 text-amber-900">
             <ShieldAlert size={21} className="mt-0.5 flex-none" />
             <div>
-              <p className="text-sm font-black">El expediente contiene alertas de firma</p>
+              <p className="text-sm font-black">The file contains signature alerts</p>
               <p className="mt-1 text-xs leading-relaxed">
-                Estado: {signature_summary?.status || 'ERROR'}. Confirma que revisaste el detalle y
-                deseas enviarlo al técnico. La decisión quedará registrada en la trazabilidad.
+                Status: {signature_summary?.status || 'ERROR'}. Confirm that you reviewed the
+                details and want to send it to the technician. The decision will be recorded in the
+                audit trail.
               </p>
             </div>
           </div>
@@ -697,7 +698,7 @@ export function ApplicationDetailSecretary() {
               onClick={() => setConfirmationOpen(false)}
               className="rounded-lg border border-slate-300 px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50"
             >
-              Cancelar
+              Cancel
             </button>
             <button
               type="button"
@@ -706,7 +707,7 @@ export function ApplicationDetailSecretary() {
               className="inline-flex items-center gap-2 rounded-lg bg-amber-700 px-3 py-2 text-xs font-bold text-white hover:bg-amber-800 disabled:opacity-60"
             >
               {is_submitting && <Loader2 size={14} className="animate-spin" />}
-              Continuar con alerta
+              Continue with alert
             </button>
           </div>
         </div>

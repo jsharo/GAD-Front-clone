@@ -63,12 +63,12 @@ export function InspectionReporter({ OnSubmitReport }: InspectionReporterProps) 
     set_validation_error(null);
 
     if (!dimensions || parseFloat(dimensions) <= 0) {
-      set_validation_error('Por favor ingresa una dimensión de predio válida en m².');
+      set_validation_error('Please enter a valid property area in m².');
       return;
     }
 
     if (status === 'REJECTED' && !observations.trim()) {
-      set_validation_error('Debes ingresar observaciones detallando el motivo de rechazo.');
+      set_validation_error('You must enter observations detailing the reason for rejection.');
       return;
     }
 
@@ -97,7 +97,7 @@ export function InspectionReporter({ OnSubmitReport }: InspectionReporterProps) 
   };
 
   // Defaults if no technician is logged in
-  const tech_name = user ? `${user.first_name} ${user.last_name}` : 'Téc. Municipal Cañar';
+  const tech_name = user ? `${user.first_name} ${user.last_name}` : 'Municipal Tech. Cañar';
   const tech_id = user?.national_id || '0301234567';
 
   return (
@@ -105,10 +105,10 @@ export function InspectionReporter({ OnSubmitReport }: InspectionReporterProps) 
       <form onSubmit={HandlePreSubmit} className="space-y-6 text-left">
         <div>
           <h2 className="font-heading font-black text-slate-900 text-xl tracking-wide">
-            Ficha de Inspección Técnica
+            Technical Inspection Form
           </h2>
           <p className="text-slate-500 text-xs mt-1">
-            Registra los resultados y observaciones de la inspección de campo
+            Record the results and observations from the field inspection
           </p>
         </div>
 
@@ -121,7 +121,7 @@ export function InspectionReporter({ OnSubmitReport }: InspectionReporterProps) 
 
         {/* 1. STATUS DECISION */}
         <div className="space-y-2">
-          <label className="input-label">Dictamen Técnico *</label>
+          <label className="input-label">Technical Ruling *</label>
           <div className="grid grid-cols-2 gap-4">
             <button
               type="button"
@@ -133,7 +133,7 @@ export function InspectionReporter({ OnSubmitReport }: InspectionReporterProps) 
               }`}
             >
               <CheckSquare size={16} />
-              <span>APROBADO</span>
+              <span>APPROVED</span>
             </button>
             <button
               type="button"
@@ -145,7 +145,7 @@ export function InspectionReporter({ OnSubmitReport }: InspectionReporterProps) 
               }`}
             >
               <XCircle size={16} />
-              <span>RECHAZADO</span>
+              <span>REJECTED</span>
             </button>
           </div>
         </div>
@@ -153,32 +153,32 @@ export function InspectionReporter({ OnSubmitReport }: InspectionReporterProps) 
         {/* 2. DIMENSIONS AND GPS */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           <div className="space-y-1.5">
-            <label className="input-label">Área del Terreno Verificada (m²) *</label>
+            <label className="input-label">Verified Land Area (m²) *</label>
             <input
               type="number"
               step="0.01"
               value={dimensions}
               onChange={(e) => set_dimensions(e.target.value)}
-              placeholder="Ej. 185.50"
+              placeholder="e.g. 185.50"
               className="input-field rounded-xl"
               required
             />
           </div>
 
           <div className="space-y-1.5">
-            <label className="input-label">Ubicación GPS (Coordenadas)</label>
+            <label className="input-label">GPS Location (Coordinates)</label>
             <div className="flex gap-2">
               <div className="grid grid-cols-2 gap-1.5 flex-1">
                 <input
                   type="text"
-                  placeholder="Latitud"
+                  placeholder="Latitude"
                   value={gps_lat}
                   onChange={(e) => set_gps_lat(e.target.value)}
                   className="input-field py-2 text-xs rounded-xl font-mono"
                 />
                 <input
                   type="text"
-                  placeholder="Longitud"
+                  placeholder="Longitude"
                   value={gps_lng}
                   onChange={(e) => set_gps_lng(e.target.value)}
                   className="input-field py-2 text-xs rounded-xl font-mono"
@@ -188,10 +188,10 @@ export function InspectionReporter({ OnSubmitReport }: InspectionReporterProps) 
                 type="button"
                 onClick={SimulateGPS}
                 className="btn-secondary px-3.5 py-2.5 rounded-xl flex items-center justify-center gap-1.5 font-bold text-xs"
-                title="Simular coordenadas actuales"
+                title="Simulate current coordinates"
               >
                 <MapPin size={14} />
-                <span className="hidden sm:inline">Capturar</span>
+                <span className="hidden sm:inline">Capture</span>
               </button>
             </div>
           </div>
@@ -199,7 +199,7 @@ export function InspectionReporter({ OnSubmitReport }: InspectionReporterProps) 
 
         {/* 3. SETBACKS CHECKS */}
         <div className="space-y-3 p-4 rounded-2xl bg-slate-50 border border-slate-200/50">
-          <label className="input-label mb-2">Verificación de Retiros Municipales</label>
+          <label className="input-label mb-2">Municipal Setback Verification</label>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs font-semibold text-slate-700">
             <label className="flex items-center gap-2 cursor-pointer p-2 bg-white rounded-xl border border-slate-200/40 hover:bg-slate-50 transition-all select-none">
               <input
@@ -208,7 +208,7 @@ export function InspectionReporter({ OnSubmitReport }: InspectionReporterProps) 
                 onChange={(e) => set_front_setback(e.target.checked)}
                 className="rounded text-blue-600 focus:ring-blue-500 h-4 w-4 border-slate-300"
               />
-              <span>Retiro Frontal</span>
+              <span>Front Setback</span>
             </label>
             <label className="flex items-center gap-2 cursor-pointer p-2 bg-white rounded-xl border border-slate-200/40 hover:bg-slate-50 transition-all select-none">
               <input
@@ -217,7 +217,7 @@ export function InspectionReporter({ OnSubmitReport }: InspectionReporterProps) 
                 onChange={(e) => set_back_setback(e.target.checked)}
                 className="rounded text-blue-600 focus:ring-blue-500 h-4 w-4 border-slate-300"
               />
-              <span>Retiro Posterior</span>
+              <span>Rear Setback</span>
             </label>
             <label className="flex items-center gap-2 cursor-pointer p-2 bg-white rounded-xl border border-slate-200/40 hover:bg-slate-50 transition-all select-none">
               <input
@@ -226,7 +226,7 @@ export function InspectionReporter({ OnSubmitReport }: InspectionReporterProps) 
                 onChange={(e) => set_left_setback(e.target.checked)}
                 className="rounded text-blue-600 focus:ring-blue-500 h-4 w-4 border-slate-300"
               />
-              <span>Retiro Lateral Izq.</span>
+              <span>Left Side Setback</span>
             </label>
             <label className="flex items-center gap-2 cursor-pointer p-2 bg-white rounded-xl border border-slate-200/40 hover:bg-slate-50 transition-all select-none">
               <input
@@ -235,14 +235,14 @@ export function InspectionReporter({ OnSubmitReport }: InspectionReporterProps) 
                 onChange={(e) => set_right_setback(e.target.checked)}
                 className="rounded text-blue-600 focus:ring-blue-500 h-4 w-4 border-slate-300"
               />
-              <span>Retiro Lateral Der.</span>
+              <span>Right Side Setback</span>
             </label>
           </div>
         </div>
 
         {/* 4. PHOTO ATTACHMENTS */}
         <div className="space-y-2">
-          <label className="input-label">Pruebas Fotográficas de Inspección</label>
+          <label className="input-label">Inspection Photo Evidence</label>
           <label className="flex flex-col items-center justify-center border-2 border-dashed border-slate-300/80 hover:border-blue-500/80 rounded-2xl p-5 text-center cursor-pointer transition-all bg-white hover:bg-slate-50/20 group">
             <input
               type="file"
@@ -255,8 +255,8 @@ export function InspectionReporter({ OnSubmitReport }: InspectionReporterProps) 
               size={24}
               className="text-slate-400 group-hover:text-blue-500 mb-2 transition-colors"
             />
-            <p className="text-xs font-semibold text-slate-700">Subir fotos de inspección</p>
-            <p className="text-[10px] text-slate-400 mt-0.5">Formatos JPEG, PNG — Máximo 10MB</p>
+            <p className="text-xs font-semibold text-slate-700">Upload inspection photos</p>
+            <p className="text-[10px] text-slate-400 mt-0.5">JPEG, PNG formats — Max 10MB</p>
           </label>
 
           {uploaded_photos.length > 0 && (
@@ -286,7 +286,7 @@ export function InspectionReporter({ OnSubmitReport }: InspectionReporterProps) 
         {/* 5. OBSERVATIONS */}
         <div className="space-y-1.5">
           <label className="input-label">
-            Observaciones y Conclusiones {status === 'REJECTED' ? '*' : '(Opcional)'}
+            Observations and Conclusions {status === 'REJECTED' ? '*' : '(Optional)'}
           </label>
           <textarea
             value={observations}
@@ -294,8 +294,8 @@ export function InspectionReporter({ OnSubmitReport }: InspectionReporterProps) 
             rows={4}
             placeholder={
               status === 'REJECTED'
-                ? 'Detalla aquí los motivos específicos del rechazo de la inspección municipal...'
-                : 'Detalla observaciones encontradas en campo...'
+                ? 'Detail the specific reasons for rejecting the municipal inspection here...'
+                : 'Detail observations found in the field...'
             }
             className="input-field rounded-xl resize-none"
             required={status === 'REJECTED'}
@@ -308,7 +308,7 @@ export function InspectionReporter({ OnSubmitReport }: InspectionReporterProps) 
           className="btn-primary w-full py-3.5 flex items-center justify-center gap-2 rounded-xl transition-all font-bold text-xs"
         >
           <CheckCircle size={16} />
-          <span>Proceder a la Firma del Reporte</span>
+          <span>Proceed to Sign Report</span>
         </button>
       </form>
 
@@ -316,20 +316,20 @@ export function InspectionReporter({ OnSubmitReport }: InspectionReporterProps) 
       <BaseModal
         is_open={is_sign_modal_open}
         OnClose={() => set_is_sign_modal_open(false)}
-        title="Firma del Reporte Técnico de Inspección"
+        title="Technical Inspection Report Signature"
         size="md"
       >
         <div className="space-y-4">
           <p className="text-xs text-slate-500 text-left">
-            Como inspector técnico del GAD Cañar, debes validar los datos reportados y aplicar tu
-            firma digital criptográfica de forma irrevocable sobre este documento técnico.
+            As a technical inspector for GAD Cañar, you must validate the reported data and apply
+            your cryptographic digital signature irrevocably to this technical document.
           </p>
           <DigitalSignatureSimulator
             signer_name={tech_name}
             signer_id={tech_id}
             require_pin={true}
             OnSignComplete={HandleSignatureComplete}
-            title="Firmar Acta de Inspección Técnica"
+            title="Sign Technical Inspection Report"
           />
         </div>
       </BaseModal>

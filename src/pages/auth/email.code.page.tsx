@@ -75,7 +75,7 @@ export function EmailCodePage() {
     e.preventDefault();
     const code = digits.join('');
     if (code.length < CODE_LENGTH) {
-      set_error('Ingresa el código de 6 dígitos completo.');
+      set_error('Enter the full 6-digit code.');
       return;
     }
     set_error(null);
@@ -100,7 +100,7 @@ export function EmailCodePage() {
         navigate('/auth/signin', { replace: true });
       }
     } catch (err) {
-      set_error(GetApiError(err, 'Código inválido o expirado. Intenta de nuevo.'));
+      set_error(GetApiError(err, 'Invalid or expired code. Please try again.'));
     } finally {
       set_is_loading(false);
     }
@@ -115,7 +115,7 @@ export function EmailCodePage() {
       await auth_api.ResendVerificationCode(email);
       set_digits(Array(CODE_LENGTH).fill(''));
       set_cooldown(RESEND_COOLDOWN_SECONDS);
-      set_info('Te enviamos un nuevo código. Revisa tu bandeja de entrada.');
+      set_info('We sent you a new code. Check your inbox.');
       FocusAt(0);
     } catch (err) {
       const retry = (err as { response?: { data?: { retryAfterSeconds?: number } } })?.response
@@ -123,7 +123,7 @@ export function EmailCodePage() {
       if (typeof retry === 'number' && retry > 0) {
         set_cooldown(retry);
       }
-      set_error(GetApiError(err, 'No se pudo reenviar el código.'));
+      set_error(GetApiError(err, 'Could not resend the code.'));
     } finally {
       set_is_resending(false);
     }
@@ -146,13 +146,13 @@ export function EmailCodePage() {
 
         <div className="mb-10">
           <h1 className="font-heading font-black text-neutral-900 text-[1.9rem] tracking-[-0.02em]">
-            Verificar correo
+            Verify email
           </h1>
           <p className="mt-2 text-sm text-neutral-500 leading-relaxed">
             <span className="inline-flex items-start gap-2">
               <MailCheck size={15} className="mt-0.5 flex-shrink-0 text-neutral-600" />
               <span>
-                Ingresa el código de 6 dígitos enviado a{' '}
+                Enter the 6-digit code sent to{' '}
                 <span className="font-medium text-neutral-700">{email}</span>.
               </span>
             </span>
@@ -171,7 +171,7 @@ export function EmailCodePage() {
         <form onSubmit={OnSubmit} className="space-y-4">
           <div>
             <label className="block text-xs font-bold text-neutral-500 tracking-widest mb-4">
-              Código de verificación
+              Verification code
             </label>
             <div className="flex gap-2 justify-between">
               {digits.map((digit, i) => (
@@ -204,15 +204,15 @@ export function EmailCodePage() {
               is_loading ? 'bg-neutral-400/50' : 'bg-primary-default hover:bg-primary-dark'
             }`}
           >
-            {is_loading ? 'Verificando...' : 'Verificar'}
+            {is_loading ? 'Verifying...' : 'Verify'}
           </button>
         </form>
 
         <div className="mt-5 text-center space-y-2">
           <p className="text-sm text-neutral-500">
-            ¿No recibiste el código?{' '}
+            Didn't receive the code?{' '}
             {cooldown > 0 ? (
-              <span className="font-semibold text-neutral-400">Reenviar en {cooldown}s</span>
+              <span className="font-semibold text-neutral-400">Resend in {cooldown}s</span>
             ) : (
               <button
                 type="button"
@@ -221,7 +221,7 @@ export function EmailCodePage() {
                 disabled={is_resending}
                 className="font-semibold text-primary-default hover:text-primary-dark disabled:opacity-50"
               >
-                {is_resending ? 'Enviando...' : 'Enviar nuevo código'}
+                {is_resending ? 'Sending...' : 'Send new code'}
               </button>
             )}
           </p>
@@ -230,7 +230,7 @@ export function EmailCodePage() {
             id="email-code-back"
             className="inline-block text-sm font-semibold text-neutral-600 hover:text-primary-dark"
           >
-            Volver al registro
+            Back to sign up
           </Link>
         </div>
 

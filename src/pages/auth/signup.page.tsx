@@ -18,7 +18,7 @@ const SignUpSchema = z
   .object({
     email: z.string().email('Invalid email address'),
     password: StrongPasswordSchema,
-    confirmPassword: z.string().min(8, 'Mínimo 8 caracteres'),
+    confirmPassword: z.string().min(8, 'Minimum 8 characters'),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: 'Passwords do not match',
@@ -187,7 +187,7 @@ export function SignUpPage() {
             }`}
           >
             {is_loading ? (
-              <span>Cargando...</span>
+              <span>Loading...</span>
             ) : (
               <>
                 <span>Sign Up</span>

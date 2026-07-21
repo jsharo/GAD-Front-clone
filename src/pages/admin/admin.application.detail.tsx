@@ -60,7 +60,7 @@ export function AdminApplicationDetail() {
       const { data } = await applications_api.GetById(id);
       set_application(data as ApplicationDetail);
     } catch (e: any) {
-      set_error(e.response?.data?.message || 'Error al cargar la solicitud');
+      set_error(e.response?.data?.message || 'Error loading application');
     } finally {
       set_is_loading(false);
     }
@@ -76,7 +76,7 @@ export function AdminApplicationDetail() {
     return (
       <EmptyState
         icon={AlertCircle}
-        title={error || 'Solicitud no encontrada'}
+        title={error || 'Application not found'}
         className="glass-card max-w-xl mx-auto"
       />
     );
@@ -87,8 +87,8 @@ export function AdminApplicationDetail() {
     <div className="animate-fade-in space-y-6 max-w-3xl mx-auto">
       <DetailPageHeader
         back_to="/admin/applications"
-        title={GetProcedureTypeLabel(application.procedure_type) || 'Trámite de Ordenamiento'}
-        subtitle={`ID: #${id?.slice(0, 8)}... • Creado ${FormatDateTime(application.created_at)}`}
+        title={GetProcedureTypeLabel(application.procedure_type) || 'Zoning Procedure'}
+        subtitle={`ID: #${id?.slice(0, 8)}... • Created ${FormatDateTime(application.created_at)}`}
         status={application.status}
       />
 
@@ -96,29 +96,29 @@ export function AdminApplicationDetail() {
       {error && <AlertBanner message={error} OnDismiss={() => set_error(null)} />}
 
       {!is_rejected && (
-        <DetailSection title="Progreso del Trámite">
+        <DetailSection title="Application Progress">
           <ApplicationTimeline current_status={application.status} />
         </DetailSection>
       )}
 
       {is_rejected && (
-        <DetailSection title="Solicitud Rechazada" icon={XCircle} className="border-red-500/30">
+        <DetailSection title="Application Rejected" icon={XCircle} className="border-red-500/30">
           <p className="text-blue-800 text-sm">
-            {application.rejection_reason || application.observations || 'Sin motivo especificado.'}
+            {application.rejection_reason || application.observations || 'No reason specified.'}
           </p>
         </DetailSection>
       )}
 
-      <DetailSection title="Datos del Predio" icon={MapPin}>
+      <DetailSection title="Property Details" icon={MapPin}>
         <InfoGrid
           items={[
-            { label: 'Dirección', value: application.property?.address },
-            { label: 'Ubicación', value: application.property?.location },
+            { label: 'Address', value: application.property?.address },
+            { label: 'Location', value: application.property?.location },
             {
-              label: 'Área',
+              label: 'Area',
               value: application.property?.area ? `${application.property.area} m²` : undefined,
             },
-            { label: 'Tipo', value: application.procedure_type },
+            { label: 'Type', value: application.procedure_type },
           ]}
         />
         {application.property?.description && (
@@ -129,7 +129,7 @@ export function AdminApplicationDetail() {
       </DetailSection>
 
       {application.technician && (
-        <DetailSection title="Técnico Asignado" icon={User}>
+        <DetailSection title="Assigned Technician" icon={User}>
           <p className="text-blue-955 font-medium">
             {application.technician.first_name} {application.technician.last_name}
           </p>
@@ -138,7 +138,7 @@ export function AdminApplicationDetail() {
       )}
 
       {application.schedule && (
-        <DetailSection title="Inspección Programada" icon={Calendar}>
+        <DetailSection title="Scheduled Inspection" icon={Calendar}>
           <p className="text-blue-955 font-medium">{FormatDateTime(application.schedule.date)}</p>
           {application.schedule.notes && (
             <p className="text-blue-800 text-sm mt-1">{application.schedule.notes}</p>
@@ -149,7 +149,7 @@ export function AdminApplicationDetail() {
               application.schedule.is_confirmed ? 'badge-approved' : 'badge-review'
             )}
           >
-            {application.schedule.is_confirmed ? 'Confirmada' : 'Pendiente de confirmación'}
+            {application.schedule.is_confirmed ? 'Confirmed' : 'Pending confirmation'}
           </span>
         </DetailSection>
       )}

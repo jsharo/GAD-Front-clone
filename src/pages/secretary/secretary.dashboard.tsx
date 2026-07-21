@@ -41,14 +41,14 @@ export function SecretaryDashboard() {
 
   const stats = [
     {
-      label: 'Pendientes de Revisión',
+      label: 'Pending Review',
       value: pending_applications.length,
       icon: Clock,
       icon_class: 'text-warning-dark',
       icon_wrapper_class: 'bg-warning-light/20',
     },
     {
-      label: 'En Proceso',
+      label: 'In Progress',
       value: applications.filter((s) => ['PENDING_TECHNICIAN', 'INSPECTION'].includes(s.status))
         .length,
       icon: CheckCircle2,
@@ -56,14 +56,14 @@ export function SecretaryDashboard() {
       icon_wrapper_class: 'bg-success-light/20',
     },
     {
-      label: 'Devueltas con Obs.',
+      label: 'Returned with Obs.',
       value: observed_applications.length,
       icon: XCircle,
       icon_class: 'text-error-dark',
       icon_wrapper_class: 'bg-error-light/20',
     },
     {
-      label: 'Total Histórico',
+      label: 'Historical Total',
       value: total,
       icon: TrendingUp,
       icon_class: 'text-secondary-dark',
@@ -74,8 +74,8 @@ export function SecretaryDashboard() {
   return (
     <div className="space-y-8">
       <PageHeader
-        title="Panel de Secretaría"
-        description="Revisión documental — verificación de firma y completitud"
+        title="Secretary Dashboard"
+        description="Document review — signature and completeness verification"
       />
 
       <KpiGrid>
@@ -93,29 +93,29 @@ export function SecretaryDashboard() {
 
       {/* Flujo de etapas — orientación visual */}
       <div className="rounded-2xl border border-neutral-200 bg-neutral-50 p-6">
-        <h2 className="font-bold text-blue-955 mb-4 text-left">Etapas del Proceso</h2>
+        <h2 className="font-bold text-blue-955 mb-4 text-left">Process Stages</h2>
         <div className="flex items-center gap-0 overflow-x-auto pb-2">
           {[
             {
-              label: 'Ciudadano\nSube docs',
+              label: 'Citizen\nUpload docs',
               active: false,
               activeClass: 'bg-primary-default text-neutral-50',
               text_class: 'text-primary-default',
             },
             {
-              label: 'Secretaría\nRevisa',
+              label: 'Secretary\nReview',
               active: true,
               activeClass: 'bg-secondary-default text-neutral-50',
               text_class: 'text-secondary-dark',
             },
             {
-              label: 'Técnico\nEvalúa',
+              label: 'Technician\nEvaluate',
               active: false,
               activeClass: 'bg-success-default text-neutral-50',
               text_class: 'text-success-dark',
             },
             {
-              label: 'Aprobado',
+              label: 'Approved',
               active: false,
               activeClass: 'bg-success-default text-neutral-50',
               text_class: 'text-success-dark',
@@ -143,7 +143,7 @@ export function SecretaryDashboard() {
       </div>
 
       <PanelCard
-        title="Solicitudes Pendientes de Revisión"
+        title="Applications Pending Review"
         icon={Inbox}
         icon_class_name="text-secondary-dark"
         footer={
@@ -151,7 +151,7 @@ export function SecretaryDashboard() {
             to="/secretary/inbox"
             className="text-sm font-semibold text-secondary-dark hover:text-primary-dark"
           >
-            Ver bandeja completa →
+            View full inbox →
           </Link>
         }
       >
@@ -159,11 +159,7 @@ export function SecretaryDashboard() {
           {is_loading ? (
             <LoadingSkeleton count={2} variant="row" className="p-6" />
           ) : pending_applications.length === 0 ? (
-            <EmptyState
-              icon={Inbox}
-              title="No hay solicitudes pendientes de revisión"
-              className="py-8"
-            />
+            <EmptyState icon={Inbox} title="No applications pending review" className="py-8" />
           ) : (
             pending_applications.slice(0, 5).map((application) => (
               <Link
@@ -181,7 +177,7 @@ export function SecretaryDashboard() {
                     </p>
                     <p className="text-[0.75rem] text-slate-500">
                       #{application.id.slice(0, 8)} ·{' '}
-                      {GetProcedureTypeLabel(application.procedure_type) || 'Trámite'}
+                      {GetProcedureTypeLabel(application.procedure_type) || 'Procedure'}
                     </p>
                   </div>
                 </div>

@@ -12,20 +12,20 @@ export interface FilterOption {
 }
 
 export const DEFAULT_PROCEDURE_TYPES: FilterOption[] = [
-  { value: 'BUILDING_LINE', label: 'Línea de Fábricas' },
-  { value: 'PLAN_APPROVAL', label: 'Aprobación de Planos' },
-  { value: 'CONSTRUCTION_PERMIT', label: 'Permiso de Construcción' },
+  { value: 'BUILDING_LINE', label: 'Building Line' },
+  { value: 'PLAN_APPROVAL', label: 'Plan Approval' },
+  { value: 'CONSTRUCTION_PERMIT', label: 'Construction Permit' },
 ];
 
 export const DEFAULT_STATUS_OPTIONS: FilterOption[] = [
-  { value: '', label: 'Todos los estados' },
-  { value: 'DRAFT', label: 'Borrador' },
-  { value: 'PENDING_SECRETARY', label: 'Pte. Secretaría' },
-  { value: 'OBSERVED', label: 'Observado' },
-  { value: 'PENDING_TECHNICIAN', label: 'Revisión Técnica' },
-  { value: 'INSPECTION', label: 'En Inspección' },
-  { value: 'PENDING_PAYMENT', label: 'Pendiente de Pago' },
-  { value: 'PAID', label: 'Pagado' },
-  { value: 'APPROVED', label: 'Aprobado' },
-  { value: 'REJECTED', label: 'Rechazado' },
+  { value: '', label: 'All statuses' },
+  { value: 'DRAFT', label: 'Draft' },
+  { value: 'PENDING_SECRETARY', label: 'Pending Secretary' },
+  { value: 'OBSERVED', label: 'Flagged' },
+  { value: 'PENDING_TECHNICIAN', label: 'Technical Review' },
+  { value: 'INSPECTION', label: 'Under Inspection' },
+  { value: 'PENDING_PAYMENT', label: 'Pending Payment' },
+  { value: 'PAID', label: 'Paid' },
+  { value: 'APPROVED', label: 'Approved' },
+  { value: 'REJECTED', label: 'Rejected' },
 ];

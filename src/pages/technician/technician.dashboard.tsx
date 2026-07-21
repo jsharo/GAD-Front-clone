@@ -52,21 +52,21 @@ export function TechnicianDashboard() {
 
   const kpis = [
     {
-      label: 'En Revisión (Nuevos)',
+      label: 'Under Review (New)',
       value: assigned_applications.length,
       icon: Inbox,
       icon_class_name: 'text-warning-dark',
       icon_wrapper_class_name: 'bg-warning-light/20',
     },
     {
-      label: 'En Inspección',
+      label: 'Under Inspection',
       value: inspection_applications.length,
       icon: MapPin,
       icon_class_name: 'text-primary-default',
       icon_wrapper_class_name: 'bg-primary-light/10',
     },
     {
-      label: 'Resueltos',
+      label: 'Resolved',
       value: resolved_applications.length,
       icon: CheckCircle2,
       icon_class_name: 'text-success-dark',
@@ -77,8 +77,8 @@ export function TechnicianDashboard() {
   return (
     <div className="animate-fade-in space-y-6">
       <PageHeader
-        title={`Bienvenido, Tec. ${user?.first_name}`}
-        description="Gestiona los trámites asignados a tu zona."
+        title={`Welcome, Tech. ${user?.first_name}`}
+        description="Manage procedures assigned to your zone."
       />
 
       <KpiGrid columns="1-3">
@@ -99,13 +99,13 @@ export function TechnicianDashboard() {
         <div className="flex items-center justify-between border-b border-neutral-200 pb-4 mb-4">
           <h2 className="font-heading font-semibold text-blue-955 flex items-center gap-2">
             <Clock size={18} className="text-primary-default" />
-            Trámites Pendientes de Revisión
+            Procedures Pending Review
           </h2>
           <Link
             to="/technician/inbox"
             className="text-sm font-semibold text-primary-default hover:text-primary-dark transition-colors"
           >
-            Ver todos →
+            View all →
           </Link>
         </div>
 
@@ -115,8 +115,8 @@ export function TechnicianDashboard() {
           ) : assigned_applications.length === 0 ? (
             <EmptyState
               icon={Inbox}
-              title="Sin trámites pendientes"
-              description="No tienes trámites pendientes de revisión en este momento."
+              title="No pending procedures"
+              description="You have no procedures pending review at this time."
               className="py-8"
             />
           ) : (
@@ -127,9 +127,9 @@ export function TechnicianDashboard() {
                 className="flex items-center justify-between py-4 group"
               >
                 <div>
-                  <p className="font-semibold text-blue-955">{app.procedure_type || 'Trámite'}</p>
+                  <p className="font-semibold text-blue-955">{app.procedure_type || 'Procedure'}</p>
                   <p className="text-xs text-slate-500">
-                    #{app.id.slice(0, 8).toUpperCase()} · {app.property?.address || 'Sin dirección'}
+                    #{app.id.slice(0, 8).toUpperCase()} · {app.property?.address || 'No address'}
                   </p>
                 </div>
                 <ArrowRight

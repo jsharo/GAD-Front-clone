@@ -123,7 +123,7 @@ export function InspectionPage() {
       const { data } = await applications_api.GetById(id);
       set_application(MapInspectionApplication(data));
     } catch {
-      set_error('No se pudo cargar la solicitud');
+      set_error('Could not load the application');
     } finally {
       set_is_loading(false);
     }
@@ -153,12 +153,12 @@ export function InspectionPage() {
     set_error(null);
 
     const report_text = [
-      `Área verificada: ${report_data.dimensions_verified} m²`,
-      `Retiros — Frontal: ${report_data.front_setback ? 'OK' : 'NO'}, Posterior: ${report_data.back_setback ? 'OK' : 'NO'}, Lat. Izq: ${report_data.left_setback ? 'OK' : 'NO'}, Lat. Der: ${report_data.right_setback ? 'OK' : 'NO'}`,
+      `Verified area: ${report_data.dimensions_verified} m²`,
+      `Setbacks — Front: ${report_data.front_setback ? 'OK' : 'NO'}, Rear: ${report_data.back_setback ? 'OK' : 'NO'}, Left: ${report_data.left_setback ? 'OK' : 'NO'}, Right: ${report_data.right_setback ? 'OK' : 'NO'}`,
       report_data.gps_latitude
         ? `GPS: ${report_data.gps_latitude}, ${report_data.gps_longitude}`
         : null,
-      `Firma digital: ${report_data.signature_hash}`,
+      `Digital signature: ${report_data.signature_hash}`,
       report_data.observations,
     ]
       .filter(Boolean)
@@ -179,12 +179,12 @@ export function InspectionPage() {
         type: 'success',
         message:
           report_data.status === 'APPROVED'
-            ? 'Inspección aprobada y firmada correctamente'
-            : 'Inspección rechazada y registrada',
+            ? 'Inspection approved and signed successfully'
+            : 'Inspection rejected and recorded',
       });
       navigate('/technician/inbox');
     } catch (e: any) {
-      const message = e.response?.data?.message || 'Error al enviar la inspección';
+      const message = e.response?.data?.message || 'Error submitting inspection';
       set_error(message);
       AddToast({ type: 'error', message });
     } finally {
@@ -198,7 +198,7 @@ export function InspectionPage() {
       set_lightbox_src(blob_url);
     } catch (e) {
       console.error(e);
-      set_error('No se pudo cargar la foto');
+      set_error('Could not load the photo');
     }
   };
 
@@ -214,7 +214,7 @@ export function InspectionPage() {
     return (
       <EmptyState
         icon={AlertCircle}
-        title={error || 'Solicitud no encontrada'}
+        title={error || 'Application not found'}
         className="glass-card max-w-xl mx-auto"
       />
     );
@@ -233,7 +233,7 @@ export function InspectionPage() {
     <div className="animate-fade-in space-y-5 max-w-3xl mx-auto pb-10">
       <DetailPageHeader
         back_to="/technician/inbox"
-        title={GetProcedureTypeLabel(application.procedure_type) || 'Trámite Territorial'}
+        title={GetProcedureTypeLabel(application.procedure_type) || 'Territorial Procedure'}
         subtitle={`#${id?.slice(0, 8).toUpperCase()} • ${FormatDateTime(application.created_at)}`}
         status={application.status}
         badges={<ZoneBadge zone={application.property?.location} />}
@@ -241,28 +241,28 @@ export function InspectionPage() {
 
       {error && <AlertBanner message={error} OnDismiss={() => set_error(null)} />}
 
-      <DetailSection title="Ciudadano Solicitante" icon={User}>
+      <DetailSection title="Applicant Citizen" icon={User}>
         <InfoGrid
           items={[
             {
-              label: 'Nombre',
+              label: 'Name',
               value: `${application.citizen?.first_name} ${application.citizen?.last_name}`,
             },
-            { label: 'Cédula', value: application.citizen?.national_id },
+            { label: 'National ID', value: application.citizen?.national_id },
             { label: 'Email', value: application.citizen?.email },
-            { label: 'Teléfono', value: application.citizen?.phone },
+            { label: 'Phone', value: application.citizen?.phone },
           ]}
         />
       </DetailSection>
 
-      <DetailSection title="Datos del Predio" icon={MapPin}>
+      <DetailSection title="Property Details" icon={MapPin}>
         <InfoGrid
           items={[
-            { label: 'Tipo de Trámite', value: GetProcedureTypeLabel(application.procedure_type) },
-            { label: 'Zona', value: application.property?.location },
-            { label: 'Dirección', value: application.property?.address },
+            { label: 'Procedure Type', value: GetProcedureTypeLabel(application.procedure_type) },
+            { label: 'Zone', value: application.property?.location },
+            { label: 'Address', value: application.property?.address },
             {
-              label: 'Área',
+              label: 'Area',
               value: application.property?.area ? `${application.property.area} m²` : undefined,
             },
           ]}
@@ -278,7 +278,7 @@ export function InspectionPage() {
 
       {application.existing_photos.length > 0 && (
         <DetailSection
-          title={`Fotos del sitio (${application.existing_photos.length})`}
+          title={`Site photos (${application.existing_photos.length})`}
           className="border-sky-200"
         >
           <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
@@ -303,11 +303,11 @@ export function InspectionPage() {
       )}
 
       {application.report_comments && (
-        <DetailSection title="Reporte registrado previamente" className="border-sky-200">
+        <DetailSection title="Previously registered report" className="border-sky-200">
           <p className="text-sm leading-6 text-blue-955">{application.report_comments}</p>
           {application.report_date && (
             <p className="mt-2 text-[0.7rem] text-sky-700/50">
-              Registrado: {FormatDateTime(application.report_date)}
+              Registered: {FormatDateTime(application.report_date)}
             </p>
           )}
         </DetailSection>
@@ -323,8 +323,8 @@ export function InspectionPage() {
         <DetailSection
           title={
             application.status === 'APPROVED' || application.status === 'APPROVED'
-              ? 'Solicitud Aprobada ✅'
-              : 'Solicitud Negada ❌'
+              ? 'Application Approved ✅'
+              : 'Application Denied ❌'
           }
           className={
             application.status === 'APPROVED' || application.status === 'APPROVED'
@@ -343,7 +343,7 @@ export function InspectionPage() {
             <p className="text-sm text-slate-600">{application.observations}</p>
           )}
           {application.rejection_reason && (
-            <p className="text-sm mt-2 text-red-600">Motivo: {application.rejection_reason}</p>
+            <p className="text-sm mt-2 text-red-600">Reason: {application.rejection_reason}</p>
           )}
         </DetailSection>
       )}

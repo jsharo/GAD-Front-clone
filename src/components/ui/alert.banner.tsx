@@ -61,7 +61,7 @@ export function AlertBanner({
           type="button"
           onClick={OnDismiss}
           className="flex-shrink-0 rounded-lg p-1 hover:bg-black/5"
-          aria-label="Cerrar alerta"
+          aria-label="Dismiss alert"
         >
           <X size={14} />
         </button>

@@ -12,10 +12,10 @@ import { AlertBanner } from '@/components/ui/alert.banner';
 import { DetailSection } from '@/components/ui/detail.section';
 
 const attachment_folders: Array<{ value: AttachmentFolder; label: string }> = [
-  { value: 'PLANOS', label: 'Planos' },
-  { value: 'DOCUMENTOS_LEGALES', label: 'Documentos legales' },
-  { value: 'INFORMES', label: 'Informes' },
-  { value: 'OTROS', label: 'Otros' },
+  { value: 'PLANOS', label: 'Plans' },
+  { value: 'DOCUMENTOS_LEGALES', label: 'Legal documents' },
+  { value: 'INFORMES', label: 'Reports' },
+  { value: 'OTROS', label: 'Other' },
 ];
 
 interface DocumentPanelProps {
@@ -43,7 +43,7 @@ export function DocumentPanel({
     try {
       setAttachments(await GetRequestAttachments(request_id));
     } catch (err) {
-      setError(GetApiError(err, 'No se pudieron cargar los documentos.'));
+      setError(GetApiError(err, 'Documents could not be loaded.'));
     } finally {
       setLoading(false);
     }
@@ -66,7 +66,7 @@ export function DocumentPanel({
       await loadAttachments();
       on_attachments_changed?.();
     } catch (err) {
-      setError(GetApiError(err, 'No se pudo subir el documento.'));
+      setError(GetApiError(err, 'The document could not be uploaded.'));
     } finally {
       setUploading(false);
     }
@@ -82,7 +82,7 @@ export function DocumentPanel({
         >
           <div className="grid gap-2 sm:grid-cols-2">
             <input required name="file" type="file" className="input-field text-xs" />
-            <input name="name" placeholder="Nombre opcional" className="input-field text-xs" />
+            <input name="name" placeholder="Optional name" className="input-field text-xs" />
           </div>
           <select required name="folder" defaultValue="OTROS" className="input-field text-xs">
             {attachment_folders.map((folder) => (
@@ -93,7 +93,7 @@ export function DocumentPanel({
           </select>
           <button disabled={uploading} className="btn-primary justify-center text-xs">
             {uploading ? <Loader2 size={15} className="animate-spin" /> : <Upload size={15} />}{' '}
-            Subir
+            Upload
           </button>
         </form>
       )}
@@ -102,7 +102,7 @@ export function DocumentPanel({
           <Loader2 size={20} className="animate-spin" />
         </div>
       ) : attachments.length === 0 ? (
-        <p className="py-6 text-center text-sm text-slate-500">No hay documentos adjuntos.</p>
+        <p className="py-6 text-center text-sm text-slate-500">No attached documents.</p>
       ) : (
         <div className="space-y-2">
           {attachments.map((attachment) => (
@@ -122,7 +122,7 @@ export function DocumentPanel({
   if (embedded) return content;
 
   return (
-    <DetailSection title={`Documentos (${attachments.length})`} icon={FileText}>
+    <DetailSection title={`Documents (${attachments.length})`} icon={FileText}>
       {content}
     </DetailSection>
   );

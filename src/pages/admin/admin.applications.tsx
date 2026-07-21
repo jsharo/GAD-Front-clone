@@ -88,7 +88,7 @@ export function AdminApplications() {
 
   return (
     <div className="animate-fade-in space-y-6">
-      <PageHeader title="Todas las Solicitudes" icon={FileText} />
+      <PageHeader title="All Applications" icon={FileText} />
 
       <ApplicationFilterBar
         OnFilterChange={HandleFilterChange}
@@ -100,12 +100,12 @@ export function AdminApplications() {
           <table className="w-full text-sm text-left">
             <thead className="text-xs text-slate-500 uppercase bg-surface-muted border-b border-surface-border">
               <tr>
-                <th className="px-6 py-4 font-semibold">Código</th>
-                <th className="px-6 py-4 font-semibold">Fecha</th>
-                <th className="px-6 py-4 font-semibold">Solicitante</th>
-                <th className="px-6 py-4 font-semibold">Trámite</th>
-                <th className="px-6 py-4 font-semibold">Estado</th>
-                <th className="px-6 py-4 font-semibold text-right">Acciones</th>
+                <th className="px-6 py-4 font-semibold">Code</th>
+                <th className="px-6 py-4 font-semibold">Date</th>
+                <th className="px-6 py-4 font-semibold">Applicant</th>
+                <th className="px-6 py-4 font-semibold">Procedure</th>
+                <th className="px-6 py-4 font-semibold">Status</th>
+                <th className="px-6 py-4 font-semibold text-right">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -120,7 +120,7 @@ export function AdminApplications() {
                   <td colSpan={6}>
                     <EmptyState
                       icon={FileText}
-                      title="No hay solicitudes registradas"
+                      title="No applications registered"
                       className="py-8"
                     />
                   </td>
@@ -155,7 +155,7 @@ export function AdminApplications() {
                       <Link
                         to={`/admin/applications/${s.id}`}
                         className="inline-flex items-center justify-center p-2 text-primary-600 hover:bg-primary-50 rounded-lg transition-colors"
-                        title="Ver detalle"
+                        title="View details"
                       >
                         <Eye size={18} />
                       </Link>

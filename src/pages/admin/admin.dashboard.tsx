@@ -30,28 +30,28 @@ export function AdminDashboard() {
 
   const kpis = [
     {
-      label: 'Total Usuarios',
+      label: 'Total Users',
       value: user_stats?.totalUsers ?? '—',
       icon: Users,
       color: 'text-primary-default',
       bg: 'bg-primary-light/10',
     },
     {
-      label: 'Técnicos Activos',
+      label: 'Active Technicians',
       value: user_stats?.activeTechnicians ?? '—',
       icon: Shield,
       color: 'text-secondary-dark',
       bg: 'bg-secondary-light/20',
     },
     {
-      label: 'Sol. Aprobadas',
+      label: 'Approved Apps',
       value: '—',
       icon: CheckCircle2,
       color: 'text-success-dark',
       bg: 'bg-success-light/20',
     },
     {
-      label: 'Sol. Pendientes',
+      label: 'Pending Apps',
       value: '—',
       icon: Activity,
       color: 'text-warning-dark',
@@ -62,8 +62,8 @@ export function AdminDashboard() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Panel de Control"
-        description="Monitoreo del sistema y gestión de usuarios del GAD Cañar."
+        title="Control Panel"
+        description="System monitoring and user management for GAD Cañar."
       />
 
       <KpiGrid>
@@ -82,21 +82,21 @@ export function AdminDashboard() {
 
       {/* Estado de solicitudes */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <DetailSection title="Estado de Solicitudes" icon={FileText}>
+        <DetailSection title="Application Status" icon={FileText}>
           {[
-            { key: 'DRAFT', label: 'Borrador (Ciudadano)', color: 'bg-neutral-400' },
+            { key: 'DRAFT', label: 'Draft (Citizen)', color: 'bg-neutral-400' },
             {
               key: 'PENDING_SECRETARY',
-              label: 'Revisión Secretaría',
+              label: 'Secretary Review',
               color: 'bg-secondary-default',
             },
-            { key: 'OBSERVED', label: 'Observado (Devuelto)', color: 'bg-error-default' },
-            { key: 'UNDER_REVIEW', label: 'Revisión Técnica', color: 'bg-warning-default' },
-            { key: 'INSPECTION', label: 'En Inspección', color: 'bg-primary-default' },
-            { key: 'PENDING_PAYMENT', label: 'Pendiente de Pago', color: 'bg-warning-dark' },
-            { key: 'PAID', label: 'Pagado', color: 'bg-success-default' },
-            { key: 'APPROVED', label: 'Completado / Aprobado', color: 'bg-success-dark' },
-            { key: 'REJECTED', label: 'Negado', color: 'bg-error-dark' },
+            { key: 'OBSERVED', label: 'Observed (Returned)', color: 'bg-error-default' },
+            { key: 'UNDER_REVIEW', label: 'Technical Review', color: 'bg-warning-default' },
+            { key: 'INSPECTION', label: 'Under Inspection', color: 'bg-primary-default' },
+            { key: 'PENDING_PAYMENT', label: 'Pending Payment', color: 'bg-warning-dark' },
+            { key: 'PAID', label: 'Paid', color: 'bg-success-default' },
+            { key: 'APPROVED', label: 'Completed / Approved', color: 'bg-success-dark' },
+            { key: 'REJECTED', label: 'Denied', color: 'bg-error-dark' },
           ].map(({ key, label, color }) => {
             const total = 1;
             const count = 0;
@@ -120,12 +120,12 @@ export function AdminDashboard() {
           })}
         </DetailSection>
 
-        <DetailSection title="Estado del Sistema" icon={AlertTriangle}>
+        <DetailSection title="System Status" icon={AlertTriangle}>
           {[
-            { label: 'API Backend', status: 'Operativo', ok: true },
-            { label: 'Base de Datos', status: 'Operativo', ok: true },
-            { label: 'Almacenamiento MinIO', status: 'Operativo', ok: true },
-            { label: 'Servidor Email', status: 'Operativo', ok: true },
+            { label: 'API Backend', status: 'Operational', ok: true },
+            { label: 'Database', status: 'Operational', ok: true },
+            { label: 'MinIO Storage', status: 'Operational', ok: true },
+            { label: 'Email Server', status: 'Operational', ok: true },
           ].map((s) => (
             <div
               key={s.label}

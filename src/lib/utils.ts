@@ -6,7 +6,7 @@ export function Cn(...inputs: ClassValue[]) {
 }
 
 export function FormatDate(date: string | Date): string {
-  return new Intl.DateTimeFormat('es-EC', {
+  return new Intl.DateTimeFormat('en-US', {
     day: '2-digit',
     month: 'long',
     year: 'numeric',
@@ -14,7 +14,7 @@ export function FormatDate(date: string | Date): string {
 }
 
 export function FormatDateTime(date: string | Date): string {
-  return new Intl.DateTimeFormat('es-EC', {
+  return new Intl.DateTimeFormat('en-US', {
     day: '2-digit',
     month: 'short',
     year: 'numeric',
@@ -50,25 +50,25 @@ export function GetStatusBadgeClass(status: string): string {
 
 export function GetStatusLabel(status: string): string {
   const label_map: Record<string, string> = {
-    DRAFT: 'Borrador',
-    UNDER_REVIEW: 'En Revisión',
-    INSPECTION: 'En Inspección',
-    APPROVED: 'Aprobado',
-    REJECTED: 'Negado',
-    OBSERVED: 'Observado',
-    PENDING_SECRETARY: 'Pendiente de Secretaría',
-    PENDING_PAYMENT: 'Pendiente de Pago',
-    PAID: 'Pagado',
+    DRAFT: 'Draft',
+    UNDER_REVIEW: 'Under Review',
+    INSPECTION: 'Under Inspection',
+    APPROVED: 'Approved',
+    REJECTED: 'Rejected',
+    OBSERVED: 'Flagged',
+    PENDING_SECRETARY: 'Pending Secretary',
+    PENDING_PAYMENT: 'Pending Payment',
+    PAID: 'Paid',
     // Spanish mapping fallback
-    BORRADOR: 'Borrador',
-    EN_REVISION: 'En Revisión',
-    INSPECCION: 'En Inspección',
-    APROBADO: 'Aprobado',
-    NEGADO: 'Negado',
-    OBSERVADO: 'Observado',
-    PENDIENTE_SECRETARIA: 'Pendiente de Secretaría',
-    PENDIENTE_PAGO: 'Pendiente de Pago',
-    PAGADO: 'Pagado',
+    BORRADOR: 'Draft',
+    EN_REVISION: 'Under Review',
+    INSPECCION: 'Under Inspection',
+    APROBADO: 'Approved',
+    NEGADO: 'Rejected',
+    OBSERVADO: 'Flagged',
+    PENDIENTE_SECRETARIA: 'Pending Secretary',
+    PENDIENTE_PAGO: 'Pending Payment',
+    PAGADO: 'Paid',
   };
   return label_map[status] ?? status;
 }

@@ -30,10 +30,10 @@ export function CedulaValidationMessage(value: string): string | null {
   const cedula = value.trim();
   if (!cedula) return null;
   if (!/^\d{10}$/.test(cedula)) {
-    return 'La cédula debe tener exactamente 10 dígitos.';
+    return 'The national ID must be exactly 10 digits.';
   }
   if (!IsValidEcuadorianCedula(cedula)) {
-    return 'La cédula no es válida. Verifica que sea un número de identidad ecuatoriano real.';
+    return 'The national ID is not valid. Please verify it is a valid Ecuadorian national ID number.';
   }
   return null;
 }

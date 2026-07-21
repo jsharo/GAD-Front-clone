@@ -9,19 +9,19 @@ export const PROCEDURE_TYPE_CODES = [
 export type ProcedureTypeCode = (typeof PROCEDURE_TYPE_CODES)[number];
 
 export const PROCEDURE_TYPE_LABELS: Record<string, string> = {
-  CONSTRUCTION_PERMIT: 'Permiso de Construcción',
+  CONSTRUCTION_PERMIT: 'Construction Permit',
 
-  BUILDING_LINE: 'Línea de Fábricas',
+  BUILDING_LINE: 'Building Line',
 
-  PLAN_APPROVAL: 'Aprobación de Planos',
+  PLAN_APPROVAL: 'Plan Approval',
 
   // Legacy Spanish codes (compat)
 
-  PERMISO_CONSTRUCCION: 'Permiso de Construcción',
+  PERMISO_CONSTRUCCION: 'Construction Permit',
 
-  LINEA_FABRICAS: 'Línea de Fábricas',
+  LINEA_FABRICAS: 'Building Line',
 
-  APROBACION_PLANOS: 'Aprobación de Planos',
+  APROBACION_PLANOS: 'Plan Approval',
 };
 
 export const PROCEDURE_TYPE_BADGE_CLASS: Record<string, string> = {

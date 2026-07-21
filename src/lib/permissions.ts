@@ -21,26 +21,26 @@ export const PERMISSION_PRESETS: Array<{
 }> = [
   {
     id: 'users-management',
-    label: 'Gestión de usuarios',
-    description: 'Ver y crear/editar usuarios (incluye listar roles para el formulario)',
+    label: 'User management',
+    description: 'View and create/edit users (includes listing roles for the form)',
     permissions: [PERMISSIONS.USERS_READ, PERMISSIONS.USERS_WRITE],
   },
   {
     id: 'requests-review',
-    label: 'Revisión de trámites',
-    description: 'Ver bandeja y aprobar/observar trámites',
+    label: 'Application review',
+    description: 'View inbox and approve/flag applications',
     permissions: [PERMISSIONS.REQUESTS_READ, PERMISSIONS.REQUESTS_REVIEW],
   },
   {
     id: 'requests-create',
-    label: 'Crear trámites',
-    description: 'Ver y crear solicitudes de trámite',
+    label: 'Create applications',
+    description: 'View and create application requests',
     permissions: [PERMISSIONS.REQUESTS_READ, PERMISSIONS.REQUESTS_WRITE],
   },
   {
     id: 'audit',
-    label: 'Auditoría',
-    description: 'Consultar la bitácora del sistema',
+    label: 'Audit',
+    description: 'View the system audit log',
     permissions: [PERMISSIONS.AUDIT_READ],
   },
 ];

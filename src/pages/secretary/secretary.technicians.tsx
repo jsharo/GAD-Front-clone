@@ -27,7 +27,7 @@ export function SecretaryTechnicians() {
       set_technicians(list);
       set_zones(Object.fromEntries(list.map((t: User) => [t.id, t.zone ?? ''])));
     } catch (e: any) {
-      set_error(e.response?.data?.message || 'No se pudieron cargar los técnicos');
+      set_error(e.response?.data?.message || 'Could not load technicians');
     } finally {
       set_is_loading(false);
     }
@@ -60,7 +60,7 @@ export function SecretaryTechnicians() {
         set_zones((prev) => ({ ...prev, [technician.id]: updated.zone ?? '' }));
       }
     } catch (e: any) {
-      set_error(e.response?.data?.message || 'No se pudo guardar la zona');
+      set_error(e.response?.data?.message || 'Could not save zone');
     } finally {
       set_saving_id(null);
     }
@@ -76,22 +76,22 @@ export function SecretaryTechnicians() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Asignación de Técnicos"
-        description="Secretaría define qué zona atiende cada técnico."
+        title="Technician Assignment"
+        description="Secretary defines which zone each technician serves."
         icon={Users}
       />
 
       <KpiGrid>
         {[
           {
-            label: 'Técnicos',
+            label: 'Technicians',
             value: counts.all,
             icon: Users,
             icon_class_name: 'text-primary-default',
             icon_wrapper_class_name: 'bg-primary-light/10',
           },
           {
-            label: 'Urbano',
+            label: 'Urban',
             value: counts.urban,
             icon: MapPin,
             icon_class_name: 'text-primary-dark',
@@ -105,7 +105,7 @@ export function SecretaryTechnicians() {
             icon_wrapper_class_name: 'bg-success-light/20',
           },
           {
-            label: 'Sin zona',
+            label: 'No zone',
             value: counts.no_zone,
             icon: Users,
             icon_class_name: 'text-secondary-dark',
@@ -132,17 +132,17 @@ export function SecretaryTechnicians() {
           icon_size={16}
           value={search}
           onChange={(e) => set_search(e.target.value)}
-          placeholder="Buscar técnico por nombre, correo o teléfono..."
+          placeholder="Search technician by name, email, or phone..."
         />
 
         <div className="overflow-x-auto rounded-xl border border-neutral-200">
           <table className="w-full text-sm text-left">
             <thead className="border-b border-neutral-200 bg-neutral-100 text-xs uppercase text-slate-500">
               <tr>
-                <th className="px-6 py-4 font-semibold">Técnico</th>
-                <th className="px-6 py-4 font-semibold">Estado</th>
-                <th className="px-6 py-4 font-semibold">Zona asignada</th>
-                <th className="px-6 py-4 font-semibold text-right">Acción</th>
+                <th className="px-6 py-4 font-semibold">Technician</th>
+                <th className="px-6 py-4 font-semibold">Status</th>
+                <th className="px-6 py-4 font-semibold">Assigned zone</th>
+                <th className="px-6 py-4 font-semibold text-right">Action</th>
               </tr>
             </thead>
             <tbody>
@@ -157,8 +157,8 @@ export function SecretaryTechnicians() {
                   <td colSpan={4}>
                     <EmptyState
                       icon={Users}
-                      title="No se encontraron técnicos"
-                      description="Prueba con otro término de búsqueda."
+                      title="No technicians found"
+                      description="Try a different search term."
                       className="py-8"
                     />
                   </td>
@@ -174,13 +174,13 @@ export function SecretaryTechnicians() {
                         {technician.first_name} {technician.last_name}
                       </p>
                       <p className="text-xs text-slate-500">{technician.email}</p>
-                      <p className="text-xs text-slate-400">{technician.phone || 'Sin teléfono'}</p>
+                      <p className="text-xs text-slate-400">{technician.phone || 'No phone'}</p>
                     </td>
                     <td className="px-6 py-4">
                       <span
                         className={`badge ${technician.is_active ? 'bg-green-100 text-green-700 border border-green-200' : 'bg-slate-100 text-slate-600 border border-slate-200'}`}
                       >
-                        {technician.is_active ? 'Activo' : 'Inactivo'}
+                        {technician.is_active ? 'Active' : 'Inactive'}
                       </span>
                     </td>
                     <td className="px-6 py-4">
@@ -196,8 +196,8 @@ export function SecretaryTechnicians() {
                             }))
                           }
                         >
-                          <option value="">Todas las zonas</option>
-                          <option value="URBAN">Urbano</option>
+                          <option value="">All zones</option>
+                          <option value="URBAN">Urban</option>
                           <option value="RURAL">Rural</option>
                         </select>
                       </div>
@@ -212,7 +212,7 @@ export function SecretaryTechnicians() {
                         className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-orange-600 text-white font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         <Save size={14} />
-                        {saving_id === technician.id ? 'Guardando...' : 'Guardar'}
+                        {saving_id === technician.id ? 'Saving...' : 'Save'}
                       </button>
                     </td>
                   </tr>
