@@ -679,6 +679,8 @@ export const notifications_api = {
 export const users_api = {
   Me: () => api.get('/users/me'),
 
+  MePermissions: () => api.get('/users/me/permissions'),
+
   UpdateOwnProfile: (data: { name?: string; lastname?: string; cedula?: string }) =>
     api.patch('/users/me', data),
 

@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { auth_api, users_api, type RegisterPayload } from '@/lib/api.calls';
+import { HasAnyPermission, HasPermission } from '@/lib/permissions';
 
 export type Role = 'ADMINISTRATOR' | 'SECRETARY' | 'TECHNICIAN' | 'FINANCIAL' | 'USER' | 'CITIZEN';
 
@@ -49,6 +50,7 @@ export interface User {
 
 interface AuthState {
   user: User | null;
+  permissions: string[];
   is_loading: boolean;
   error: string | null;
 
@@ -56,8 +58,11 @@ interface AuthState {
   Register: (data: RegisterData) => Promise<void>;
   VerifyEmail: (email: string, code: string) => Promise<void>;
   CompleteProfile: (data: CompleteProfileData) => Promise<void>;
+  RefreshPermissions: () => Promise<void>;
   Logout: () => void;
   ClearError: () => void;
+  HasPermission: (permission: string) => boolean;
+  HasAnyPermission: (...permissions: string[]) => boolean;
 }
 
 export interface RegisterData {
@@ -74,6 +79,11 @@ export interface CompleteProfileData {
   last_name: string;
   national_id: string;
   senescyt_code: string;
+}
+
+function NormalizePermissions(raw: unknown): string[] {
+  if (!Array.isArray(raw)) return [];
+  return raw.filter((p): p is string => typeof p === 'string');
 }
 
 /** Maps backend user payload to the English frontend User model. */
@@ -116,6 +126,7 @@ export const useAuthStore = create<AuthState>()(
   persist(
     (set, get) => ({
       user: null,
+      permissions: [],
       is_loading: false,
       error: null,
 
@@ -125,8 +136,10 @@ export const useAuthStore = create<AuthState>()(
           const { data: body } = await auth_api.Login(email, password);
           const mapped = MapUser(body.data.user);
           const role = mapped?.role ?? NormalizeRole(body.data.user?.role);
+          const permissions = NormalizePermissions(body.data.user?.permissions);
           set({
             user: mapped,
+            permissions,
             is_loading: false,
           });
           return role;
@@ -208,18 +221,34 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
+      RefreshPermissions: async () => {
+        if (!get().user) return;
+        try {
+          const { data: body } = await users_api.MePermissions();
+          const permissions = NormalizePermissions(body?.data?.permissions ?? body?.permissions);
+          set({ permissions });
+        } catch {
+          // Keep previous permissions if refresh fails (e.g. network blip).
+        }
+      },
+
       Logout: () => {
         auth_api.Logout().catch(() => null);
-        set({ user: null, error: null });
+        set({ user: null, permissions: [], error: null });
       },
 
       ClearError: () => set({ error: null }),
+
+      HasPermission: (permission) => HasPermission(get().permissions, permission),
+
+      HasAnyPermission: (...needed) => HasAnyPermission(get().permissions, ...needed),
     }),
     {
       name: 'gad-auth',
-      version: 3,
+      version: 4,
       migrate: (persisted: any) => ({
         ...persisted,
+        permissions: NormalizePermissions(persisted?.permissions),
         user: persisted?.user
           ? {
               ...persisted.user,
@@ -231,6 +260,7 @@ export const useAuthStore = create<AuthState>()(
       }),
       partialize: (state) => ({
         user: state.user,
+        permissions: state.permissions,
       }),
     }
   )

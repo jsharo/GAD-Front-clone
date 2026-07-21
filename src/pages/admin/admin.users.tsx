@@ -4,6 +4,8 @@ import { roles_api, users_api } from '@/lib/api.calls';
 import { FormatDateTime, Cn } from '@/lib/utils';
 import { BaseModal } from '@/components/logic/base.modal';
 import { useToastStore } from '@/stores/toast.store';
+import { useAuthStore } from '@/stores/auth.store';
+import { PERMISSIONS } from '@/lib/permissions';
 import { PageHeader } from '@/components/ui/page.header';
 import { AlertBanner } from '@/components/ui/alert.banner';
 import { LoadingSkeleton } from '@/components/ui/loading.skeleton';
@@ -326,7 +328,20 @@ async function DeleteRole(id: string) {
 
 export function AdminUsers() {
   const AddToast = useToastStore((state) => state.AddToast);
+  const auth_user = useAuthStore((s) => s.user);
+  const HasPermission = useAuthStore((s) => s.HasPermission);
+  const RefreshPermissions = useAuthStore((s) => s.RefreshPermissions);
+  const can_write_users =
+    auth_user?.role === 'ADMINISTRATOR' || HasPermission(PERMISSIONS.USERS_WRITE);
+  const can_manage_roles = auth_user?.role === 'ADMINISTRATOR';
+
   const [active_tab, set_active_tab] = useState<AdminTab>('users');
+
+  useEffect(() => {
+    if (!can_manage_roles && active_tab === 'roles') {
+      set_active_tab('users');
+    }
+  }, [can_manage_roles, active_tab]);
 
   const [users, set_users] = useState<AdminUser[]>([]);
   const [roles, set_roles] = useState<RoleRecord[]>([]);
@@ -560,6 +575,9 @@ export function AdminUsers() {
         }
         await FetchUsers();
       }
+      if (editing_user?.id && auth_user?.id && editing_user.id === auth_user.id) {
+        await RefreshPermissions();
+      }
       set_show_user_modal(false);
       set_editing_user(null);
       set_user_form(EMPTY_USER_FORM);
@@ -702,23 +720,29 @@ export function AdminUsers() {
           >
             Usuarios
           </button>
-          <button
-            type="button"
-            className={TabButtonClass('roles')}
-            onClick={() => set_active_tab('roles')}
-          >
-            Roles
-          </button>
+          {can_manage_roles && (
+            <button
+              type="button"
+              className={TabButtonClass('roles')}
+              onClick={() => set_active_tab('roles')}
+            >
+              Roles
+            </button>
+          )}
         </div>
 
         {active_tab === 'users' ? (
-          <button onClick={OpenCreateUser} className="btn-primary shrink-0">
-            <Plus size={18} /> Nuevo Usuario
-          </button>
+          can_write_users ? (
+            <button onClick={OpenCreateUser} className="btn-primary shrink-0">
+              <Plus size={18} /> Nuevo Usuario
+            </button>
+          ) : null
         ) : (
-          <button onClick={OpenCreateRole} className="btn-primary shrink-0">
-            <Plus size={18} /> Nuevo Rol
-          </button>
+          can_manage_roles && (
+            <button onClick={OpenCreateRole} className="btn-primary shrink-0">
+              <Plus size={18} /> Nuevo Rol
+            </button>
+          )
         )}
       </div>
 
@@ -809,24 +833,26 @@ export function AdminUsers() {
                         </td>
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-3">
-                            <button
-                              type="button"
-                              role="switch"
-                              aria-checked={is_active}
-                              aria-label={is_active ? 'Usuario activo' : 'Usuario inactivo'}
-                              onClick={() => HandleToggleActive(user)}
-                              className={Cn(
-                                'relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary-default focus:ring-offset-2',
-                                is_active ? 'bg-success-default' : 'bg-slate-300'
-                              )}
-                            >
-                              <span
+                            {can_write_users ? (
+                              <button
+                                type="button"
+                                role="switch"
+                                aria-checked={is_active}
+                                aria-label={is_active ? 'Usuario activo' : 'Usuario inactivo'}
+                                onClick={() => HandleToggleActive(user)}
                                 className={Cn(
-                                  'inline-block h-4 w-4 transform rounded-full bg-white shadow-sm transition-transform',
-                                  is_active ? 'translate-x-6' : 'translate-x-1'
+                                  'relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary-default focus:ring-offset-2',
+                                  is_active ? 'bg-success-default' : 'bg-slate-300'
                                 )}
-                              />
-                            </button>
+                              >
+                                <span
+                                  className={Cn(
+                                    'inline-block h-4 w-4 transform rounded-full bg-white shadow-sm transition-transform',
+                                    is_active ? 'translate-x-6' : 'translate-x-1'
+                                  )}
+                                />
+                              </button>
+                            ) : null}
                             <span
                               className={Cn(
                                 'text-xs font-semibold',
@@ -838,12 +864,16 @@ export function AdminUsers() {
                           </div>
                         </td>
                         <td className="px-6 py-4 text-right">
-                          <button
-                            onClick={() => OpenEditUser(user)}
-                            className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-blue-700 transition-colors"
-                          >
-                            <Edit3 size={14} /> Editar
-                          </button>
+                          {can_write_users ? (
+                            <button
+                              onClick={() => OpenEditUser(user)}
+                              className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-blue-700 transition-colors"
+                            >
+                              <Edit3 size={14} /> Editar
+                            </button>
+                          ) : (
+                            <span className="text-xs text-slate-400">Solo lectura</span>
+                          )}
                         </td>
                       </tr>
                     );

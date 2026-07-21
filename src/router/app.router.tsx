@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 
 // Auth
@@ -15,8 +15,60 @@ import { LandingPage } from '@/pages/landing.page';
 // Layouts
 import { UsersLayout } from '@/layouts/users.layout';
 import { PORTAL_CONFIGS } from '@/router/portal.config';
-import { ProtectedRoute, PublicOnlyRoute } from '@/router/protected.route';
+import { GetPermissionExtras } from '@/router/permission.features';
+import { ProtectedRoute, PublicOnlyRoute, PermissionRoute } from '@/router/protected.route';
 import { SettingsPage } from '@/pages/settings/settings.page';
+import { useAuthStore } from '@/stores/auth.store';
+
+function PortalRoutes() {
+  const permissions = useAuthStore((s) => s.permissions);
+
+  const portals = useMemo(
+    () =>
+      PORTAL_CONFIGS.map((portal) => {
+        const extras = GetPermissionExtras(portal.role, permissions, portal.base_path);
+        const existing = new Set(
+          portal.child_routes.map((r) => (r.index ? '__index__' : (r.path ?? '')))
+        );
+        const extra_routes = extras.child_routes.filter((r) => r.path && !existing.has(r.path));
+        return { portal, extra_routes };
+      }),
+    [permissions]
+  );
+
+  return (
+    <>
+      {portals.map(({ portal, extra_routes }) => (
+        <Route key={portal.role} element={<ProtectedRoute allowed_roles={[portal.role]} />}>
+          <Route path={portal.base_path} element={<UsersLayout />}>
+            {portal.child_routes.map((childRoute) =>
+              childRoute.index ? (
+                <Route key={`${portal.role}-index`} index element={childRoute.element} />
+              ) : (
+                <Route
+                  key={`${portal.role}-${childRoute.path}`}
+                  path={childRoute.path}
+                  element={childRoute.element}
+                />
+              )
+            )}
+            {extra_routes.map((childRoute) => (
+              <Route
+                key={`${portal.role}-extra-${childRoute.path}`}
+                path={childRoute.path}
+                element={
+                  <PermissionRoute path_suffix={childRoute.path!}>
+                    {childRoute.element}
+                  </PermissionRoute>
+                }
+              />
+            ))}
+          </Route>
+        </Route>
+      ))}
+    </>
+  );
+}
 
 export function AppRouter() {
   return (
@@ -44,23 +96,7 @@ export function AppRouter() {
         </Route>
       </Route>
 
-      {PORTAL_CONFIGS.map((portal) => (
-        <Route key={portal.role} element={<ProtectedRoute allowed_roles={[portal.role]} />}>
-          <Route path={portal.base_path} element={<UsersLayout />}>
-            {portal.child_routes.map((childRoute) =>
-              childRoute.index ? (
-                <Route key={`${portal.role}-index`} index element={childRoute.element} />
-              ) : (
-                <Route
-                  key={`${portal.role}-${childRoute.path}`}
-                  path={childRoute.path}
-                  element={childRoute.element}
-                />
-              )
-            )}
-          </Route>
-        </Route>
-      ))}
+      <PortalRoutes />
 
       {/* Catch-all redirect */}
       <Route path="*" element={<Navigate to="/" replace />} />

@@ -3,9 +3,10 @@ import { LogOut, User, Menu, X, Settings } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useAuthStore, type Role } from '@/stores/auth.store';
 import { PORTAL_CONFIG_BY_ROLE, resolvePortalRole } from '@/router/portal.config';
+import { GetPermissionExtras } from '@/router/permission.features';
 
 export function UsersLayout() {
-  const { user, Logout } = useAuthStore();
+  const { user, permissions, Logout, RefreshPermissions } = useAuthStore();
   const navigate = useNavigate();
   const location = useLocation();
   const [mobile_menu_open, set_mobile_menu_open] = useState(false);
@@ -17,6 +18,17 @@ export function UsersLayout() {
     [location.pathname, user?.role]
   );
   const layout = PORTAL_CONFIG_BY_ROLE[active_role];
+
+  const nav_items = useMemo(() => {
+    const extras = GetPermissionExtras(active_role, permissions, layout.base_path);
+    const base = layout.nav_items;
+    const base_tos = new Set(base.map((i) => i.to));
+    return [...base, ...extras.nav_items.filter((i) => !base_tos.has(i.to))];
+  }, [active_role, permissions, layout]);
+
+  useEffect(() => {
+    void RefreshPermissions();
+  }, [RefreshPermissions]);
 
   useEffect(() => {
     const HandleClickOutside = (event: MouseEvent) => {
@@ -65,7 +77,7 @@ export function UsersLayout() {
         </div>
 
         <nav className="hidden xl:flex items-center gap-2 p-1 rounded-full bg-transparent border border-transparent">
-          {layout.nav_items.map((item) => (
+          {nav_items.map((item) => (
             <NavLink
               key={item.to}
               to={item.to}
@@ -80,13 +92,21 @@ export function UsersLayout() {
           ))}
         </nav>
 
-        <div className="flex items-center gap-4">
-          <div className="relative" ref={dropdown_ref}>
+        <div className="flex items-center gap-3">
+          <div className="relative hidden sm:block" ref={dropdown_ref}>
             <button
               onClick={() => set_dropdown_open(!dropdown_open)}
-              className="flex items-center justify-center w-10 h-10 rounded-full text-neutral-100 bg-neutral-50/10 hover:bg-primary-dark hover:text-neutral-50 active:bg-secondary-dark"
+              className="flex items-center gap-3 pl-2 pr-4 py-2 rounded-full bg-primary-dark/40 hover:bg-primary-dark transition-colors"
             >
-              <User size={16} />
+              <div className="w-9 h-9 rounded-full bg-secondary-default flex items-center justify-center text-neutral-50 font-bold text-sm">
+                {user?.first_name?.[0] || <User size={16} />}
+              </div>
+              <div className="text-left hidden md:block">
+                <p className="text-sm font-semibold text-neutral-50 leading-tight">
+                  {user?.first_name ?? 'Usuario'}
+                </p>
+                <p className="text-[0.65rem] text-neutral-200">{layout.badge_label}</p>
+              </div>
             </button>
 
             {dropdown_open && (
@@ -137,32 +157,37 @@ export function UsersLayout() {
       {mobile_menu_open && (
         <div className="xl:hidden fixed inset-0 z-40 pt-20 px-4 pb-6 flex flex-col bg-neutral-50/95">
           <nav className="flex-1 space-y-2 mt-4 text-left">
-            {layout.nav_items.map((item) => (
+            {nav_items.map((item) => (
               <NavLink
                 key={item.to}
                 to={item.to}
                 end={item.end}
                 onClick={() => set_mobile_menu_open(false)}
                 className={({ isActive }) =>
-                  `flex items-center gap-3 px-4 py-4 rounded-2xl text-base font-semibold ${isActive ? 'text-neutral-50 bg-secondary-default' : 'text-neutral-700 hover:bg-primary-dark hover:text-neutral-50'}`
+                  `flex items-center gap-3 px-4 py-3 rounded-xl font-semibold ${
+                    isActive
+                      ? 'bg-primary-default text-neutral-50'
+                      : 'text-neutral-800 hover:bg-primary-light/20'
+                  }`
                 }
               >
-                <item.icon size={20} />
+                <item.icon size={18} />
                 {item.label}
               </NavLink>
             ))}
           </nav>
+          <button
+            onClick={HandleLogout}
+            className="mt-4 flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-error-default text-neutral-50 font-semibold"
+          >
+            <LogOut size={18} /> Cerrar Sesión
+          </button>
         </div>
       )}
 
-      <main className="flex-1 w-full max-w-7xl mx-auto p-4 md:p-8 relative z-10">
+      <main className="flex-1">
         <Outlet />
       </main>
-
-      <div className="fixed top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
-        <div className="absolute top-[10%] right-[-10%] w-[40%] h-[50%] rounded-full opacity-[0.03] blur-[120px] bg-primary-default" />
-        <div className="absolute bottom-[-20%] left-[-10%] w-[50%] h-[50%] rounded-full opacity-[0.02] blur-[100px] bg-primary-default" />
-      </div>
     </div>
   );
 }
