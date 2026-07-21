@@ -6,6 +6,7 @@ import { AuthLayout } from '@/layouts/auth.layout';
 import { SignInPage } from '@/pages/auth/signin.page';
 import { SignUpPage } from '@/pages/auth/signup.page';
 import { EmailCodePage } from '@/pages/auth/email.code.page';
+import { VerifyEmailPage } from '@/pages/auth/verify-email.page';
 import { ForgotPasswordPage } from '@/pages/auth/forgot.password.page';
 import { ResetPasswordPage } from '@/pages/auth/reset.password.page';
 
@@ -49,6 +50,7 @@ export function AppRouter() {
           <Route path="signup" element={<SignUpPage />} />
           <Route path="register" element={<Navigate to="/auth/signup" replace />} />
           <Route path="signup/email-code" element={<EmailCodePage />} />
+          <Route path="verify-email" element={<VerifyEmailPage />} />
           <Route path="forgot-password" element={<ForgotPasswordPage />} />
           <Route path="reset-password" element={<ResetPasswordPage />} />
         </Route>

@@ -465,6 +465,11 @@ export const auth_api = {
     api.post('/verification/verify-email', { email, code }),
   ResendVerificationCode: (email: string) => api.post('/verification/resend-code', { email }),
   ResendVerificationLink: (email: string) => api.post('/verification/resend-link', { email }),
+  ConfirmEmailToken: (token: string) =>
+    api.post<{ success: boolean; message: string; email: string }>(
+      '/verification/confirm-email-token',
+      { token }
+    ),
 
   CompleteProfile: (user_id: string, data: object) => api.patch(`/users/${user_id}`, data),
 
@@ -716,7 +721,15 @@ export const users_api = {
     roleName: string;
     cedula?: string;
     direction?: string;
+    permissionIds?: string[];
   }) => api.post('/users/institutional', data),
+
+  ListPendingInvitations: () => api.get('/users/invitations/pending'),
+
+  ResendInvitation: (email: string) => api.post('/users/invitations/resend', { email }),
+
+  CancelInvitation: (email: string) =>
+    api.delete(`/users/invitations/${encodeURIComponent(email)}`),
 
   Update: (
     id: string,

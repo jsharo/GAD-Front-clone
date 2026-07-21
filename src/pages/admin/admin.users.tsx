@@ -39,6 +39,17 @@ interface AdminUser {
   updated_at: string;
 }
 
+interface PendingInvitation {
+  id: string;
+  email: string;
+  name: string | null;
+  lastname: string | null;
+  cedula: string | null;
+  roleName: string;
+  expiresAt: string;
+  createdAt: string;
+}
+
 interface AdminUserWire {
   id: string;
   email: string;
@@ -244,9 +255,15 @@ async function CreateInstitutionalUser(payload: {
   roleName: string;
   cedula?: string;
   direction?: string;
+  permissionIds?: string[];
 }) {
   const response = await users_api.CreateStaff(payload);
-  return (response.data as { success: boolean; user: { id: string } }).user;
+  return response.data as {
+    success: boolean;
+    pending: boolean;
+    message: string;
+    invitation: { email: string; expiresAt: string };
+  };
 }
 
 async function UpdateUserProfile(
@@ -337,6 +354,7 @@ export function AdminUsers() {
   }, [can_manage_roles, active_tab]);
 
   const [users, set_users] = useState<AdminUser[]>([]);
+  const [pending_invitations, set_pending_invitations] = useState<PendingInvitation[]>([]);
   const [roles, set_roles] = useState<RoleRecord[]>([]);
   const [permissions, set_permissions] = useState<PermissionRecord[]>([]);
 
@@ -397,6 +415,19 @@ export function AdminUsers() {
     }
   }, [role_filter, AddToast]);
 
+  const FetchPendingInvitations = useCallback(async () => {
+    if (!can_write_users) return;
+    try {
+      const response = await users_api.ListPendingInvitations();
+      set_pending_invitations(
+        ((response.data as { success: boolean; data: PendingInvitation[] }).data ??
+          []) as PendingInvitation[]
+      );
+    } catch {
+      set_pending_invitations([]);
+    }
+  }, [can_write_users]);
+
   useEffect(() => {
     FetchRoles();
     FetchPermissions();
@@ -405,6 +436,10 @@ export function AdminUsers() {
   useEffect(() => {
     FetchUsers();
   }, [FetchUsers]);
+
+  useEffect(() => {
+    FetchPendingInvitations();
+  }, [FetchPendingInvitations]);
 
   const assignable_roles = useMemo(
     () => roles.filter((role) => IsAssignableRole(role.name)),
@@ -563,7 +598,7 @@ export function AdminUsers() {
           set_error('Temporary password is required');
           return;
         }
-        const created_user = await CreateInstitutionalUser({
+        await CreateInstitutionalUser({
           email: user_form.email.trim(),
           password: user_form.password,
           name: user_form.name.trim(),
@@ -571,10 +606,9 @@ export function AdminUsers() {
           roleName: user_form.role,
           cedula: user_form.national_id.trim() || undefined,
           direction: contact || undefined,
+          permissionIds: user_form.permission_ids,
         });
-        if (user_form.permission_ids.length > 0) {
-          await SyncUserPermissions(created_user.id, user_form.permission_ids);
-        }
+        await FetchPendingInvitations();
         await FetchUsers();
       }
       if (editing_user?.id && auth_user?.id && editing_user.id === auth_user.id) {
@@ -587,7 +621,7 @@ export function AdminUsers() {
         type: 'success',
         message: editing_user
           ? 'User updated successfully'
-          : 'User created. A verification email with a confirmation link was sent.',
+          : 'Invitation sent. The account will be created after email verification.',
       });
     } catch (err: unknown) {
       const message = GetErrorMessage(err, 'Error saving user');
@@ -661,6 +695,31 @@ export function AdminUsers() {
       });
     } catch (err: unknown) {
       const message = GetErrorMessage(err, 'Could not send verification email');
+      AddToast({ type: 'error', message });
+    }
+  };
+
+  const HandleResendPendingInvitation = async (invitation: PendingInvitation) => {
+    try {
+      await users_api.ResendInvitation(invitation.email);
+      await FetchPendingInvitations();
+      AddToast({
+        type: 'success',
+        message: `Verification email sent to ${invitation.email}`,
+      });
+    } catch (err: unknown) {
+      const message = GetErrorMessage(err, 'Could not send verification email');
+      AddToast({ type: 'error', message });
+    }
+  };
+
+  const HandleCancelPendingInvitation = async (invitation: PendingInvitation) => {
+    try {
+      await users_api.CancelInvitation(invitation.email);
+      await FetchPendingInvitations();
+      AddToast({ type: 'success', message: `Invitation cancelled for ${invitation.email}` });
+    } catch (err: unknown) {
+      const message = GetErrorMessage(err, 'Could not cancel invitation');
       AddToast({ type: 'error', message });
     }
   };
@@ -823,6 +882,48 @@ export function AdminUsers() {
               ))}
             </select>
           </div>
+
+          {can_write_users && pending_invitations.length > 0 && (
+            <div className="mb-6 rounded-xl border border-amber-200 bg-amber-50/60 p-4">
+              <h3 className="text-sm font-bold text-amber-900 mb-3">
+                Pending email verification ({pending_invitations.length})
+              </h3>
+              <div className="space-y-2">
+                {pending_invitations.map((invitation) => (
+                  <div
+                    key={invitation.id}
+                    className="flex flex-col gap-2 rounded-lg border border-amber-100 bg-white px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
+                  >
+                    <div>
+                      <p className="font-semibold text-slate-800">
+                        {invitation.name || 'No name'} {invitation.lastname || ''}
+                      </p>
+                      <p className="text-xs text-slate-500">
+                        {invitation.email} · {FormatRoleDisplayName(invitation.roleName)} · expires{' '}
+                        {FormatDateTime(invitation.expiresAt)}
+                      </p>
+                    </div>
+                    <div className="flex gap-3">
+                      <button
+                        type="button"
+                        onClick={() => HandleResendPendingInvitation(invitation)}
+                        className="text-xs font-semibold text-primary-default hover:text-primary-dark"
+                      >
+                        Resend
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => HandleCancelPendingInvitation(invitation)}
+                        className="text-xs font-semibold text-red-600 hover:text-red-700"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           <div className="overflow-x-auto rounded-xl border border-surface-border">
             <table className="w-full text-sm text-left">
