@@ -11,6 +11,7 @@ import {
   IsPresetFullySelected,
   ResolvePresetPermissionIds,
 } from '@/lib/permissions';
+import { IsStrongPasswordValue, PASSWORD_REQUIREMENTS_HINT } from '@/lib/password';
 import { PageHeader } from '@/components/ui/page.header';
 import { AlertBanner } from '@/components/ui/alert.banner';
 import { LoadingSkeleton } from '@/components/ui/loading.skeleton';
@@ -530,6 +531,11 @@ export function AdminUsers() {
       const contact = user_form.direction.trim();
       if (contact && contact.length !== 10) {
         set_error('El contacto debe ser un número de celular de 10 dígitos');
+        return;
+      }
+
+      if (user_form.password && !IsStrongPasswordValue(user_form.password)) {
+        set_error(PASSWORD_REQUIREMENTS_HINT);
         return;
       }
 
@@ -1129,6 +1135,7 @@ export function AdminUsers() {
               <label className="input-label normal-case">
                 {editing_user ? 'Nueva contraseña (opcional)' : 'Contraseña temporal *'}
               </label>
+              <p className="text-xs text-slate-500 mb-1">{PASSWORD_REQUIREMENTS_HINT}</p>
               <input
                 required={!editing_user}
                 type="password"

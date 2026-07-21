@@ -8,13 +8,14 @@ import { AlertCircle, Eye, EyeOff } from 'lucide-react';
 import { auth_api } from '@/lib/api.calls';
 import { GetApiError } from '@/lib/errors';
 import { AlertBanner } from '@/components/ui/alert.banner';
+import { PASSWORD_REQUIREMENTS_HINT, StrongPasswordSchema } from '@/lib/password';
 
 const CODE_LENGTH = 6;
 
 const ResetSchema = z
   .object({
-    password: z.string().min(8, 'Minimum 8 characters'),
-    confirmPassword: z.string().min(8, 'Minimum 8 characters'),
+    password: StrongPasswordSchema,
+    confirmPassword: z.string().min(8, 'Mínimo 8 caracteres'),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: 'Passwords do not match',
@@ -140,6 +141,7 @@ export function ResetPasswordPage() {
             <label className="block text-xs font-bold text-neutral-500 tracking-widest mb-2">
               Nueva contraseña
             </label>
+            <p className="text-[0.7rem] text-neutral-500 mb-2">{PASSWORD_REQUIREMENTS_HINT}</p>
             <div className="relative">
               <input
                 {...register('password')}

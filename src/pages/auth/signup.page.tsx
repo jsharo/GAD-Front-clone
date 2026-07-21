@@ -7,6 +7,7 @@ import { Eye, EyeOff, AlertCircle } from 'lucide-react';
 import { GetApiError } from '@/lib/errors';
 import { AlertBanner } from '@/components/ui/alert.banner';
 import { useAuthStore } from '@/stores/auth.store';
+import { PASSWORD_REQUIREMENTS_HINT, StrongPasswordSchema } from '@/lib/password';
 
 /**
  * Signup aligns with backend CreateUserDto:
@@ -16,8 +17,8 @@ import { useAuthStore } from '@/stores/auth.store';
 const SignUpSchema = z
   .object({
     email: z.string().email('Invalid email address'),
-    password: z.string().min(8, 'Minimum 8 characters'),
-    confirmPassword: z.string().min(8, 'Minimum 8 characters'),
+    password: StrongPasswordSchema,
+    confirmPassword: z.string().min(8, 'Mínimo 8 caracteres'),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: 'Passwords do not match',
@@ -120,6 +121,7 @@ export function SignUpPage() {
             <label className="block text-xs font-bold text-neutral-500 tracking-widest mb-2">
               Password
             </label>
+            <p className="text-[0.7rem] text-neutral-500 mb-2">{PASSWORD_REQUIREMENTS_HINT}</p>
             <div className="relative">
               <input
                 {...register('password')}
