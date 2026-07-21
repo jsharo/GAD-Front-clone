@@ -5,7 +5,12 @@ import { FormatDateTime, Cn } from '@/lib/utils';
 import { BaseModal } from '@/components/logic/base.modal';
 import { useToastStore } from '@/stores/toast.store';
 import { useAuthStore } from '@/stores/auth.store';
-import { PERMISSIONS } from '@/lib/permissions';
+import {
+  PERMISSIONS,
+  PERMISSION_PRESETS,
+  IsPresetFullySelected,
+  ResolvePresetPermissionIds,
+} from '@/lib/permissions';
 import { PageHeader } from '@/components/ui/page.header';
 import { AlertBanner } from '@/components/ui/alert.banner';
 import { LoadingSkeleton } from '@/components/ui/loading.skeleton';
@@ -693,6 +698,49 @@ export function AdminUsers() {
     }));
   };
 
+  const ApplyUserPreset = (permission_names: string[]) => {
+    const allow_ids = additional_permissions_for_form.map((p) => p.id);
+    const preset_ids = ResolvePresetPermissionIds(permissions, permission_names, allow_ids);
+    if (preset_ids.length === 0) {
+      AddToast({
+        type: 'warning',
+        message: 'Ese paquete ya está cubierto por el rol o no hay permisos disponibles.',
+      });
+      return;
+    }
+    set_user_form((prev) => {
+      const fully = IsPresetFullySelected(prev.permission_ids, preset_ids);
+      if (fully) {
+        return {
+          ...prev,
+          permission_ids: prev.permission_ids.filter((id) => !preset_ids.includes(id)),
+        };
+      }
+      return {
+        ...prev,
+        permission_ids: [...new Set([...prev.permission_ids, ...preset_ids])],
+      };
+    });
+  };
+
+  const ApplyRolePreset = (permission_names: string[]) => {
+    const preset_ids = ResolvePresetPermissionIds(permissions, permission_names);
+    if (preset_ids.length === 0) return;
+    set_role_form((prev) => {
+      const fully = IsPresetFullySelected(prev.permission_ids, preset_ids);
+      if (fully) {
+        return {
+          ...prev,
+          permission_ids: prev.permission_ids.filter((id) => !preset_ids.includes(id)),
+        };
+      }
+      return {
+        ...prev,
+        permission_ids: [...new Set([...prev.permission_ids, ...preset_ids])],
+      };
+    });
+  };
+
   const is_any_modal_open = show_user_modal || show_role_modal || show_delete_role_modal;
 
   const TabButtonClass = (tab: AdminTab) =>
@@ -1140,8 +1188,43 @@ export function AdminUsers() {
             <div>
               <label className="input-label normal-case">Permisos adicionales</label>
               <p className="text-xs text-slate-500 mb-2">
-                Solo para este usuario. No se repiten los que ya trae el rol.
+                Solo para este usuario. No se repiten los que ya trae el rol. Usa un paquete para
+                marcar el conjunto recomendado de una vez.
               </p>
+              <div className="flex flex-wrap gap-2 mb-3">
+                {PERMISSION_PRESETS.map((preset) => {
+                  const allow_ids = additional_permissions_for_form.map((p) => p.id);
+                  const preset_ids = ResolvePresetPermissionIds(
+                    permissions,
+                    preset.permissions,
+                    allow_ids
+                  );
+                  const active = IsPresetFullySelected(user_form.permission_ids, preset_ids);
+                  const disabled = preset_ids.length === 0;
+                  return (
+                    <button
+                      key={preset.id}
+                      type="button"
+                      disabled={disabled}
+                      title={
+                        disabled
+                          ? 'Ya cubierto por el rol o sin permisos disponibles'
+                          : `${preset.description} (${preset.permissions.join(', ')})`
+                      }
+                      onClick={() => ApplyUserPreset(preset.permissions)}
+                      className={Cn(
+                        'px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors',
+                        disabled && 'opacity-40 cursor-not-allowed',
+                        active
+                          ? 'bg-primary-default text-white border-primary-default'
+                          : 'bg-white text-slate-700 border-slate-200 hover:border-primary-default hover:text-primary-default'
+                      )}
+                    >
+                      {preset.label}
+                    </button>
+                  );
+                })}
+              </div>
               <div className="max-h-32 overflow-y-auto rounded-xl border border-surface-border p-2 space-y-1">
                 {additional_permissions_for_form.length === 0 ? (
                   <p className="text-sm text-slate-500">
@@ -1235,6 +1318,35 @@ export function AdminUsers() {
           </div>
           <div>
             <label className="input-label normal-case">Permisos asignados</label>
+            <p className="text-xs text-slate-500 mb-2">
+              Usa un paquete para marcar el conjunto recomendado; luego ajusta permisos sueltos si
+              hace falta.
+            </p>
+            <div className="flex flex-wrap gap-2 mb-3">
+              {PERMISSION_PRESETS.map((preset) => {
+                const preset_ids = ResolvePresetPermissionIds(permissions, preset.permissions);
+                const active = IsPresetFullySelected(role_form.permission_ids, preset_ids);
+                const disabled = preset_ids.length === 0;
+                return (
+                  <button
+                    key={preset.id}
+                    type="button"
+                    disabled={disabled}
+                    title={`${preset.description} (${preset.permissions.join(', ')})`}
+                    onClick={() => ApplyRolePreset(preset.permissions)}
+                    className={Cn(
+                      'px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors',
+                      disabled && 'opacity-40 cursor-not-allowed',
+                      active
+                        ? 'bg-primary-default text-white border-primary-default'
+                        : 'bg-white text-slate-700 border-slate-200 hover:border-primary-default hover:text-primary-default'
+                    )}
+                  >
+                    {preset.label}
+                  </button>
+                );
+              })}
+            </div>
             <div className="max-h-36 overflow-y-auto rounded-xl border border-surface-border p-2 space-y-1">
               {permissions.length === 0 ? (
                 <p className="text-sm text-slate-500">
