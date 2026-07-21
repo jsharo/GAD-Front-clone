@@ -13,6 +13,9 @@ export function GetApiError(err: unknown, fallback: string): string {
       if (message === 'Email not verified') {
         return 'Debes verificar tu correo antes de iniciar sesión.';
       }
+      if (message === 'User is inactive') {
+        return 'Usuario inactivado.';
+      }
       if (message === 'Invalid email or password') {
         return 'Credenciales incorrectas.';
       }

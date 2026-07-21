@@ -17,6 +17,7 @@ import { AlertBanner } from '@/components/ui/alert.banner';
 import { LoadingSkeleton } from '@/components/ui/loading.skeleton';
 import { EmptyState } from '@/components/ui/empty.state';
 import { SearchInput } from '@/components/ui/search.input';
+import { FormatRoleDisplayName, IsAssignableRole } from '@/lib/roles';
 
 type AdminTab = 'users' | 'roles';
 
@@ -130,15 +131,6 @@ const EMPTY_ROLE_FORM: RoleFormState = {
   permission_ids: [],
 };
 
-const ROLE_LABELS: Record<string, string> = {
-  ADMINISTRATOR: 'Administrador',
-  TECHNICIAN: 'Técnico',
-  SECRETARY: 'Secretaria',
-  FINANCIAL: 'Financiero',
-  USER: 'Profesional',
-  CITIZEN: 'Ciudadano',
-};
-
 const PERMISSION_MODULE_LABELS: Record<string, string> = {
   users: 'Usuarios',
   requests: 'Solicitudes',
@@ -166,13 +158,6 @@ function GetErrorMessage(err: unknown, fallback: string) {
   const raw_message = axios_error.response?.data?.message;
   if (Array.isArray(raw_message)) return raw_message.join(', ');
   return raw_message || fallback;
-}
-
-function FormatRoleDisplayName(name: string): string {
-  const labeled = ROLE_LABELS[name];
-  if (labeled) return labeled;
-  if (!name) return name;
-  return name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
 }
 
 interface UserPermissionBreakdown {
@@ -419,15 +404,20 @@ export function AdminUsers() {
     FetchUsers();
   }, [FetchUsers]);
 
+  const assignable_roles = useMemo(
+    () => roles.filter((role) => IsAssignableRole(role.name)),
+    [roles]
+  );
+
   const role_options = useMemo(
     () =>
-      roles.map((role) => ({
+      assignable_roles.map((role) => ({
         value: role.name,
         label: role.description
           ? `${FormatRoleDisplayName(role.name)} — ${role.description}`
           : FormatRoleDisplayName(role.name),
       })),
-    [roles]
+    [assignable_roles]
   );
 
   const filtered_users = useMemo(() => {
@@ -444,12 +434,12 @@ export function AdminUsers() {
 
   const filtered_roles = useMemo(() => {
     const q = role_search.trim().toLowerCase();
-    if (!q) return roles;
-    return roles.filter(
+    if (!q) return assignable_roles;
+    return assignable_roles.filter(
       (role) =>
         role.name.toLowerCase().includes(q) || (role.description ?? '').toLowerCase().includes(q)
     );
-  }, [role_search, roles]);
+  }, [role_search, assignable_roles]);
 
   const selected_role_permission_ids = useMemo(
     () => GetRolePermissionIdsForName(user_form.role, roles),
@@ -802,7 +792,7 @@ export function AdminUsers() {
               className="input-field md:max-w-xs"
             >
               <option value="">Todos los roles</option>
-              {roles.map((role) => (
+              {assignable_roles.map((role) => (
                 <option key={role.id} value={role.name}>
                   {FormatRoleDisplayName(role.name)}
                 </option>
