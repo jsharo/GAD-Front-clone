@@ -27,6 +27,7 @@ import { PROCEDURE_TYPE_LABELS } from '@/lib/constants/procedure.types';
 import { PageHeader } from '@/components/ui/page.header';
 import { AlertBanner } from '@/components/ui/alert.banner';
 import api from '@/lib/api';
+import { CedulaValidationMessage } from '@/lib/cedula';
 
 type ProcedureType = 'BUILDING_LINE' | 'PLAN_APPROVAL' | 'CONSTRUCTION_PERMIT';
 
@@ -166,6 +167,11 @@ export function NewProcedure() {
   const SearchCitizen = async () => {
     if (!national_id_search || national_id_search.length !== 10) {
       set_error('La cédula debe tener 10 dígitos');
+      return;
+    }
+    const cedula_error = CedulaValidationMessage(national_id_search);
+    if (cedula_error) {
+      set_error(cedula_error);
       return;
     }
     set_is_searching(true);

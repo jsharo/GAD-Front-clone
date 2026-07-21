@@ -18,6 +18,8 @@ import { LoadingSkeleton } from '@/components/ui/loading.skeleton';
 import { EmptyState } from '@/components/ui/empty.state';
 import { SearchInput } from '@/components/ui/search.input';
 import { FormatRoleDisplayName, IsAssignableRole } from '@/lib/roles';
+import { CedulaValidationMessage } from '@/lib/cedula';
+import { GetApiError } from '@/lib/errors';
 
 type AdminTab = 'users' | 'roles';
 
@@ -154,10 +156,7 @@ function FormatPermissionLabel(name: string): string {
 }
 
 function GetErrorMessage(err: unknown, fallback: string) {
-  const axios_error = err as { response?: { data?: { message?: string | string[] } } };
-  const raw_message = axios_error.response?.data?.message;
-  if (Array.isArray(raw_message)) return raw_message.join(', ');
-  return raw_message || fallback;
+  return GetApiError(err, fallback);
 }
 
 interface UserPermissionBreakdown {
@@ -527,6 +526,15 @@ export function AdminUsers() {
       if (user_form.password && !IsStrongPasswordValue(user_form.password)) {
         set_error(PASSWORD_REQUIREMENTS_HINT);
         return;
+      }
+
+      const cedula = user_form.national_id.trim();
+      if (cedula) {
+        const cedula_error = CedulaValidationMessage(cedula);
+        if (cedula_error) {
+          set_error(cedula_error);
+          return;
+        }
       }
 
       if (editing_user) {
@@ -1097,10 +1105,20 @@ export function AdminUsers() {
               <label className="input-label normal-case">Cédula</label>
               <input
                 className="input-field"
+                inputMode="numeric"
                 maxLength={10}
+                placeholder="10 dígitos"
                 value={user_form.national_id}
-                onChange={(e) => set_user_form({ ...user_form, national_id: e.target.value })}
+                onChange={(e) =>
+                  set_user_form({
+                    ...user_form,
+                    national_id: e.target.value.replace(/\D/g, '').slice(0, 10),
+                  })
+                }
               />
+              <p className="text-xs text-slate-500 mt-1">
+                Se valida como cédula ecuatoriana real (dígito verificador).
+              </p>
             </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

@@ -16,6 +16,7 @@ import {
   HelpCircle,
 } from 'lucide-react';
 import { applications_api } from '@/lib/api.calls';
+import { CedulaValidationMessage } from '@/lib/cedula';
 import { BaseModal } from '@/components/logic/base.modal';
 
 const STATS = [
@@ -115,6 +116,13 @@ export function LandingPage() {
 
     try {
       const is_email = search_val.includes('@');
+      if (!is_email) {
+        const cedula_error = CedulaValidationMessage(search_val.trim());
+        if (cedula_error) {
+          set_error_msg(cedula_error);
+          return;
+        }
+      }
       const params = is_email ? { email: search_val.trim() } : { national_id: search_val.trim() };
 
       const { data } = await applications_api.PublicTracking(params);

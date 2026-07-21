@@ -23,8 +23,27 @@ export function GetApiError(err: unknown, fallback: string): string {
     }
     if (response?.status === 403) return 'No tiene permisos para realizar esta acción.';
     if (response?.status === 404) return 'El expediente o documento no fue encontrado.';
+    if (response?.status === 409) {
+      if (message === 'Esta cédula ya está registrada en el sistema.') {
+        return message;
+      }
+      if (message === 'Email is already registered') {
+        return 'Este correo ya está registrado en el sistema.';
+      }
+    }
+    if (typeof message === 'string') {
+      if (message.includes('cedula must be a valid Ecuadorian national ID number')) {
+        return 'La cédula no es válida. Debe ser un número de identidad ecuatoriano real.';
+      }
+      if (message.includes('La cédula no es válida')) {
+        return message;
+      }
+      if (message.includes('Esta cédula ya está registrada')) {
+        return message;
+      }
+      return message;
+    }
     if (Array.isArray(msg)) return msg.join(', ');
-    if (typeof msg === 'string') return msg;
   }
   return fallback;
 }
