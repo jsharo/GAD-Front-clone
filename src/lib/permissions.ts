@@ -22,7 +22,7 @@ export const PERMISSION_PRESETS: Array<{
   {
     id: 'users-management',
     label: 'Gestión de usuarios',
-    description: 'Ver listado y crear/editar usuarios',
+    description: 'Ver y crear/editar usuarios (incluye listar roles para el formulario)',
     permissions: [PERMISSIONS.USERS_READ, PERMISSIONS.USERS_WRITE],
   },
   {

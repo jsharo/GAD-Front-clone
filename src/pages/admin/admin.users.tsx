@@ -548,12 +548,8 @@ export function AdminUsers() {
           await AssignUserRole(editing_user.id, user_form.role);
         }
         const sync_result = await SyncUserPermissions(editing_user.id, user_form.permission_ids);
-        if (sync_result.ignored_because_in_role.length > 0) {
-          AddToast({
-            type: 'warning',
-            message: `${sync_result.ignored_because_in_role.length} permiso(s) ya vienen del rol y no se guardaron como adicionales.`,
-          });
-        }
+        // Permissions already granted by the role are skipped silently (expected).
+        void sync_result;
         await FetchUsers();
       } else {
         if (!user_form.password) {
@@ -570,13 +566,7 @@ export function AdminUsers() {
           direction: contact || undefined,
         });
         if (user_form.permission_ids.length > 0) {
-          const sync_result = await SyncUserPermissions(created_user.id, user_form.permission_ids);
-          if (sync_result.ignored_because_in_role.length > 0) {
-            AddToast({
-              type: 'warning',
-              message: `${sync_result.ignored_because_in_role.length} permiso(s) ya vienen del rol y no se guardaron como adicionales.`,
-            });
-          }
+          await SyncUserPermissions(created_user.id, user_form.permission_ids);
         }
         await FetchUsers();
       }
@@ -702,10 +692,7 @@ export function AdminUsers() {
     const allow_ids = additional_permissions_for_form.map((p) => p.id);
     const preset_ids = ResolvePresetPermissionIds(permissions, permission_names, allow_ids);
     if (preset_ids.length === 0) {
-      AddToast({
-        type: 'warning',
-        message: 'Ese paquete ya está cubierto por el rol o no hay permisos disponibles.',
-      });
+      // Already covered by the selected role — nothing to add as "additional".
       return;
     }
     set_user_form((prev) => {
