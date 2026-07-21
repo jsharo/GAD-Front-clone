@@ -11,7 +11,7 @@ export function GetApiError(err: unknown, fallback: string): string {
 
     if (response?.status === 401) {
       if (message === 'Email not verified') {
-        return 'You must verify your email before signing in.';
+        return 'Unable to sign in. Contact your administrator if the problem continues.';
       }
       if (message === 'User is inactive') {
         return 'User account is inactive.';

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { ClipboardEvent, KeyboardEvent } from 'react';
-import { AlertCircle, BadgeCheck, Info, Mail, Plus, Settings, Trash2, User } from 'lucide-react';
+import { AlertCircle, Info, Mail, Plus, Settings, Trash2, User } from 'lucide-react';
 import { users_api } from '@/lib/api.calls';
 import { GetApiError } from '@/lib/errors';
 import { PageHeader } from '@/components/ui/page.header';
@@ -431,11 +431,7 @@ export function SettingsPage() {
                     />
                   </div>
 
-                  <div className="pt-2 border-t border-neutral-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                    <div className="flex items-center gap-2 text-xs text-neutral-500">
-                      <BadgeCheck size={14} />
-                      Primary email {profile?.emailVerified ? 'verified' : 'pending verification'}
-                    </div>
+                  <div className="pt-2 border-t border-neutral-200 flex flex-col sm:flex-row sm:items-center justify-end gap-3">
                     {can_edit_profile && (
                       <button
                         type="submit"
