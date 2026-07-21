@@ -1,13 +1,14 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Eye, EyeOff, AlertCircle } from 'lucide-react';
+import { Eye, EyeOff, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { GetApiError } from '@/lib/errors';
 import { AlertBanner } from '@/components/ui/alert.banner';
 import { useAuthStore } from '@/stores/auth.store';
 import { ROLE_HOME } from '@/router/portal.config';
+import { auth_api } from '@/lib/api.calls';
 
 const SignInSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -17,27 +18,77 @@ type SignInForm = z.infer<typeof SignInSchema>;
 
 export function SignInPage() {
   const navigate = useNavigate();
+  const [search_params, set_search_params] = useSearchParams();
   const Login = useAuthStore((s) => s.Login);
   const [show_pass, set_show_pass] = useState(false);
   const [is_loading, set_is_loading] = useState(false);
+  const [is_resending, set_is_resending] = useState(false);
   const [error, set_error] = useState<string | null>(null);
+  const [success, set_success] = useState<string | null>(null);
+  const [pending_verification_email, set_pending_verification_email] = useState<string | null>(
+    null
+  );
 
   const {
     register,
     handleSubmit,
     formState: { errors },
+    getValues,
   } = useForm<SignInForm>({
     resolver: zodResolver(SignInSchema),
   });
 
+  useEffect(() => {
+    const verified = search_params.get('verified');
+    if (verified === '1') {
+      set_success('Your email was verified successfully. You can now sign in.');
+      set_error(null);
+      search_params.delete('verified');
+      search_params.delete('reason');
+      set_search_params(search_params, { replace: true });
+      return;
+    }
+    if (verified === '0') {
+      set_error('The verification link is invalid or has expired. Request a new one below.');
+      search_params.delete('verified');
+      search_params.delete('reason');
+      set_search_params(search_params, { replace: true });
+    }
+  }, [search_params, set_search_params]);
+
+  const HandleResendVerificationLink = async () => {
+    const email = pending_verification_email || getValues('email')?.trim();
+    if (!email) {
+      set_error('Enter your email address to resend the verification link.');
+      return;
+    }
+
+    set_is_resending(true);
+    set_error(null);
+    try {
+      await auth_api.ResendVerificationLink(email);
+      set_success('If the account needs verification, a new link was sent to your email.');
+    } catch (err) {
+      set_error(GetApiError(err, 'Could not resend the verification link.'));
+    } finally {
+      set_is_resending(false);
+    }
+  };
+
   const OnSubmit = async (data: SignInForm) => {
     set_error(null);
+    set_success(null);
+    set_pending_verification_email(null);
     set_is_loading(true);
     try {
       const role = await Login(data.email, data.password);
       navigate(ROLE_HOME[role], { replace: true });
     } catch (err) {
-      set_error(GetApiError(err, 'Error logging in'));
+      const message = GetApiError(err, 'Error logging in');
+      if (message.includes('verify your email')) {
+        set_pending_verification_email(data.email.trim());
+      }
+      set_error(message);
     } finally {
       set_is_loading(false);
     }
@@ -46,7 +97,6 @@ export function SignInPage() {
   return (
     <div className="flex-1 flex items-center justify-center px-8 py-16 bg-neutral-100 overflow-y-auto">
       <div className="w-full max-w-xs my-auto">
-        {/* Mobile logo */}
         <div className="lg:hidden flex flex-col items-center mb-8">
           <img
             src="/logo-gad.png"
@@ -59,19 +109,44 @@ export function SignInPage() {
           </p>
         </div>
 
-        {/* Title */}
         <h1 className="font-heading font-black text-neutral-900 mb-10 text-[1.9rem] tracking-[-0.02em]">
           Sign In
         </h1>
 
-        {/* Global error */}
+        {success && (
+          <AlertBanner
+            message={success}
+            variant="success"
+            OnDismiss={() => set_success(null)}
+            className="mb-6"
+          />
+        )}
+
         {error && (
           <AlertBanner message={error} OnDismiss={() => set_error(null)} className="mb-6" />
         )}
 
-        {/* Form */}
+        {pending_verification_email && (
+          <div className="mb-6 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+            <p className="flex items-start gap-2">
+              <CheckCircle2 size={16} className="mt-0.5 shrink-0" />
+              <span>
+                Check your inbox for the verification email and click <strong>Verify email</strong>{' '}
+                before signing in.
+              </span>
+            </p>
+            <button
+              type="button"
+              onClick={HandleResendVerificationLink}
+              disabled={is_resending}
+              className="mt-3 text-sm font-semibold text-primary-default hover:text-primary-dark disabled:opacity-50"
+            >
+              {is_resending ? 'Sending link...' : 'Resend verification link'}
+            </button>
+          </div>
+        )}
+
         <form onSubmit={handleSubmit(OnSubmit)} className="space-y-4">
-          {/* Email */}
           <div>
             <label className="block text-xs font-bold text-neutral-500 tracking-widest mb-2">
               Email
@@ -92,7 +167,6 @@ export function SignInPage() {
             )}
           </div>
 
-          {/* Password */}
           <div>
             <label className="block text-xs font-bold text-neutral-500 tracking-widest mb-2">
               Password
@@ -130,7 +204,6 @@ export function SignInPage() {
             </div>
           </div>
 
-          {/* Main button */}
           <button
             type="submit"
             id="signin-submit"
@@ -139,17 +212,10 @@ export function SignInPage() {
               is_loading ? 'bg-neutral-400/50' : 'bg-primary-default hover:bg-primary-dark'
             }`}
           >
-            {is_loading ? (
-              <span>Loading...</span>
-            ) : (
-              <>
-                <span>Sign In</span>
-              </>
-            )}
+            {is_loading ? <span>Loading...</span> : <span>Sign In</span>}
           </button>
         </form>
 
-        {/* Register link */}
         <div className="mt-5 text-center">
           <span className="text-sm text-neutral-500">Don't have an account? </span>
           <Link
@@ -161,7 +227,6 @@ export function SignInPage() {
           </Link>
         </div>
 
-        {/* Footer */}
         <p className="text-center mt-6 text-neutral-400 text-[0.65rem]">
           © {new Date().getFullYear()} GAD Municipal de Cañar
         </p>

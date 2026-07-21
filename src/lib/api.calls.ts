@@ -464,6 +464,7 @@ export const auth_api = {
   VerifyEmail: (email: string, code: string) =>
     api.post('/verification/verify-email', { email, code }),
   ResendVerificationCode: (email: string) => api.post('/verification/resend-code', { email }),
+  ResendVerificationLink: (email: string) => api.post('/verification/resend-link', { email }),
 
   CompleteProfile: (user_id: string, data: object) => api.patch(`/users/${user_id}`, data),
 
@@ -731,6 +732,8 @@ export const users_api = {
 
   UpdateStatus: (id: string, status: 'ACTIVE' | 'INACTIVE') =>
     api.patch(`/users/${id}/status`, { status }),
+
+  ResendVerification: (id: string) => api.post(`/users/${id}/resend-verification`),
 
   UpdateTechnicianZone: (id: string, zone: 'URBAN' | 'RURAL' | null) =>
     api.patch(`/users/${id}`, { zone }),

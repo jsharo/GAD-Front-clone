@@ -33,6 +33,7 @@ interface AdminUser {
   national_id: string | null;
   direction: string | null;
   status: UserStatus;
+  email_verified: boolean;
   role: string | null;
   created_at: string;
   updated_at: string;
@@ -46,6 +47,7 @@ interface AdminUserWire {
   cedula: string | null;
   direction: string | null;
   status: UserStatus;
+  emailVerified: boolean;
   role: string | null;
   createdAt: string;
   updatedAt: string;
@@ -207,10 +209,11 @@ function MapRoleRecord(raw: RoleRecordWire): RoleRecord {
 
 function MapAdminUser(raw: AdminUserWire): AdminUser {
   const status: UserStatus = raw.status === 'INACTIVE' ? 'INACTIVE' : 'ACTIVE';
-  const { cedula, createdAt, updatedAt, ...rest } = raw;
+  const { cedula, createdAt, updatedAt, emailVerified, ...rest } = raw;
   return {
     ...rest,
     national_id: cedula ?? null,
+    email_verified: emailVerified,
     status,
     created_at: createdAt,
     updated_at: updatedAt,
@@ -582,7 +585,9 @@ export function AdminUsers() {
       set_user_form(EMPTY_USER_FORM);
       AddToast({
         type: 'success',
-        message: editing_user ? 'User updated successfully' : 'User created successfully',
+        message: editing_user
+          ? 'User updated successfully'
+          : 'User created. A verification email with a confirmation link was sent.',
       });
     } catch (err: unknown) {
       const message = GetErrorMessage(err, 'Error saving user');
@@ -643,6 +648,19 @@ export function AdminUsers() {
     } catch (err: unknown) {
       const message = GetErrorMessage(err, 'Error changing status');
       set_error(message);
+      AddToast({ type: 'error', message });
+    }
+  };
+
+  const HandleResendVerification = async (user: AdminUser) => {
+    try {
+      await users_api.ResendVerification(user.id);
+      AddToast({
+        type: 'success',
+        message: `Verification email sent to ${user.email}`,
+      });
+    } catch (err: unknown) {
+      const message = GetErrorMessage(err, 'Could not send verification email');
       AddToast({ type: 'error', message });
     }
   };
@@ -894,16 +912,32 @@ export function AdminUsers() {
                             >
                               {is_active ? 'Active' : 'Inactive'}
                             </span>
+                            {!user.email_verified && (
+                              <span className="text-[10px] font-semibold uppercase tracking-wide text-amber-700">
+                                Email pending
+                              </span>
+                            )}
                           </div>
                         </td>
                         <td className="px-6 py-4 text-right">
                           {can_write_users ? (
-                            <button
-                              onClick={() => OpenEditUser(user)}
-                              className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-blue-700 transition-colors"
-                            >
-                              <Edit3 size={14} /> Edit
-                            </button>
+                            <div className="inline-flex flex-col items-end gap-2">
+                              <button
+                                onClick={() => OpenEditUser(user)}
+                                className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-blue-700 transition-colors"
+                              >
+                                <Edit3 size={14} /> Edit
+                              </button>
+                              {!user.email_verified && (
+                                <button
+                                  type="button"
+                                  onClick={() => HandleResendVerification(user)}
+                                  className="text-xs font-semibold text-primary-default hover:text-primary-dark"
+                                >
+                                  Resend verification
+                                </button>
+                              )}
+                            </div>
                           ) : (
                             <span className="text-xs text-slate-400">Read only</span>
                           )}
