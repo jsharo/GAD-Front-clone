@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
 import { useAuthStore, type Role } from '@/stores/auth.store';
 import { ROLE_HOME } from '@/router/portal.config';
@@ -38,7 +39,7 @@ export function PermissionRoute({
   children,
 }: {
   path_suffix: string;
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
   const { user, permissions } = useAuthStore();
   const feature = PERMISSION_FEATURES.find(

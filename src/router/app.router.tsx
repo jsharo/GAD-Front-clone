@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import { useMemo } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 
 // Auth
@@ -20,7 +20,7 @@ import { ProtectedRoute, PublicOnlyRoute, PermissionRoute } from '@/router/prote
 import { SettingsPage } from '@/pages/settings/settings.page';
 import { useAuthStore } from '@/stores/auth.store';
 
-function PortalRoutes() {
+export function AppRouter() {
   const permissions = useAuthStore((s) => s.permissions);
 
   const portals = useMemo(
@@ -37,7 +37,31 @@ function PortalRoutes() {
   );
 
   return (
-    <>
+    <Routes>
+      {/* Public Routes */}
+      <Route path="/" element={<LandingPage />} />
+
+      {/* Auth Routes */}
+      <Route element={<PublicOnlyRoute />}>
+        <Route path="/auth" element={<AuthLayout />}>
+          <Route path="signin" element={<SignInPage />} />
+          <Route path="login" element={<Navigate to="/auth/signin" replace />} />
+          <Route path="signup" element={<SignUpPage />} />
+          <Route path="register" element={<Navigate to="/auth/signup" replace />} />
+          <Route path="signup/email-code" element={<EmailCodePage />} />
+          <Route path="forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="reset-password" element={<ResetPasswordPage />} />
+        </Route>
+      </Route>
+
+      {/* Settings — any authenticated role */}
+      <Route element={<ProtectedRoute />}>
+        <Route path="/settings" element={<UsersLayout />}>
+          <Route index element={<SettingsPage />} />
+        </Route>
+      </Route>
+
+      {/* Portal routes must be direct children of <Routes> */}
       {portals.map(({ portal, extra_routes }) => (
         <Route key={portal.role} element={<ProtectedRoute allowed_roles={[portal.role]} />}>
           <Route path={portal.base_path} element={<UsersLayout />}>
@@ -66,37 +90,6 @@ function PortalRoutes() {
           </Route>
         </Route>
       ))}
-    </>
-  );
-}
-
-export function AppRouter() {
-  return (
-    <Routes>
-      {/* Public Routes */}
-      <Route path="/" element={<LandingPage />} />
-
-      {/* Auth Routes */}
-      <Route element={<PublicOnlyRoute />}>
-        <Route path="/auth" element={<AuthLayout />}>
-          <Route path="signin" element={<SignInPage />} />
-          <Route path="login" element={<Navigate to="/auth/signin" replace />} />
-          <Route path="signup" element={<SignUpPage />} />
-          <Route path="register" element={<Navigate to="/auth/signup" replace />} />
-          <Route path="signup/email-code" element={<EmailCodePage />} />
-          <Route path="forgot-password" element={<ForgotPasswordPage />} />
-          <Route path="reset-password" element={<ResetPasswordPage />} />
-        </Route>
-      </Route>
-
-      {/* Settings — any authenticated role */}
-      <Route element={<ProtectedRoute />}>
-        <Route path="/settings" element={<UsersLayout />}>
-          <Route index element={<SettingsPage />} />
-        </Route>
-      </Route>
-
-      <PortalRoutes />
 
       {/* Catch-all redirect */}
       <Route path="*" element={<Navigate to="/" replace />} />
